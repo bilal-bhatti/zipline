@@ -76,7 +76,6 @@ func isSupportedMethod(obj types.Object) bool {
 }
 
 func isRestifyImport(path string) bool {
-	// TODO(light): This is depending on details of the current loader.
 	const vendorPart = "vendor/"
 	if i := strings.LastIndex(path, vendorPart); i != -1 && (i == 0 || path[i-1] == '/') {
 		path = path[i+len(vendorPart):]
@@ -177,8 +176,7 @@ func load() []*packages.Package {
 		Mode:       packages.LoadAllSyntax,
 		Dir:        wd,
 		Env:        os.Environ(),
-		BuildFlags: []string{"-tags=restified"},
-		// TODO(light): Use ParseFile to skip function bodies and comments in indirect packages.
+		BuildFlags: []string{"-tags=ziplinegen"},
 	}
 
 	// Package pattern to search

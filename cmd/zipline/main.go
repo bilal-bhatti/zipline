@@ -10,14 +10,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	internal "zipline/internal"
+	"github.com/bilal-bhatti/zipline/internal"
 
 	"github.com/pkg/errors"
 	"golang.org/x/tools/go/packages"
 )
 
 func main() {
-	// parser := restify.NewStdPackageParser()
 	zipline := internal.NewZipline()
 
 	zipline.Start()
@@ -53,7 +52,6 @@ func importPackage(p *packages.Package) {
 }
 
 func isRestifyImport(path string) bool {
-	// TODO(light): This is depending on details of the current loader.
 	const vendorPart = "vendor/"
 	if i := strings.LastIndex(path, vendorPart); i != -1 && (i == 0 || path[i-1] == '/') {
 		path = path[i+len(vendorPart):]
@@ -106,7 +104,7 @@ func findPackages() ([]string, error) {
 	}
 
 	pkgs := []string{}
-	for k, _ := range dirs {
+	for k := range dirs {
 		pkgs = append(pkgs, path.Join(goSrc, k))
 	}
 
