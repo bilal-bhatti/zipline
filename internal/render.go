@@ -17,8 +17,6 @@ type renderer struct {
 }
 
 func newRenderer() *renderer {
-	// f := j.NewFile("services")
-
 	r := &renderer{
 		imports:  make([]string, 0),
 		types:    make([]string, 0),
