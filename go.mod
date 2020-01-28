@@ -1,4 +1,4 @@
-module zipline
+module github.com/bilal-bhatti/zipline
 
 go 1.13
 
