@@ -155,10 +155,10 @@ func printBinding(b *binding) {
 	log.Println("path", b.path)
 	log.Println("method", b.method)
 	for _, p := range b.handler.params {
-		log.Println("p", p.Name, p.Type)
+		log.Println("p", p.name, p.signature)
 	}
 	for _, r := range b.handler.returns {
-		log.Println("r", r.Name, r.Type)
+		log.Println("r", r.name, r.signature)
 	}
 }
 
@@ -222,17 +222,17 @@ func newFromSelectorExpr(info *types.Info, handler *ast.SelectorExpr) *handlerIn
 
 	for i := 0; i < sig.Params().Len(); i++ {
 		p := sig.Params().At(i)
-		hi.params = append(hi.params, &BindingVar{
-			Name: p.Name(),
-			Type: p.Type().String(),
+		hi.params = append(hi.params, &varToken{
+			name:      p.Name(),
+			signature: p.Type().String(),
 		})
 	}
 
 	for i := 0; i < sig.Results().Len(); i++ {
 		r := sig.Results().At(i)
-		hi.returns = append(hi.returns, &BindingVar{
-			Name: r.Name(),
-			Type: r.Type().String(),
+		hi.returns = append(hi.returns, &varToken{
+			name:      r.Name(),
+			signature: r.Type().String(),
 		})
 	}
 
@@ -254,17 +254,17 @@ func newFromIdent(info *types.Info, handler *ast.Ident) *handlerInfo {
 
 	for i := 0; i < sig.Params().Len(); i++ {
 		p := sig.Params().At(i)
-		hi.params = append(hi.params, &BindingVar{
-			Name: p.Name(),
-			Type: p.Type().String(),
+		hi.params = append(hi.params, &varToken{
+			name:      p.Name(),
+			signature: p.Type().String(),
 		})
 	}
 
 	for i := 0; i < sig.Results().Len(); i++ {
 		r := sig.Results().At(i)
-		hi.returns = append(hi.returns, &BindingVar{
-			Name: r.Name(),
-			Type: r.Type().String(),
+		hi.returns = append(hi.returns, &varToken{
+			name:      r.Name(),
+			signature: r.Type().String(),
 		})
 	}
 
