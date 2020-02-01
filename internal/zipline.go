@@ -126,13 +126,13 @@ func (z *Zipline) prepare(packet *packet) {
 										}
 									}
 								} else {
-									log.Println("Somethinger other than call to zipling found")
+									log.Println("Somethinger other than call to zipline found")
 								}
 							}
 						}
 					}
 				default:
-					log.Println("Unhandled exp type", reflect.TypeOf(expType))
+					log.Println("Unhandled expression type", reflect.TypeOf(expType))
 				}
 			}
 		}
@@ -199,7 +199,7 @@ func newFromIdent(pkg *packages.Package, handler *ast.Ident) *handlerInfo {
 
 	var id bytes.Buffer
 
-	id.WriteString(strings.Title(obj.Pkg().Name()))
+	// id.WriteString(strings.Title(obj.Pkg().Name()))
 	if sig.Recv() != nil {
 		rcvr := sig.Recv().Type().String()
 		idx := strings.LastIndex(rcvr, ".")

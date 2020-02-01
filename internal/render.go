@@ -24,7 +24,9 @@ type renderer struct {
 }
 
 func (r *renderer) imp(imp string) {
-	r.imps = append(r.imps, "\""+imp+"\"")
+	if imp != "" {
+		r.imps = append(r.imps, "\""+imp+"\"")
+	}
 }
 
 func newRenderer(provider *provider) *renderer {
@@ -126,9 +128,7 @@ func (r *renderer) post(binding *binding) {
 		ft := r.provider.provide(p)
 		if ft != nil {
 			r.writeProvider(p, ft)
-			if ft.pkg() != "" {
-				r.imp(ft.pkg())
-			}
+			r.imp(ft.pkg())
 		} else if pathParam(binding, p) {
 			r.writePathParam(p)
 		} else {
@@ -137,9 +137,8 @@ func (r *renderer) post(binding *binding) {
 
 		params = append(params, p.varName())
 
-		if p.pkg() != "" {
-			r.imp(p.pkg())
-		}
+		r.imp(p.pkg())
+
 		r.ws("\n")
 	}
 
@@ -177,15 +176,14 @@ func (r *renderer) get(binding *binding) {
 		ft := r.provider.provide(p)
 		if ft != nil {
 			r.writeProvider(p, ft)
+			r.imp(ft.pkg())
 		} else if pathParam(binding, p) {
 			r.writePathParam(p)
 		}
 
 		params = append(params, p.varName())
+		r.imp(p.pkg())
 
-		if p.pkg() != "" {
-			r.imp(p.pkg())
-		}
 		r.ws("\n")
 	}
 
