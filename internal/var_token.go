@@ -8,7 +8,7 @@ import (
 )
 
 type varToken struct {
-	name, signature string
+	cpkg, name, signature string
 }
 
 func (vt varToken) isPointer() bool {
@@ -51,6 +51,10 @@ func (vt varToken) inst() string {
 		vn = strings.Trim(vn[idx:len(vn)], "/")
 	}
 
+	// remove package prefix if same
+	vn = strings.TrimPrefix(vn, vt.cpkg)
+	vn = strings.TrimPrefix(vn, ".")
+
 	b.WriteString(vn)
 	b.WriteString("{}")
 
@@ -85,6 +89,10 @@ func (vt varToken) param() string {
 	if idx > 0 {
 		vn = strings.Trim(vn[idx:len(vn)], "/")
 	}
+
+	// remove package prefix if same
+	vn = strings.TrimPrefix(vn, vt.cpkg)
+	vn = strings.TrimPrefix(vn, ".")
 
 	b.WriteString(vn)
 

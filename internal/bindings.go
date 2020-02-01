@@ -7,11 +7,12 @@ type (
 	}
 
 	handlerInfo struct {
+		id      string
 		params  []*varToken
 		returns []*varToken
 	}
 )
 
 func (b binding) id() string {
-	return "XYZ"
+	return b.handler.id
 }

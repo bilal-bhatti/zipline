@@ -107,10 +107,8 @@ func isBindingSpecNode(info *types.Info, fn ast.Node) bool {
 		// check the receiver is the package spec
 		if x, ok := selExp.X.(*ast.Ident); !ok {
 			return true
-		} else {
-			if x.Name != "zipline" {
-				return true
-			}
+		} else if x.Name != "zipline" {
+			return true
 		}
 
 		// // verify arguments
