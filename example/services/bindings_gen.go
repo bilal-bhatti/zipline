@@ -16,23 +16,23 @@ import (
 )
 
 type (
-	ServicesContactsServiceCreateType func(context.Context, *models.ContactRequest) (*models.ContactResponse, error)
-	ServicesContactsServiceGetOneType func(int) (*models.ContactResponse, error)
-	ServicesContactsServiceUpdateType func(context.Context, int, models.ContactRequest) (*models.ContactResponse, error)
-	ServicesEchoType                  func(EchoRequest) (EchoResponse, error)
+	ContactsServiceCreateType func(context.Context, *models.ContactRequest) (*models.ContactResponse, error)
+	ContactsServiceGetOneType func(int) (*models.ContactResponse, error)
+	ContactsServiceUpdateType func(context.Context, int, models.ContactRequest) (*models.ContactResponse, error)
+	EchoType                  func(EchoRequest) (EchoResponse, error)
 )
 
 func NewRouter() *chi.Mux {
 	mux := chi.NewRouter()
 	contacts := &ContactsService{}
-	mux.Post("/contacts", ServicesContactsServiceCreateHandlerFunc(contacts.Create))
-	mux.Get("/contacts/{id}", ServicesContactsServiceGetOneHandlerFunc(contacts.GetOne))
-	mux.Post("/contacts/{id}", ServicesContactsServiceUpdateHandlerFunc(contacts.Update))
-	mux.Post("/echo", ServicesEchoHandlerFunc(Echo))
+	mux.Post("/contacts", ContactsServiceCreateHandlerFunc(contacts.Create))
+	mux.Get("/contacts/{id}", ContactsServiceGetOneHandlerFunc(contacts.GetOne))
+	mux.Post("/contacts/{id}", ContactsServiceUpdateHandlerFunc(contacts.Update))
+	mux.Post("/echo", EchoHandlerFunc(Echo))
 	return mux
 }
 
-func ServicesContactsServiceCreateHandlerFunc(funk ServicesContactsServiceCreateType) http.HandlerFunc {
+func ContactsServiceCreateHandlerFunc(funk ContactsServiceCreateType) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		var err error // tempory fix
 
@@ -63,7 +63,7 @@ func ServicesContactsServiceCreateHandlerFunc(funk ServicesContactsServiceCreate
 	}
 }
 
-func ServicesContactsServiceGetOneHandlerFunc(funk ServicesContactsServiceGetOneType) http.HandlerFunc {
+func ContactsServiceGetOneHandlerFunc(funk ContactsServiceGetOneType) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		var err error // tempory fix
 
@@ -90,7 +90,7 @@ func ServicesContactsServiceGetOneHandlerFunc(funk ServicesContactsServiceGetOne
 	}
 }
 
-func ServicesContactsServiceUpdateHandlerFunc(funk ServicesContactsServiceUpdateType) http.HandlerFunc {
+func ContactsServiceUpdateHandlerFunc(funk ContactsServiceUpdateType) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		var err error // tempory fix
 
@@ -127,7 +127,7 @@ func ServicesContactsServiceUpdateHandlerFunc(funk ServicesContactsServiceUpdate
 	}
 }
 
-func ServicesEchoHandlerFunc(funk ServicesEchoType) http.HandlerFunc {
+func EchoHandlerFunc(funk EchoType) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		var err error // tempory fix
 
