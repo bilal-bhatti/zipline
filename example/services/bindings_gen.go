@@ -24,10 +24,9 @@ type (
 
 func NewRouter() *chi.Mux {
 	mux := chi.NewRouter()
-	contacts := &ContactsService{}
-	mux.Post("/contacts", ContactsServiceCreateHandlerFunc(contacts.Create))
-	mux.Get("/contacts/{id}", ContactsServiceGetOneHandlerFunc(contacts.GetOne))
-	mux.Post("/contacts/{id}", ContactsServiceUpdateHandlerFunc(contacts.Update))
+	mux.Post("/contacts", ContactsServiceCreateHandlerFunc(InitContactsService().Create))
+	mux.Get("/contacts/{id}", ContactsServiceGetOneHandlerFunc(InitContactsService().GetOne))
+	mux.Post("/contacts/{id}", ContactsServiceUpdateHandlerFunc(InitContactsService().Update))
 	mux.Post("/echo", EchoHandlerFunc(Echo))
 	return mux
 }

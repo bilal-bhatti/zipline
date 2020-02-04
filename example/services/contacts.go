@@ -3,10 +3,12 @@ package services
 import (
 	"context"
 
+	"github.com/bilal-bhatti/zipline/example/connectors"
 	"github.com/bilal-bhatti/zipline/example/models"
 )
 
 type ContactsService struct {
+	DataConnector *connectors.DataConnector
 }
 
 func (cs ContactsService) Create(ctx context.Context, contactRequest *models.ContactRequest) (*models.ContactResponse, error) {

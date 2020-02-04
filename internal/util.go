@@ -69,7 +69,7 @@ func isZiplineImport(path string) bool {
 	if i := strings.LastIndex(path, vendorPart); i != -1 && (i == 0 || path[i-1] == '/') {
 		path = path[i+len(vendorPart):]
 	}
-	return path == "github.com/bilal-bhatti/zipline/pkg"
+	return path == "github.com/bilal-bhatti/zipline"
 }
 
 func qualifiedIdentObject(info *types.Info, expr ast.Expr) types.Object {

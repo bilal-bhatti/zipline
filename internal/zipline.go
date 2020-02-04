@@ -3,6 +3,7 @@ package internal
 import (
 	"bytes"
 	"go/ast"
+	"go/token"
 	"go/types"
 	"io/ioutil"
 	"log"
@@ -121,6 +122,7 @@ func (z *Zipline) prepare(packet *packet) {
 											binding := z.processStatement(packet.pkg, stmtType)
 
 											handler := astcopy.Expr(expType.Args[i])
+											parseZiplineExpression(handler)
 
 											expType.Args[i] = newCallExpression(binding, handler)
 										}
@@ -143,6 +145,14 @@ func (z *Zipline) processStatement(pkg *packages.Package, stmt *ast.ExprStmt) *b
 	binding := parseSpec(pkg, stmt)
 	z.renderer.render(binding)
 	return binding
+}
+
+func parseZiplineExpression(e ast.Expr) {
+	// zipline := e.(*ast.CallExpr)
+	// print("replace", zipline)
+	// print("arg", zipline.Args[0])
+	// log.Println("arg type", reflect.TypeOf(zipline.Args[0]))
+	// ast.Print(token.NewFileSet(), zipline)
 }
 
 func newCallExpression(binding *binding, arg ast.Expr) *ast.CallExpr {
@@ -178,6 +188,7 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) *binding {
 		panic("invalid expression")
 	}
 
+	ast.Print(token.NewFileSet(), zipline.Args[0])
 	switch handler := zipline.Args[0].(type) {
 	case *ast.SelectorExpr:
 		binding.handler = newFromSelectorExpr(pkg, handler)
@@ -189,11 +200,15 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) *binding {
 }
 
 func newFromSelectorExpr(pkg *packages.Package, handler *ast.SelectorExpr) *handlerInfo {
+	obj := qualifiedIdentObject(pkg.TypesInfo, handler.X)
+	log.Println("X", obj)
+
 	return newFromIdent(pkg, handler.Sel)
 }
 
 func newFromIdent(pkg *packages.Package, handler *ast.Ident) *handlerInfo {
 	obj := qualifiedIdentObject(pkg.TypesInfo, handler)
+	log.Println("Sel", obj)
 
 	sig := obj.Type().(*types.Signature)
 
