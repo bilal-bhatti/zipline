@@ -70,10 +70,10 @@ func (z *Zipline) Start() {
 		}
 
 		od := strings.TrimPrefix(packet.pkg.PkgPath, root)
-		log.Println("cwd", cwd)
-		log.Println("pkg path", packet.pkg.PkgPath)
-		log.Println("source root", root)
-		log.Println("output dir", od)
+		// log.Println("cwd", cwd)
+		// log.Println("pkg path", packet.pkg.PkgPath)
+		// log.Println("source root", root)
+		// log.Println("output dir", od)
 
 		out := path.Join(cwd, od, "bindings_gen.go")
 
