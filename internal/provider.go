@@ -2,27 +2,34 @@ package internal
 
 import (
 	"go/types"
+	"strings"
 
 	"golang.org/x/tools/go/packages"
 )
 
 type provider struct {
 	pkgs  []*packages.Package
-	cache map[string]*types.Func
+	known map[string]*varToken
 }
 
 func newProvider(pkgs []*packages.Package) *provider {
+	known := make(map[string]*varToken)
+
+	known[HREQ.signature] = HREQ
+	known[HWRI.signature] = HWRI
+
 	return &provider{
 		pkgs:  pkgs,
-		cache: make(map[string]*types.Func),
+		known: known,
 	}
 }
 
-func (p provider) provide(vt *varToken) *funcToken {
-	if pf, ok := p.cache[vt.signature]; ok {
-		return &funcToken{cpkg: pf.Pkg().Name(), signature: pf.FullName()}
-	}
+func (p provider) varFor(vt *varToken) (*varToken, bool) {
+	v, ok := p.known[vt.signature]
+	return v, ok
+}
 
+func (p provider) provide(vt *varToken) *funcToken {
 	for _, pkg := range p.pkgs {
 		info := pkg.TypesInfo
 		for _, v := range info.Defs {
@@ -37,16 +44,38 @@ func (p provider) provide(vt *varToken) *funcToken {
 				continue
 			}
 
-			// match signature --- should be improved
-			// look for func that takes an http.Request type
-			// and returns the desired type
 			// TODO: handle error return
-			if sig.Params().Len() == 1 && sig.Results().Len() == 1 {
-				if vt.signature == sig.Results().At(0).Type().String() && hreq.signature == sig.Params().At(0).Type().String() {
-					// cache
-					p.cache[vt.signature] = pf
 
-					return &funcToken{cpkg: pf.Pkg().Name(), signature: pf.FullName()}
+			args := []*varToken{}
+
+			for i := 0; i < sig.Params().Len(); i++ {
+				param := sig.Params().At(i)
+				if arg, ok := p.known[strings.TrimPrefix(param.Type().String(), "*")]; !ok {
+					args = args[:0]
+					continue
+				} else {
+					args = append(args, arg)
+				}
+			}
+
+			for i := 0; i < sig.Results().Len(); i++ {
+				result := sig.Results().At(i)
+				if vt.sameType(result.Type().String()) {
+
+					rets := []*varToken{}
+					for j := 0; j < sig.Results().Len(); j++ {
+						ret := sig.Results().At(j)
+						token := newVarToken("", ret.Type().String(), vt.varName())
+						p.known[token.signature] = token
+						rets = append(rets, token)
+					}
+
+					return &funcToken{
+						cpkg:      pf.Pkg().Name(),
+						signature: pf.FullName(),
+						args:      args,
+						rets:      rets,
+					}
 				}
 			}
 		}

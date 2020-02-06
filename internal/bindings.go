@@ -11,6 +11,8 @@ type (
 
 	handlerInfo struct {
 		id      string
+		x       *varToken
+		sel     string
 		params  []*varToken
 		returns []*varToken
 	}

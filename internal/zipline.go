@@ -163,7 +163,7 @@ func newCallExpression(binding *binding, arg ast.Expr) *ast.CallExpr {
 		Fun: &ast.Ident{
 			Name: binding.id() + "HandlerFunc",
 		},
-		Args: arg.(*ast.CallExpr).Args,
+		// Args: arg.(*ast.CallExpr).Args,
 	}
 	return ce
 }
@@ -203,15 +203,22 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) *binding {
 }
 
 func newFromSelectorExpr(pkg *packages.Package, handler *ast.SelectorExpr) *handlerInfo {
-	// obj := qualifiedIdentObject(pkg.TypesInfo, handler.X)
-	// log.Println("X", obj)
+	hi := newFromIdent(pkg, handler.Sel)
 
-	return newFromIdent(pkg, handler.Sel)
+	_, ok := handler.X.(*ast.Ident)
+	if !ok {
+		panic("Zipline expression must contain a function selector")
+	}
+
+	obj := qualifiedIdentObject(pkg.TypesInfo, handler.X)
+
+	hi.x = newVarToken("", obj.Type().String(), "")
+
+	return hi
 }
 
 func newFromIdent(pkg *packages.Package, handler *ast.Ident) *handlerInfo {
 	obj := qualifiedIdentObject(pkg.TypesInfo, handler)
-	// log.Println("Sel", obj)
 
 	sig := obj.Type().(*types.Signature)
 
@@ -229,24 +236,19 @@ func newFromIdent(pkg *packages.Package, handler *ast.Ident) *handlerInfo {
 	}
 	id.WriteString(obj.Name())
 
-	hi := &handlerInfo{id: string(id.Bytes())}
+	hi := &handlerInfo{
+		id:  string(id.Bytes()),
+		sel: handler.String(),
+	}
 
 	for i := 0; i < sig.Params().Len(); i++ {
 		p := sig.Params().At(i)
-		hi.params = append(hi.params, &varToken{
-			cpkg:      pkg.Name,
-			name:      p.Name(),
-			signature: p.Type().String(),
-		})
+		hi.params = append(hi.params, newVarToken(pkg.Name, p.Type().String(), p.Name()))
 	}
 
 	for i := 0; i < sig.Results().Len(); i++ {
 		r := sig.Results().At(i)
-		hi.returns = append(hi.returns, &varToken{
-			cpkg:      pkg.Name,
-			name:      r.Name(),
-			signature: r.Type().String(),
-		})
+		hi.returns = append(hi.returns, newVarToken(pkg.Name, r.Type().String(), r.Name()))
 	}
 
 	return hi

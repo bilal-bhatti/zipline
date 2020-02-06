@@ -11,14 +11,14 @@ import (
 )
 
 var (
-	hreq = varToken{name: "req", signature: "*net/http.Request"}
-	hwri = varToken{name: "w", signature: "net/http.ResponseWriter"}
+	HREQ  = newVarToken("", "*net/http.Request", "request")
+	HWRI  = newVarToken("", "net/http.ResponseWriter", "responseWriter")
+	ERROR = newVarToken("", "error", "err")
 )
 
 type renderer struct {
 	provider *provider
 	imps     []string
-	types    []string
 	preamble *bytes.Buffer
 	body     *bytes.Buffer
 }
@@ -33,7 +33,6 @@ func newRenderer(provider *provider) *renderer {
 	r := &renderer{
 		provider: provider,
 		imps:     make([]string, 0),
-		types:    make([]string, 0),
 		preamble: &bytes.Buffer{},
 		body:     &bytes.Buffer{},
 	}
@@ -46,7 +45,7 @@ func (r *renderer) render(info *binding) {
 	case "Post":
 		r.post(info)
 	case "Get":
-		r.get(info)
+		r.post(info)
 	}
 }
 
@@ -88,9 +87,6 @@ func (r *renderer) complete(packet *packet) {
 	// write imports
 	r.pre("import (\n%s)\n\n", strings.Join(r.imps, "\n"))
 
-	// write handler types
-	r.pre("type (\n%s\n)\n\n", strings.Join(r.types, "\n"))
-
 	// write binding func
 	fset := token.NewFileSet()
 	var buf bytes.Buffer
@@ -116,22 +112,20 @@ func (r *renderer) print(w io.Writer, frmt bool) {
 }
 
 func (r *renderer) post(binding *binding) {
-	r.imp(hreq.pkg())
+	r.imp(HREQ.pkg())
 
-	r.recordFuncType(binding)
-	r.ws("func %sHandlerFunc(funk %sType) http.HandlerFunc {\n", binding.id(), binding.id())
-	r.ws("return func(%s %s, %s %s) {\n", hwri.varName(), hwri.param(), hreq.varName(), hreq.param())
+	r.ws("func %sHandlerFunc() http.HandlerFunc {\n", binding.id())
+	r.ws("return func(%s %s, %s %s) {\n", HWRI.varName(), HWRI.param(), HREQ.varName(), HREQ.param())
 	r.ws("var err error // tempory fix\n\n")
 
 	params := []string{}
 	for _, p := range binding.handler.params {
 		ft := r.provider.provide(p)
 		if ft != nil {
-			r.writeProvider(p, ft)
-			r.imp(ft.pkg())
+			r.writeProvider(ft)
 		} else if pathParam(binding, p) {
 			r.writePathParam(p)
-		} else {
+		} else if binding.method == "Post" {
 			r.writeJSONDecoder(p)
 		}
 
@@ -142,52 +136,19 @@ func (r *renderer) post(binding *binding) {
 		r.ws("\n")
 	}
 
-	r.ws("result, err := funk(%s)\n", strings.Join(params, ","))
+	if binding.handler.x != nil {
+		xp := r.provider.provide(binding.handler.x)
+		r.writeProvider(xp)
 
-	r.ws("if err != nil {\n")
-	r.ws("  // write error response\n")
-	r.ws("  // internal error\n")
-	r.ws("  panic(err)\n")
-	r.ws("}\n\n")
-
-	r.ws("%s.WriteHeader(http.StatusOK)\n", hwri.varName())
-	r.ws("%s.Header().Set(\"Content-Type\", \"text/plain; charset=utf-8\")\n", hwri.varName())
-
-	r.ws("err = json.NewEncoder(%s).Encode(result)\n", hwri.varName())
-	r.ws("if err != nil {\n")
-	r.ws("  // write error response\n")
-	r.ws("  panic(err)\n")
-	r.ws("}\n")
-
-	r.ws("}\n")
-	r.ws("}\n\n")
-}
-
-func (r *renderer) get(binding *binding) {
-	r.imp(hreq.pkg())
-
-	r.recordFuncType(binding)
-	r.ws("func %sHandlerFunc(funk %sType) http.HandlerFunc {\n", binding.id(), binding.id())
-	r.ws("return func(%s %s, %s %s) {\n", hwri.varName(), hwri.param(), hreq.varName(), hreq.param())
-	r.ws("var err error // tempory fix\n\n")
-
-	params := []string{}
-	for _, p := range binding.handler.params {
-		ft := r.provider.provide(p)
-		if ft != nil {
-			r.writeProvider(p, ft)
-			r.imp(ft.pkg())
-		} else if pathParam(binding, p) {
-			r.writePathParam(p)
+		funk, ok := r.provider.varFor(binding.handler.x)
+		if !ok {
+			panic("Dependencies not satisfied")
 		}
 
-		params = append(params, p.varName())
-		r.imp(p.pkg())
-
-		r.ws("\n")
+		r.ws("result, err := %s.%s(%s)\n", funk.varName(), binding.handler.sel, strings.Join(params, ","))
+	} else {
+		r.ws("result, err := %s(%s)\n", binding.handler.sel, strings.Join(params, ","))
 	}
-
-	r.ws("result, err := funk(%s)\n", strings.Join(params, ","))
 
 	r.ws("if err != nil {\n")
 	r.ws("  // write error response\n")
@@ -195,10 +156,10 @@ func (r *renderer) get(binding *binding) {
 	r.ws("  panic(err)\n")
 	r.ws("}\n\n")
 
-	r.ws("%s.WriteHeader(http.StatusOK)\n", hwri.varName())
-	r.ws("%s.Header().Set(\"Content-Type\", \"text/plain; charset=utf-8\")\n", hwri.varName())
+	r.ws("%s.WriteHeader(http.StatusOK)\n", HWRI.varName())
+	r.ws("%s.Header().Set(\"Content-Type\", \"text/plain; charset=utf-8\")\n", HWRI.varName())
 
-	r.ws("err = json.NewEncoder(%s).Encode(result)\n", hwri.varName())
+	r.ws("err = json.NewEncoder(%s).Encode(result)\n", HWRI.varName())
 	r.ws("if err != nil {\n")
 	r.ws("  // write error response\n")
 	r.ws("  panic(err)\n")
@@ -208,12 +169,13 @@ func (r *renderer) get(binding *binding) {
 	r.ws("}\n\n")
 }
 
-func (r *renderer) writeProvider(p *varToken, ft *funcToken) {
-	r.ws("%s := %s\n", p.varName(), ft.call(hreq.varName()))
+func (r *renderer) writeProvider(ft *funcToken) {
+	r.ws("%s\n\n", ft.call())
+	r.imp(ft.pkg())
 }
 
 func (r *renderer) writePathParam(p *varToken) {
-	r.ws("%s, err := strconv.Atoi(chi.URLParam(%s, \"%s\"))\n", p.name, hreq.varName(), p.name)
+	r.ws("%s, err := strconv.Atoi(chi.URLParam(%s, \"%s\"))\n", p.name, HREQ.varName(), p.name)
 	r.ws("if err != nil {\n")
 	r.ws("  // invalid request error\n")
 	r.ws("  panic(err)\n")
@@ -222,7 +184,7 @@ func (r *renderer) writePathParam(p *varToken) {
 
 func (r *renderer) writeJSONDecoder(p *varToken) {
 	r.ws("%s := %s\n", p.varName(), p.inst())
-	r.ws("err = json.NewDecoder(req.Body).Decode(%s)\n", p.varNameAsPointer())
+	r.ws("err = json.NewDecoder(%s.Body).Decode(%s)\n", HREQ.varName(), p.varNameAsPointer())
 	r.ws("if err != nil {\n")
 	r.ws("  // write error response\n")
 	r.ws("  // invalid request error\n")
@@ -230,10 +192,10 @@ func (r *renderer) writeJSONDecoder(p *varToken) {
 	r.ws("}\n\n")
 }
 
-func (r *renderer) recordFuncType(b *binding) {
-	tipe := fmt.Sprintf("%sType func(%s) (%s)", b.id(), join(b.handler.params), join(b.handler.returns))
-	r.types = append(r.types, tipe)
-}
+// func (r *renderer) recordFuncType(b *binding) {
+// 	tipe := fmt.Sprintf("%sType func(%s) (%s)", b.id(), join(b.handler.params), join(b.handler.returns))
+// 	r.types = append(r.types, tipe)
+// }
 
 func join(tokens []*varToken) string {
 	s := []string{}

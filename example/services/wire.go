@@ -8,5 +8,5 @@ import (
 )
 
 func InitContactsService() *ContactsService {
-	panic(wire.Build(connectors.ProvideDataConnector, ContactsService{}))
+	panic(wire.Build(connectors.ProvideDataConnector, wire.Struct(new(ContactsService), "*")))
 }

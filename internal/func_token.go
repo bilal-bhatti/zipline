@@ -8,6 +8,8 @@ import (
 
 type funcToken struct {
 	cpkg, signature string
+	args            []*varToken
+	rets            []*varToken
 }
 
 func (ft funcToken) pkg() string {
@@ -25,7 +27,7 @@ func (ft funcToken) pkg() string {
 	return pn
 }
 
-func (ft funcToken) call(param string) string {
+func (ft funcToken) call() string {
 	var b bytes.Buffer
 
 	var fn string
@@ -38,8 +40,18 @@ func (ft funcToken) call(param string) string {
 	// remove package prefix if same
 	fn = strings.TrimPrefix(fn, ft.cpkg)
 	fn = strings.TrimPrefix(fn, ".")
-	b.WriteString(fn)
-	b.WriteString(fmt.Sprintf("(%s)", param))
+
+	args := []string{}
+	for _, arg := range ft.args {
+		args = append(args, arg.varName())
+	}
+
+	rets := []string{}
+	for _, ret := range ft.rets {
+		rets = append(rets, ret.varName())
+	}
+
+	b.WriteString(fmt.Sprintf("%s := %s(%s)", strings.Join(rets, ","), fn, strings.Join(args, ",")))
 
 	return b.String()
 }

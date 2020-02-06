@@ -10,11 +10,13 @@ import (
 
 func NewRouter() *chi.Mux {
 	mux := chi.NewRouter()
+	mux.Use(Authentication)
+	
+	mux.Post("/contacts", zipline.Post(ContactsService.Create))
 
-	mux.Post("/contacts", zipline.Post(InitContactsService().Create))
-
-	mux.Get("/contacts/{id}", zipline.Get(InitContactsService().GetOne))
-	mux.Post("/contacts/{id}", zipline.Post(InitContactsService().Update))
+	mux.Get("/contacts/{id}", zipline.Get(ContactsService.GetOne))
+	mux.Get("/{month}-{day}-{year}", zipline.Get(ContactsService.GetByDate))
+	mux.Post("/contacts/{id}", zipline.Post(ContactsService.Update))
 
 	mux.Post("/echo", zipline.Post(Echo))
 

@@ -9,10 +9,23 @@ import (
 
 type varToken struct {
 	cpkg, name, signature string
+	isPtr                 bool
 }
 
-func (vt varToken) isPointer() bool {
-	return strings.HasPrefix(vt.signature, "*")
+func newVarToken(cpkg, signature, name string) *varToken {
+	vt := &varToken{
+		cpkg: cpkg,
+		name: name,
+	}
+
+	vt.isPtr = strings.HasPrefix(signature, "*")
+	vt.signature = strings.TrimPrefix(signature, "*")
+
+	return vt
+}
+
+func (vt varToken) sameType(signature string) bool {
+	return vt.signature == strings.TrimPrefix(signature, "*")
 }
 
 func (vt varToken) varName() string {
@@ -20,7 +33,7 @@ func (vt varToken) varName() string {
 		return vt.name
 	}
 
-	vn := strings.TrimPrefix(vt.signature, "*")
+	vn := vt.signature
 	idx := strings.LastIndex(vn, ".")
 
 	if idx > 0 {
@@ -31,7 +44,7 @@ func (vt varToken) varName() string {
 }
 
 func (vt varToken) varNameAsPointer() string {
-	if vt.isPointer() {
+	if vt.isPtr {
 		return vt.varName()
 	}
 
@@ -40,11 +53,11 @@ func (vt varToken) varNameAsPointer() string {
 
 func (vt varToken) inst() string {
 	var b bytes.Buffer
-	if vt.isPointer() {
+	if vt.isPtr {
 		b.WriteString("&")
 	}
 
-	vn := strings.TrimPrefix(vt.signature, "*")
+	vn := vt.signature
 	idx := strings.LastIndex(vn, "/")
 
 	if idx > 0 {
@@ -62,7 +75,7 @@ func (vt varToken) inst() string {
 }
 
 func (vt varToken) pkg() string {
-	pn := strings.TrimPrefix(vt.signature, "*")
+	pn := vt.signature
 
 	idx := strings.LastIndex(pn, ".")
 
@@ -79,11 +92,11 @@ func (vt varToken) pkg() string {
 
 func (vt varToken) param() string {
 	var b bytes.Buffer
-	if vt.isPointer() {
+	if vt.isPtr {
 		b.WriteString("*")
 	}
 
-	vn := strings.TrimPrefix(vt.signature, "*")
+	vn := vt.signature
 	idx := strings.LastIndex(vn, "/")
 
 	if idx > 0 {

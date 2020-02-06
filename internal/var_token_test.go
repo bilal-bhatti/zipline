@@ -61,9 +61,7 @@ var vts = []struct {
 
 func TestVarTokenParse(t *testing.T) {
 	for _, va := range vts {
-		vt := varToken{
-			signature: va.sig,
-		}
+		vt := newVarToken(va.pkg, va.sig, "")
 
 		assert.Equal(t, va.vn, vt.varName(), "Name should be same")
 		assert.Equal(t, va.vnp, vt.varNameAsPointer(), "Name as pointer should be same")

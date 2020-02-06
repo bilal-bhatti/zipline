@@ -2,9 +2,11 @@ package services
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/bilal-bhatti/zipline/example/connectors"
 	"github.com/bilal-bhatti/zipline/example/models"
+	"github.com/go-chi/chi"
 )
 
 type ContactsService struct {
@@ -20,5 +22,21 @@ func (cs ContactsService) Update(ctx context.Context, id int, contactRequest mod
 }
 
 func (cs ContactsService) GetOne(id int) (*models.ContactResponse, error) {
+	return &models.ContactResponse{Output: "Out"}, nil
+}
+
+type DateFilter struct {
+	Month, Day, Year string
+}
+
+func ProvideDateFilter(request *http.Request) DateFilter {
+	return DateFilter{
+		Month: chi.URLParam(request, "month"),
+		Day:   chi.URLParam(request, "day"),
+		Year:  chi.URLParam(request, "year"),
+	}
+}
+
+func (cs ContactsService) GetByDate(df DateFilter) (*models.ContactResponse, error) {
 	return &models.ContactResponse{Output: "Out"}, nil
 }
