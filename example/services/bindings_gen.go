@@ -7,8 +7,10 @@ package services
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/bilal-bhatti/zipline/example/models"
 	"github.com/go-chi/chi"
@@ -19,163 +21,248 @@ func NewRouter() *chi.Mux {
 	mux.Use(Authentication)
 	mux.Post("/contacts", ContactsServiceCreateHandlerFunc())
 	mux.Get("/contacts/{id}", ContactsServiceGetOneHandlerFunc())
-	mux.Get("/{month}-{day}-{year}", ContactsServiceGetByDateHandlerFunc())
+	mux.Get("/contacts/{month}-{day}-{year}", ContactsServiceGetByDateHandlerFunc())
 	mux.Post("/contacts/{id}", ContactsServiceUpdateHandlerFunc())
+	mux.Put("/contacts/{id}", ContactsServiceReplaceHandlerFunc())
 	mux.Post("/echo", EchoHandlerFunc())
 	return mux
 }
 
+// ContactsServiceCreateHandlerFunc handles requests to:
+// path  : /contacts
+// method: Post
 func ContactsServiceCreateHandlerFunc() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		var err error // tempory fix
+		var err error // temporary
 
+		log.Println("Processing post request")
+		startTime := time.Now()
+		defer func() {
+			duration := time.Now().Sub(startTime)
+			log.Printf("It took %d to process request\n", duration)
+		}()
 		ctx := ProvideContext(request)
 
 		contactRequest := &models.ContactRequest{}
 		err = json.NewDecoder(request.Body).Decode(contactRequest)
 		if err != nil {
-			// write error response
 			// invalid request error
-			panic(err)
+			http.Error(responseWriter, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
 		}
 
 		contactsService := InitContactsService()
 
-		result, err := contactsService.Create(ctx, contactRequest)
+		response, err := contactsService.Create(ctx, contactRequest)
 		if err != nil {
-			// write error response
-			// internal error
-			panic(err)
+			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
 		}
-
+		err = json.NewEncoder(responseWriter).Encode(response)
+		if err != nil {
+			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 		responseWriter.WriteHeader(http.StatusOK)
 		responseWriter.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		err = json.NewEncoder(responseWriter).Encode(result)
-		if err != nil {
-			// write error response
-			panic(err)
-		}
 	}
 }
 
+// ContactsServiceGetOneHandlerFunc handles requests to:
+// path  : /contacts/{id}
+// method: Get
 func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		var err error // tempory fix
+		var err error // temporary
 
-		id, err := strconv.Atoi(chi.URLParam(request, "id"))
-		if err != nil {
-			// invalid request error
-			panic(err)
-		}
-
-		contactsService := InitContactsService()
-
-		result, err := contactsService.GetOne(id)
-		if err != nil {
-			// write error response
-			// internal error
-			panic(err)
-		}
-
-		responseWriter.WriteHeader(http.StatusOK)
-		responseWriter.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		err = json.NewEncoder(responseWriter).Encode(result)
-		if err != nil {
-			// write error response
-			panic(err)
-		}
-	}
-}
-
-func ContactsServiceGetByDateHandlerFunc() http.HandlerFunc {
-	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		var err error // tempory fix
-
-		df := ProvideDateFilter(request)
-
-		contactsService := InitContactsService()
-
-		result, err := contactsService.GetByDate(df)
-		if err != nil {
-			// write error response
-			// internal error
-			panic(err)
-		}
-
-		responseWriter.WriteHeader(http.StatusOK)
-		responseWriter.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		err = json.NewEncoder(responseWriter).Encode(result)
-		if err != nil {
-			// write error response
-			panic(err)
-		}
-	}
-}
-
-func ContactsServiceUpdateHandlerFunc() http.HandlerFunc {
-	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		var err error // tempory fix
-
+		log.Println("Processing get request")
+		startTime := time.Now()
+		defer func() {
+			duration := time.Now().Sub(startTime)
+			log.Printf("It took %d to process request\n", duration)
+		}()
 		ctx := ProvideContext(request)
 
 		id, err := strconv.Atoi(chi.URLParam(request, "id"))
 		if err != nil {
 			// invalid request error
-			panic(err)
+			http.Error(responseWriter, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+
+		contactsService := InitContactsService()
+
+		response, err := contactsService.GetOne(ctx, id)
+		if err != nil {
+			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(responseWriter).Encode(response)
+		if err != nil {
+			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		responseWriter.WriteHeader(http.StatusOK)
+		responseWriter.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	}
+}
+
+// ContactsServiceGetByDateHandlerFunc handles requests to:
+// path  : /contacts/{month}-{day}-{year}
+// method: Get
+func ContactsServiceGetByDateHandlerFunc() http.HandlerFunc {
+	return func(responseWriter http.ResponseWriter, request *http.Request) {
+		var err error // temporary
+
+		log.Println("Processing get request")
+		startTime := time.Now()
+		defer func() {
+			duration := time.Now().Sub(startTime)
+			log.Printf("It took %d to process request\n", duration)
+		}()
+		df := ProvideDateFilter(request)
+
+		contactsService := InitContactsService()
+
+		response, err := contactsService.GetByDate(df)
+		if err != nil {
+			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(responseWriter).Encode(response)
+		if err != nil {
+			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		responseWriter.WriteHeader(http.StatusOK)
+		responseWriter.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	}
+}
+
+// ContactsServiceUpdateHandlerFunc handles requests to:
+// path  : /contacts/{id}
+// method: Post
+func ContactsServiceUpdateHandlerFunc() http.HandlerFunc {
+	return func(responseWriter http.ResponseWriter, request *http.Request) {
+		var err error // temporary
+
+		log.Println("Processing post request")
+		startTime := time.Now()
+		defer func() {
+			duration := time.Now().Sub(startTime)
+			log.Printf("It took %d to process request\n", duration)
+		}()
+		ctx := ProvideContext(request)
+
+		id, err := strconv.Atoi(chi.URLParam(request, "id"))
+		if err != nil {
+			// invalid request error
+			http.Error(responseWriter, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
 		}
 
 		contactRequest := models.ContactRequest{}
 		err = json.NewDecoder(request.Body).Decode(&contactRequest)
 		if err != nil {
-			// write error response
 			// invalid request error
-			panic(err)
+			http.Error(responseWriter, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
 		}
 
 		contactsService := InitContactsService()
 
-		result, err := contactsService.Update(ctx, id, contactRequest)
+		response, err := contactsService.Update(ctx, id, contactRequest)
 		if err != nil {
-			// write error response
-			// internal error
-			panic(err)
+			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
 		}
-
+		err = json.NewEncoder(responseWriter).Encode(response)
+		if err != nil {
+			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 		responseWriter.WriteHeader(http.StatusOK)
 		responseWriter.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		err = json.NewEncoder(responseWriter).Encode(result)
-		if err != nil {
-			// write error response
-			panic(err)
-		}
 	}
 }
 
+// ContactsServiceReplaceHandlerFunc handles requests to:
+// path  : /contacts/{id}
+// method: Put
+func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
+	return func(responseWriter http.ResponseWriter, request *http.Request) {
+		log.Println("Processing put request")
+		startTime := time.Now()
+		defer func() {
+			duration := time.Now().Sub(startTime)
+			log.Printf("It took %d to process request\n", duration)
+		}()
+		ctx := ProvideContext(request)
+
+		id, err := strconv.Atoi(chi.URLParam(request, "id"))
+		if err != nil {
+			// invalid request error
+			http.Error(responseWriter, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+
+		contactRequest := models.ContactRequest{}
+		err = json.NewDecoder(request.Body).Decode(&contactRequest)
+		if err != nil {
+			// invalid request error
+			http.Error(responseWriter, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+
+		contactsService := InitContactsService()
+
+		response, err := contactsService.Replace(ctx, id, contactRequest)
+		if err != nil {
+			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(responseWriter).Encode(response)
+		if err != nil {
+			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		responseWriter.WriteHeader(http.StatusOK)
+		responseWriter.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	}
+}
+
+// EchoHandlerFunc handles requests to:
+// path  : /echo
+// method: Post
 func EchoHandlerFunc() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		var err error // tempory fix
+		var err error // temporary
 
+		log.Println("Processing post request")
+		startTime := time.Now()
+		defer func() {
+			duration := time.Now().Sub(startTime)
+			log.Printf("It took %d to process request\n", duration)
+		}()
 		echoRequest := EchoRequest{}
 		err = json.NewDecoder(request.Body).Decode(&echoRequest)
 		if err != nil {
-			// write error response
 			// invalid request error
-			panic(err)
+			http.Error(responseWriter, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
 		}
 
-		result, err := Echo(echoRequest)
+		response, err := Echo(echoRequest)
 		if err != nil {
-			// write error response
-			// internal error
-			panic(err)
+			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
 		}
-
+		err = json.NewEncoder(responseWriter).Encode(response)
+		if err != nil {
+			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 		responseWriter.WriteHeader(http.StatusOK)
 		responseWriter.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		err = json.NewEncoder(responseWriter).Encode(result)
-		if err != nil {
-			// write error response
-			panic(err)
-		}
 	}
 }

@@ -1,8 +1,6 @@
 package internal
 
 import (
-	"bytes"
-	"fmt"
 	"strings"
 )
 
@@ -28,7 +26,7 @@ func (ft funcToken) pkg() string {
 }
 
 func (ft funcToken) call() string {
-	var b bytes.Buffer
+	b := newBuffer()
 
 	var fn string
 	idx := strings.LastIndex(ft.signature, "/")
@@ -51,7 +49,7 @@ func (ft funcToken) call() string {
 		rets = append(rets, ret.varName())
 	}
 
-	b.WriteString(fmt.Sprintf("%s := %s(%s)", strings.Join(rets, ","), fn, strings.Join(args, ",")))
+	b.ws("%s := %s(%s)", strings.Join(rets, ","), fn, strings.Join(args, ","))
 
-	return b.String()
+	return b.buf.String()
 }

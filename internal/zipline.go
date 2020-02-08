@@ -3,6 +3,7 @@ package internal
 import (
 	"bytes"
 	"go/ast"
+	"go/token"
 	"go/types"
 	"io/ioutil"
 	"log"
@@ -22,21 +23,27 @@ type packet struct {
 }
 
 type Zipline struct {
-	packets  []*packet
-	renderer *renderer
-	provider *provider
+	packets   []*packet
+	templates map[string]*template
+	renderer  *renderer
+	provider  *provider
+	fset      *token.FileSet
 }
 
 func NewZipline() *Zipline {
 	return &Zipline{
-		packets: []*packet{},
+		packets:   []*packet{},
+		templates: make(map[string]*template),
+		fset:      token.NewFileSet(),
 	}
 }
 
 func (z *Zipline) Start() {
 	pkgs := load()
+	z.templates = loadTemplates(pkgs)
+
 	z.provider = newProvider(pkgs)
-	z.renderer = newRenderer(z.provider)
+	z.renderer = newRenderer(z.templates, z.provider)
 
 	for _, pkg := range pkgs {
 		for _, file := range pkg.Syntax {
@@ -109,6 +116,7 @@ func (z *Zipline) Start() {
 func (z *Zipline) prepare(packet *packet) {
 	dfunc := packet.bindings
 
+	// TODO: clean this up. use ast.Inspect to simplify this mess
 	for _, stmt := range dfunc.Body.List {
 		switch stmtType := stmt.(type) {
 		case *ast.ExprStmt:
@@ -122,11 +130,14 @@ func (z *Zipline) prepare(packet *packet) {
 								if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
 									if id, ok := sel.X.(*ast.Ident); ok {
 										if id.Name == "zipline" {
+											// generate function body first
 											binding := z.processStatement(packet.pkg, stmtType)
 
+											// copy the ast node
+											// TODO: necessary?
 											handler := astcopy.Expr(expType.Args[i])
-											parseZiplineExpression(handler)
 
+											// rewrite ast to replace zipline spec
 											expType.Args[i] = newCallExpression(binding, handler)
 										}
 									}
@@ -150,20 +161,11 @@ func (z *Zipline) processStatement(pkg *packages.Package, stmt *ast.ExprStmt) *b
 	return binding
 }
 
-func parseZiplineExpression(e ast.Expr) {
-	// zipline := e.(*ast.CallExpr)
-	// print("replace", zipline)
-	// print("arg", zipline.Args[0])
-	// log.Println("arg type", reflect.TypeOf(zipline.Args[0]))
-	// ast.Print(token.NewFileSet(), zipline)
-}
-
 func newCallExpression(binding *binding, arg ast.Expr) *ast.CallExpr {
 	ce := &ast.CallExpr{
 		Fun: &ast.Ident{
 			Name: binding.id() + "HandlerFunc",
 		},
-		// Args: arg.(*ast.CallExpr).Args,
 	}
 	return ce
 }
@@ -191,23 +193,22 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) *binding {
 		panic("invalid expression")
 	}
 
-	// ast.Print(token.NewFileSet(), zipline.Args[0])
 	switch handler := zipline.Args[0].(type) {
 	case *ast.SelectorExpr:
-		binding.handler = newFromSelectorExpr(pkg, handler)
+		binding.handler = newHandlerInfoFromSelectorExpr(pkg, handler)
 	case *ast.Ident:
-		binding.handler = newFromIdent(pkg, handler)
+		binding.handler = newHandlerInfoFromIdent(pkg, handler)
 	}
 
 	return binding
 }
 
-func newFromSelectorExpr(pkg *packages.Package, handler *ast.SelectorExpr) *handlerInfo {
-	hi := newFromIdent(pkg, handler.Sel)
+func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.SelectorExpr) *handlerInfo {
+	hi := newHandlerInfoFromIdent(pkg, handler.Sel)
 
 	_, ok := handler.X.(*ast.Ident)
 	if !ok {
-		panic("Zipline expression must contain a function selector")
+		panic("Zipline must be a function selector expression")
 	}
 
 	obj := qualifiedIdentObject(pkg.TypesInfo, handler.X)
@@ -217,7 +218,7 @@ func newFromSelectorExpr(pkg *packages.Package, handler *ast.SelectorExpr) *hand
 	return hi
 }
 
-func newFromIdent(pkg *packages.Package, handler *ast.Ident) *handlerInfo {
+func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) *handlerInfo {
 	obj := qualifiedIdentObject(pkg.TypesInfo, handler)
 
 	sig := obj.Type().(*types.Signature)

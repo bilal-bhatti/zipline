@@ -21,7 +21,11 @@ func (cs ContactsService) Update(ctx context.Context, id int, contactRequest mod
 	return &models.ContactResponse{Output: "Out"}, nil
 }
 
-func (cs ContactsService) GetOne(id int) (*models.ContactResponse, error) {
+func (cs ContactsService) Replace(ctx context.Context, id int, contactRequest models.ContactRequest) (*models.ContactResponse, error) {
+	return &models.ContactResponse{Output: "Out"}, nil
+}
+
+func (cs ContactsService) GetOne(ctx context.Context, id int) (*models.ContactResponse, error) {
 	return &models.ContactResponse{Output: "Out"}, nil
 }
 

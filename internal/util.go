@@ -55,15 +55,6 @@ func load() []*packages.Package {
 	return pkgs
 }
 
-func isSupportedMethod(obj types.Object) bool {
-	switch obj.Name() {
-	case "Post", "Get":
-		return true
-	default:
-		return false
-	}
-}
-
 func isZiplineImport(path string) bool {
 	const vendorPart = "vendor/"
 	if i := strings.LastIndex(path, vendorPart); i != -1 && (i == 0 || path[i-1] == '/') {
@@ -118,7 +109,7 @@ func isBindingSpecNode(info *types.Info, fn ast.Node) bool {
 
 		buildObj := qualifiedIdentObject(info, callExp.Fun)
 
-		if buildObj == nil || buildObj.Pkg() == nil || !isZiplineImport(buildObj.Pkg().Path()) || !isSupportedMethod(buildObj) {
+		if buildObj == nil || buildObj.Pkg() == nil || !isZiplineImport(buildObj.Pkg().Path()) {
 			return true
 		}
 

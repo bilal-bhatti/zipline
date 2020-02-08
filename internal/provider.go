@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"go/ast"
 	"go/types"
 	"strings"
 
@@ -10,6 +11,7 @@ import (
 type provider struct {
 	pkgs  []*packages.Package
 	known map[string]*varToken
+	tmpl  types.Object
 }
 
 func newProvider(pkgs []*packages.Package) *provider {
@@ -81,5 +83,31 @@ func (p provider) provide(vt *varToken) *funcToken {
 		}
 	}
 
+	return nil
+}
+
+func (p provider) qualifiedIdentObject(expr ast.Expr) types.Object {
+	for _, pkg := range p.pkgs {
+		info := pkg.TypesInfo
+		switch expr := expr.(type) {
+		case *ast.Ident:
+			obj := info.ObjectOf(expr)
+			if obj != nil {
+				return obj
+			}
+		case *ast.SelectorExpr:
+			pkgName, ok := expr.X.(*ast.Ident)
+			if !ok {
+				continue
+			}
+			if _, ok := info.ObjectOf(pkgName).(*types.PkgName); !ok {
+				continue
+			}
+			obj := info.ObjectOf(expr.Sel)
+			if obj != nil {
+				return obj
+			}
+		}
+	}
 	return nil
 }
