@@ -18,3 +18,11 @@ func InitContactsService() *ContactsService {
 	}
 	return contactsService
 }
+
+func InitThingsService() *ThingsService {
+	dataConnector := connectors.ProvideDataConnector()
+	thingsService := &ThingsService{
+		DataConnector: dataConnector,
+	}
+	return thingsService
+}

@@ -20,7 +20,7 @@ func TestFuncTokenParse(t *testing.T) {
 	for _, functest := range functests {
 		vt := funcToken{
 			signature: functest.sig,
-			rets:      []*varToken{newVarToken("", "context.Context", "context")},
+			rets:      []*typeToken{newTypeToken("", "context.Context", "context")},
 		}
 
 		assert.Equal(t, functest.pkg, vt.pkg(), "Package should be same")

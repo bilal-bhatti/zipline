@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var vts = []struct {
+var tcases = []struct {
 	sig, vn, vnp, inst, pkg, param string
 }{
 	{
@@ -60,13 +60,13 @@ var vts = []struct {
 }
 
 func TestVarTokenParse(t *testing.T) {
-	for _, va := range vts {
-		vt := newVarToken(va.pkg, va.sig, "")
+	for _, tcase := range tcases {
+		tt := newTypeToken(tcase.pkg, tcase.sig, "")
 
-		assert.Equal(t, va.vn, vt.varName(), "Name should be same")
-		assert.Equal(t, va.vnp, vt.varNameAsPointer(), "Name as pointer should be same")
-		assert.Equal(t, va.inst, vt.inst(), "Instantiate should be same")
-		assert.Equal(t, va.pkg, vt.pkg(), "Package should be same")
-		assert.Equal(t, va.param, vt.param(), "Param name should be same")
+		assert.Equal(t, tcase.vn, tt.varName(), "Name should be same")
+		assert.Equal(t, tcase.vnp, tt.varNameAsPointer(), "Name as pointer should be same")
+		assert.Equal(t, tcase.inst, tt.inst(), "Instantiate should be same")
+		assert.Equal(t, tcase.pkg, tt.pkg(), "Package should be same")
+		assert.Equal(t, tcase.param, tt.param(), "Param name should be same")
 	}
 }

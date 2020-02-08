@@ -12,7 +12,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/go-toolsmith/astcopy"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/imports"
 )
@@ -40,26 +39,11 @@ func NewZipline() *Zipline {
 
 func (z *Zipline) Start() {
 	pkgs := load()
-	z.templates = loadTemplates(pkgs)
+	scanner := scanner{pkgs: pkgs}
+	z.templates, z.packets = scanner.scan()
 
 	z.provider = newProvider(pkgs)
 	z.renderer = newRenderer(z.templates, z.provider)
-
-	for _, pkg := range pkgs {
-		for _, file := range pkg.Syntax {
-			for _, d := range file.Decls {
-				switch t := d.(type) {
-				case *ast.FuncDecl:
-					if isBindingSpecNode(pkg.TypesInfo, t) {
-						z.packets = append(z.packets, &packet{
-							pkg:      pkg,
-							bindings: t,
-						})
-					}
-				}
-			}
-		}
-	}
 
 	for _, packet := range z.packets {
 		z.prepare(packet)
@@ -120,6 +104,7 @@ func (z *Zipline) prepare(packet *packet) {
 	for _, stmt := range dfunc.Body.List {
 		switch stmtType := stmt.(type) {
 		case *ast.ExprStmt:
+			// does the statement contain zipline binding
 			if isBindingSpecNode(packet.pkg.TypesInfo, stmtType) {
 				switch expType := stmtType.X.(type) {
 				case *ast.CallExpr:
@@ -127,18 +112,15 @@ func (z *Zipline) prepare(packet *packet) {
 						arg := expType.Args[i]
 						if call, ok := arg.(*ast.CallExpr); ok {
 							if isBindingSpecNode(packet.pkg.TypesInfo, call) {
+								// actual call to zipline
 								if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
 									if id, ok := sel.X.(*ast.Ident); ok {
 										if id.Name == "zipline" {
 											// generate function body first
 											binding := z.processStatement(packet.pkg, stmtType)
 
-											// copy the ast node
-											// TODO: necessary?
-											handler := astcopy.Expr(expType.Args[i])
-
 											// rewrite ast to replace zipline spec
-											expType.Args[i] = newCallExpression(binding, handler)
+											expType.Args[i] = newCallExpression(binding, expType.Args[i])
 										}
 									}
 								} else {
@@ -213,7 +195,7 @@ func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.Selector
 
 	obj := qualifiedIdentObject(pkg.TypesInfo, handler.X)
 
-	hi.x = newVarToken("", obj.Type().String(), "")
+	hi.x = newTypeToken("", obj.Type().String(), "")
 
 	return hi
 }
@@ -244,12 +226,12 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) *handler
 
 	for i := 0; i < sig.Params().Len(); i++ {
 		p := sig.Params().At(i)
-		hi.params = append(hi.params, newVarToken(pkg.Name, p.Type().String(), p.Name()))
+		hi.params = append(hi.params, newTypeToken(pkg.Name, p.Type().String(), p.Name()))
 	}
 
 	for i := 0; i < sig.Results().Len(); i++ {
 		r := sig.Results().At(i)
-		hi.returns = append(hi.returns, newVarToken(pkg.Name, r.Type().String(), r.Name()))
+		hi.returns = append(hi.returns, newTypeToken(pkg.Name, r.Type().String(), r.Name()))
 	}
 
 	return hi

@@ -10,15 +10,12 @@ import (
 
 type provider struct {
 	pkgs  []*packages.Package
-	known map[string]*varToken
+	known map[string]*typeToken
 	tmpl  types.Object
 }
 
 func newProvider(pkgs []*packages.Package) *provider {
-	known := make(map[string]*varToken)
-
-	known[HREQ.signature] = HREQ
-	known[HWRI.signature] = HWRI
+	known := make(map[string]*typeToken)
 
 	return &provider{
 		pkgs:  pkgs,
@@ -26,12 +23,12 @@ func newProvider(pkgs []*packages.Package) *provider {
 	}
 }
 
-func (p provider) varFor(vt *varToken) (*varToken, bool) {
+func (p provider) varFor(vt *typeToken) (*typeToken, bool) {
 	v, ok := p.known[vt.signature]
 	return v, ok
 }
 
-func (p provider) provide(vt *varToken) *funcToken {
+func (p provider) provide(vt *typeToken) *funcToken {
 	for _, pkg := range p.pkgs {
 		info := pkg.TypesInfo
 		for _, v := range info.Defs {
@@ -48,7 +45,7 @@ func (p provider) provide(vt *varToken) *funcToken {
 
 			// TODO: handle error return
 
-			args := []*varToken{}
+			args := []*typeToken{}
 
 			for i := 0; i < sig.Params().Len(); i++ {
 				param := sig.Params().At(i)
@@ -64,10 +61,10 @@ func (p provider) provide(vt *varToken) *funcToken {
 				result := sig.Results().At(i)
 				if vt.sameType(result.Type().String()) {
 
-					rets := []*varToken{}
+					rets := []*typeToken{}
 					for j := 0; j < sig.Results().Len(); j++ {
 						ret := sig.Results().At(j)
-						token := newVarToken("", ret.Type().String(), vt.varName())
+						token := newTypeToken("", ret.Type().String(), vt.varName())
 						p.known[token.signature] = token
 						rets = append(rets, token)
 					}

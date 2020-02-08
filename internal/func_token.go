@@ -6,8 +6,8 @@ import (
 
 type funcToken struct {
 	cpkg, signature string
-	args            []*varToken
-	rets            []*varToken
+	args            []*typeToken
+	rets            []*typeToken
 }
 
 func (ft funcToken) pkg() string {

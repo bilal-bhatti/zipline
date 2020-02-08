@@ -41,6 +41,6 @@ func ProvideDateFilter(request *http.Request) DateFilter {
 	}
 }
 
-func (cs ContactsService) GetByDate(df DateFilter) (*models.ContactResponse, error) {
+func (cs ContactsService) GetByDate(ctx context.Context, df DateFilter) (*models.ContactResponse, error) {
 	return &models.ContactResponse{Output: "Out"}, nil
 }

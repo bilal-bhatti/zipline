@@ -24,24 +24,21 @@ func NewRouter() *chi.Mux {
 	mux.Post("/contacts/{id}", zipline.Post(ContactsService.Update))
 	mux.Put("/contacts/{id}", zipline.Put(ContactsService.Replace))
 
+	mux.Delete("/things/{id}", zipline.Delete(ThingsService.Delete))
 	mux.Post("/echo", zipline.Post(Echo))
 
 	return mux
 }
 
-type ZiplineTemplate struct{}
-
-func (z ZiplineTemplate) ReturnResponseAndError() (interface{}, error) {
-	panic("Hi there! Whatcha doin?")
-}
-
-func (z ZiplineTemplate) NoReturn() {
-	panic("Hi there! Whatcha doin?")
+type ZiplineTemplate struct{
+	ReturnResponseAndError func() (interface{}, error)
+	ReturnError func() error
 }
 
 func (z ZiplineTemplate) Post() http.HandlerFunc {
-	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		var err error // temporary
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error // why not
+
 		log.Println("Processing post request")
 		startTime := time.Now()
 
@@ -53,26 +50,26 @@ func (z ZiplineTemplate) Post() http.HandlerFunc {
 		response, err := z.ReturnResponseAndError()
 		if err != nil {
 			// write error response
-			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
-
-		err = json.NewEncoder(responseWriter).Encode(response)
+		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
 			// write error response
-			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
-		responseWriter.WriteHeader(http.StatusOK)
-		responseWriter.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	}
 }
 
 func (z ZiplineTemplate) Get() http.HandlerFunc {
-	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		var err error // temporary
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error // why not
+
 		log.Println("Processing get request")
 		startTime := time.Now()
 
@@ -84,24 +81,26 @@ func (z ZiplineTemplate) Get() http.HandlerFunc {
 		response, err := z.ReturnResponseAndError()
 		if err != nil {
 			// write error response
-			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
-		err = json.NewEncoder(responseWriter).Encode(response)
+		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
 			// write error response
-			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
-		responseWriter.WriteHeader(http.StatusOK)
-		responseWriter.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	}
 }
 
 func (z ZiplineTemplate) Delete() http.HandlerFunc {
-	return func(responseWriter http.ResponseWriter, request *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error // why not
+
 		log.Println("Processing delete request")
 		startTime := time.Now()
 
@@ -110,15 +109,22 @@ func (z ZiplineTemplate) Delete() http.HandlerFunc {
 			log.Printf("It took %d to process request\n", duration)
 		}()
 
-		z.NoReturn()
+		err = z.ReturnError()
 
-		responseWriter.WriteHeader(http.StatusOK)
-		responseWriter.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		if err != nil {
+			// write error response
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 
 func (z ZiplineTemplate) Put() http.HandlerFunc {
-	return func(responseWriter http.ResponseWriter, request *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error // why not
+		
 		log.Println("Processing put request")
 		startTime := time.Now()
 
@@ -130,18 +136,18 @@ func (z ZiplineTemplate) Put() http.HandlerFunc {
 		response, err := z.ReturnResponseAndError()
 		if err != nil {
 			// write error response
-			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
-		err = json.NewEncoder(responseWriter).Encode(response)
+		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
 			// write error response
-			http.Error(responseWriter, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 		
-		responseWriter.WriteHeader(http.StatusOK)
-		responseWriter.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	}
 }

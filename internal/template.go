@@ -27,7 +27,7 @@ func loadTemplates(pkgs []*packages.Package) map[string]*template {
 						// record receiver object identity
 						obj := f.Recv.List[0]
 						if zt, ok := obj.Type.(*ast.Ident); ok {
-							if zt.String() == "ZiplineTemplate" {
+							if zt.String() == ZiplineTemplate {
 								templates[f.Name.String()] = newTemplate(f)
 							}
 						}

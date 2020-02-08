@@ -7,13 +7,8 @@ import (
 	"go/printer"
 	"go/token"
 	"io"
+	"log"
 	"strings"
-)
-
-var (
-	HREQ  = newVarToken("", "*net/http.Request", "request")
-	HWRI  = newVarToken("", "net/http.ResponseWriter", "responseWriter")
-	ERROR = newVarToken("", "error", "err")
 )
 
 type renderer struct {
@@ -50,6 +45,8 @@ func (r *renderer) render(info *binding) {
 			panic(err)
 		}
 		r.body.buf.Write(bites)
+	} else {
+		log.Println("Template not found for", info.method)
 	}
 }
 
@@ -109,6 +106,15 @@ func (r *renderer) renderTemplate(t *template, b *binding) ([]byte, error) {
 		ret := stmt.(*ast.ReturnStmt)
 
 		funclit := ret.Results[0].(*ast.FuncLit)
+		// parse funclit type to extract type tokens
+		for _, param := range funclit.Type.Params.List {
+			for _, pn := range param.Names {
+				obj := r.provider.qualifiedIdentObject(pn)
+				tt := newTypeToken("", obj.Type().String(), obj.Name())
+				r.provider.known[tt.signature] = tt
+			}
+		}
+
 		buf.ws("// %s%s handles requests to:\n", b.id(), t.funcSuffix())
 		buf.ws("// path  : %s\n", b.path)
 		buf.ws("// method: %s\n", b.method)
@@ -126,9 +132,9 @@ func (r *renderer) renderTemplate(t *template, b *binding) ([]byte, error) {
 					if selector, ok := call.Fun.(*ast.SelectorExpr); ok {
 						obj := r.provider.qualifiedIdentObject(selector.X)
 						if obj != nil {
-							if strings.HasSuffix(obj.Type().String(), "ZiplineTemplate") {
+							if strings.HasSuffix(obj.Type().String(), ZiplineTemplate) {
 								expand = true
-								r.expand(b, buf)
+								r.expand(b, stmtType, buf)
 							}
 						}
 					}
@@ -149,25 +155,65 @@ func (r *renderer) renderTemplate(t *template, b *binding) ([]byte, error) {
 	return buf.buf.Bytes(), nil
 }
 
-func (r *renderer) expand(b *binding, buf buffer) {
+func (r *renderer) expand(b *binding, assn *ast.AssignStmt, buf buffer) {
+	// resolve/print app handler dependencies and retain their var names
+	params := r.deps(b, buf)
+
+	call := newBuffer()
+
+	rets := []string{}
+	// extract return names from the marker call
+	for _, lhs := range assn.Lhs {
+		rets = append(rets, lhs.(*ast.Ident).String())
+	}
+
+	call.ws(strings.Join(rets, ","))
+	call.ws(" %s ", assn.Tok.String())
+
+	if b.handler.x != nil {
+		xp := r.provider.provide(b.handler.x)
+		buf.ws("// initialize application handler\n")
+		buf.ws(xp.call() + "\n")
+		r.imp(xp.pkg())
+
+		funk, ok := r.provider.varFor(b.handler.x)
+		if !ok {
+			panic("Dependencies not satisfied")
+		}
+
+		call.ws("%s.", funk.varName())
+	}
+	call.ws("%s(%s)\n", b.handler.sel, strings.Join(params, ","))
+
+	buf.ws("// execute application handler\n")
+	buf.ws(call.buf.String())
+}
+
+func (r *renderer) deps(b *binding, buf buffer) []string {
+	hreq, _ := r.provider.varFor(HREQ)
+	hwri, _ := r.provider.varFor(HWRI)
+
 	params := []string{}
 	for _, p := range b.handler.params {
 		ft := r.provider.provide(p)
 		if ft != nil {
+			buf.ws("\n// resolve %s dependency through a provider function\n", p.varName())
 			buf.ws("%s\n\n", ft.call())
 		} else if pathParam(b, p) {
-			buf.ws(p.name + ", err := strconv.Atoi(chi.URLParam(" + HREQ.varName() + ", \"" + p.name + "\"))\n")
+			buf.ws("\n// parse path parameter %s\n", p.varName())
+			buf.ws("%s, err := strconv.Atoi(chi.URLParam(%s, \"%s\"))\n", p.name, hreq.varName(), p.name)
 			buf.ws("if err != nil {\n")
 			buf.ws("  // invalid request error\n")
-			buf.ws("  http.Error(responseWriter, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)\n")
+			buf.ws("  http.Error(%s, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)\n", hwri.varName())
 			buf.ws("  return\n")
 			buf.ws("}\n\n")
 		} else if b.method == "Post" || b.method == "Put" {
-			buf.ws(p.varName() + " := " + p.inst() + "\n")
-			buf.ws("err = json.NewDecoder(" + HREQ.varName() + ".Body).Decode(" + p.varNameAsPointer() + ")\n")
+			buf.ws("\n// extract json body and marshall %s\n", p.varName())
+			buf.ws("%s := %s\n", p.varName(), p.inst())
+			buf.ws("err = json.NewDecoder(%s.Body).Decode(%s)\n", hreq.varName(), p.varNameAsPointer())
 			buf.ws("if err != nil {\n")
 			buf.ws("  // invalid request error\n")
-			buf.ws("  http.Error(responseWriter, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)\n")
+			buf.ws("  http.Error(%s, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)\n", hwri.varName())
 			buf.ws("  return\n")
 			buf.ws("}\n\n")
 		}
@@ -179,23 +225,10 @@ func (r *renderer) expand(b *binding, buf buffer) {
 		buf.ws("\n")
 	}
 
-	if b.handler.x != nil {
-		xp := r.provider.provide(b.handler.x)
-		buf.ws(xp.call() + "\n\n")
-		r.imp(xp.pkg())
-
-		funk, ok := r.provider.varFor(b.handler.x)
-		if !ok {
-			panic("Dependencies not satisfied")
-		}
-
-		buf.ws("response, err := " + funk.varName() + "." + b.handler.sel + "(" + strings.Join(params, ",") + ")\n")
-	} else {
-		buf.ws("response, err := " + b.handler.sel + "(" + strings.Join(params, ",") + ")\n")
-	}
+	return params
 }
 
-func join(tokens []*varToken) string {
+func join(tokens []*typeToken) string {
 	s := []string{}
 	for _, token := range tokens {
 		s = append(s, token.param())

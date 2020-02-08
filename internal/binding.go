@@ -11,10 +11,10 @@ type (
 
 	handlerInfo struct {
 		id      string
-		x       *varToken
+		x       *typeToken
 		sel     string
-		params  []*varToken
-		returns []*varToken
+		params  []*typeToken
+		returns []*typeToken
 	}
 )
 
