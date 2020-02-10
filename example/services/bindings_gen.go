@@ -31,7 +31,7 @@ func NewRouter() *chi.Mux {
 
 // ContactsServiceCreateHandlerFunc handles requests to:
 // path  : /contacts
-// method: Post
+// method: post
 func ContactsServiceCreateHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
@@ -75,7 +75,7 @@ func ContactsServiceCreateHandlerFunc() http.HandlerFunc {
 
 // ContactsServiceGetOneHandlerFunc handles requests to:
 // path  : /contacts/{id}
-// method: Get
+// method: get
 func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
@@ -118,7 +118,7 @@ func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 
 // ContactsServiceGetByDateHandlerFunc handles requests to:
 // path  : /contacts/{month}-{day}-{year}
-// method: Get
+// method: get
 func ContactsServiceGetByDateHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
@@ -156,7 +156,7 @@ func ContactsServiceGetByDateHandlerFunc() http.HandlerFunc {
 
 // ContactsServiceUpdateHandlerFunc handles requests to:
 // path  : /contacts/{id}
-// method: Post
+// method: post
 func ContactsServiceUpdateHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
@@ -208,7 +208,7 @@ func ContactsServiceUpdateHandlerFunc() http.HandlerFunc {
 
 // ContactsServiceReplaceHandlerFunc handles requests to:
 // path  : /contacts/{id}
-// method: Put
+// method: put
 func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
@@ -260,7 +260,7 @@ func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
 
 // ThingsServiceDeleteHandlerFunc handles requests to:
 // path  : /things/{id}
-// method: Delete
+// method: delete
 func ThingsServiceDeleteHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
@@ -297,7 +297,7 @@ func ThingsServiceDeleteHandlerFunc() http.HandlerFunc {
 
 // EchoHandlerFunc handles requests to:
 // path  : /echo
-// method: Post
+// method: post
 func EchoHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not

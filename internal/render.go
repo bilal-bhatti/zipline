@@ -117,7 +117,7 @@ func (r *renderer) renderTemplate(t *template, b *binding) ([]byte, error) {
 
 		buf.ws("// %s%s handles requests to:\n", b.id(), t.funcSuffix())
 		buf.ws("// path  : %s\n", b.path)
-		buf.ws("// method: %s\n", b.method)
+		buf.ws("// method: %s\n", strings.ToLower(b.method))
 		buf.ws("func %s%s() %s {\n", b.id(), t.funcSuffix(), t.returnType())
 		buf.ws("return ")
 		printer.Fprint(buf.buf, fset, funclit.Type)
@@ -131,11 +131,9 @@ func (r *renderer) renderTemplate(t *template, b *binding) ([]byte, error) {
 				if call, ok := stmtType.Rhs[0].(*ast.CallExpr); ok {
 					if selector, ok := call.Fun.(*ast.SelectorExpr); ok {
 						obj := r.provider.qualifiedIdentObject(selector.X)
-						if obj != nil {
-							if strings.HasSuffix(obj.Type().String(), ZiplineTemplate) {
-								expand = true
-								r.expand(b, stmtType, buf)
-							}
+						if obj != nil && strings.HasSuffix(obj.Type().String(), ZiplineTemplate) {
+							expand = true
+							r.expand(b, stmtType, buf)
 						}
 					}
 				}
@@ -198,17 +196,25 @@ func (r *renderer) deps(b *binding, buf buffer) []string {
 		ft := r.provider.provide(p)
 		if ft != nil {
 			buf.ws("\n// resolve %s dependency through a provider function\n", p.varName())
+
 			buf.ws("%s\n\n", ft.call())
 		} else if pathParam(b, p) {
 			buf.ws("\n// parse path parameter %s\n", p.varName())
-			buf.ws("%s, err := strconv.Atoi(chi.URLParam(%s, \"%s\"))\n", p.name, hreq.varName(), p.name)
-			buf.ws("if err != nil {\n")
-			buf.ws("  // invalid request error\n")
-			buf.ws("  http.Error(%s, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)\n", hwri.varName())
-			buf.ws("  return\n")
-			buf.ws("}\n\n")
+
+			switch p.signature {
+			case "int":
+				buf.ws("%s, err := strconv.Atoi(chi.URLParam(%s, \"%s\"))\n", p.name, hreq.varName(), p.name)
+				buf.ws("if err != nil {\n")
+				buf.ws("  // invalid request error\n")
+				buf.ws("  http.Error(%s, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)\n", hwri.varName())
+				buf.ws("  return\n")
+				buf.ws("}\n\n")
+			case "string":
+				buf.ws("%s := chi.URLParam(%s, \"%s\")\n\n", p.name, hreq.varName(), p.name)
+			}
 		} else if b.method == "Post" || b.method == "Put" {
 			buf.ws("\n// extract json body and marshall %s\n", p.varName())
+
 			buf.ws("%s := %s\n", p.varName(), p.inst())
 			buf.ws("err = json.NewDecoder(%s.Body).Decode(%s)\n", hreq.varName(), p.varNameAsPointer())
 			buf.ws("if err != nil {\n")

@@ -112,10 +112,13 @@ func (z *Zipline) prepare(packet *packet) {
 						arg := expType.Args[i]
 						if call, ok := arg.(*ast.CallExpr); ok {
 							if isBindingSpecNode(packet.pkg.TypesInfo, call) {
-								// actual call to zipline
+								// actual call to ZiplineTemplate
 								if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
 									if id, ok := sel.X.(*ast.Ident); ok {
-										if id.Name == "zipline" {
+										ido := z.provider.qualifiedIdentObject(id)
+
+										// ensure var type is ZiplineTemplate
+										if ido != nil && strings.HasSuffix(ido.Type().String(), ZiplineTemplate) {
 											// generate function body first
 											binding := z.processStatement(packet.pkg, stmtType)
 
@@ -146,7 +149,7 @@ func (z *Zipline) processStatement(pkg *packages.Package, stmt *ast.ExprStmt) *b
 func newCallExpression(binding *binding, arg ast.Expr) *ast.CallExpr {
 	ce := &ast.CallExpr{
 		Fun: &ast.Ident{
-			Name: binding.id() + "HandlerFunc",
+			Name: binding.id() + "HandlerFunc", // TODO: use the template return type
 		},
 	}
 	return ce
@@ -188,12 +191,12 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) *binding {
 func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.SelectorExpr) *handlerInfo {
 	hi := newHandlerInfoFromIdent(pkg, handler.Sel)
 
-	_, ok := handler.X.(*ast.Ident)
+	xid, ok := handler.X.(*ast.Ident)
 	if !ok {
-		panic("Zipline must be a function selector expression")
+		panic("Zipline must be a function selector expression (X.Y) where X is a service struct and Y is a method")
 	}
 
-	obj := qualifiedIdentObject(pkg.TypesInfo, handler.X)
+	obj := qualifiedIdentObject(pkg.TypesInfo, xid)
 
 	hi.x = newTypeToken("", obj.Type().String(), "")
 

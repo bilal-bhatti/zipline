@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/bilal-bhatti/zipline"
 	"github.com/go-chi/chi"
 )
 
@@ -30,12 +29,14 @@ func NewRouter() *chi.Mux {
 	return mux
 }
 
-type ZiplineTemplate struct{
+var zipline ZiplineTemplate
+
+type ZiplineTemplate struct {
 	ReturnResponseAndError func() (interface{}, error)
-	ReturnError func() error
+	ReturnError            func() error
 }
 
-func (z ZiplineTemplate) Post() http.HandlerFunc {
+func (z ZiplineTemplate) Post(i interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
@@ -46,7 +47,7 @@ func (z ZiplineTemplate) Post() http.HandlerFunc {
 			duration := time.Now().Sub(startTime)
 			log.Printf("It took %d to process request\n", duration)
 		}()
-		
+
 		response, err := z.ReturnResponseAndError()
 		if err != nil {
 			// write error response
@@ -66,7 +67,7 @@ func (z ZiplineTemplate) Post() http.HandlerFunc {
 	}
 }
 
-func (z ZiplineTemplate) Get() http.HandlerFunc {
+func (z ZiplineTemplate) Get(i interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
@@ -97,7 +98,7 @@ func (z ZiplineTemplate) Get() http.HandlerFunc {
 	}
 }
 
-func (z ZiplineTemplate) Delete() http.HandlerFunc {
+func (z ZiplineTemplate) Delete(i interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
@@ -121,10 +122,10 @@ func (z ZiplineTemplate) Delete() http.HandlerFunc {
 	}
 }
 
-func (z ZiplineTemplate) Put() http.HandlerFunc {
+func (z ZiplineTemplate) Put(i interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
-		
+
 		log.Println("Processing put request")
 		startTime := time.Now()
 
@@ -146,7 +147,7 @@ func (z ZiplineTemplate) Put() http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
-		
+
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	}

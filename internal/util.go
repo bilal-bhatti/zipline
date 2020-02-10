@@ -2,14 +2,10 @@ package internal
 
 import (
 	"context"
-	"fmt"
 	"go/ast"
-	"go/importer"
 	"go/types"
 	"log"
 	"os"
-	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -55,14 +51,6 @@ func load() []*packages.Package {
 	return pkgs
 }
 
-func isZiplineImport(path string) bool {
-	const vendorPart = "vendor/"
-	if i := strings.LastIndex(path, vendorPart); i != -1 && (i == 0 || path[i-1] == '/') {
-		path = path[i+len(vendorPart):]
-	}
-	return path == "github.com/bilal-bhatti/zipline"
-}
-
 func qualifiedIdentObject(info *types.Info, expr ast.Expr) types.Object {
 	switch expr := expr.(type) {
 	case *ast.Ident:
@@ -81,9 +69,14 @@ func qualifiedIdentObject(info *types.Info, expr ast.Expr) types.Object {
 	}
 }
 
+// Useful to do a broad search for binding call or a template
 func isBindingSpecNode(info *types.Info, fn ast.Node) bool {
 	foundit := false
 	ast.Inspect(fn, func(n ast.Node) bool {
+		// ****************
+		// returning true here, means we don't want to inspect the node
+		// any further and want to move on to the next node
+		// ****************
 
 		callExp, ok := n.(*ast.CallExpr)
 		if !ok {
@@ -95,60 +88,35 @@ func isBindingSpecNode(info *types.Info, fn ast.Node) bool {
 			return true
 		}
 
-		// check the receiver is the package spec
-		if x, ok := selExp.X.(*ast.Ident); !ok {
-			return true
-		} else if x.Name != "zipline" {
-			return true
-		}
-
-		// // verify arguments
-		if len(callExp.Args) != 1 {
+		// check the receiver is the ZiplineTemplate
+		x, ok := selExp.X.(*ast.Ident)
+		if !ok {
 			return true
 		}
 
-		buildObj := qualifiedIdentObject(info, callExp.Fun)
+		xo := qualifiedIdentObject(info, x)
 
-		if buildObj == nil || buildObj.Pkg() == nil || !isZiplineImport(buildObj.Pkg().Path()) {
+		if xo == nil {
 			return true
 		}
 
+		// ensure receiver var type is ZiplineTemplate
+		if !strings.HasSuffix(xo.Type().String(), ZiplineTemplate) {
+			return true
+		}
+
+		// if we arrived here, then all previous checks passed and
 		// found what we were looking for
 		foundit = true
 		if foundit {
+			// returning false, signals stopping any further inspection
 			return false
 		}
+
+		// keep inspecting
 		return true
 	})
 	return foundit
-}
-
-func importPackage(p *packages.Package) {
-	pkg, err := importer.For("source", nil).Import(p.PkgPath)
-	if err != nil {
-		panic(err)
-	}
-	log.Println("imported package for inspection", pkg)
-	for _, imp := range pkg.Imports() {
-		log.Println("import", imp.Name())
-	}
-	scope := pkg.Scope()
-
-	for _, name := range scope.Names() {
-		obj := scope.Lookup(name)
-
-		if tn, ok := obj.Type().(*types.Named); ok {
-			fmt.Printf("%#v\n", tn.NumMethods())
-			for i := 0; i < tn.NumMethods(); i++ {
-				method := tn.Method(i)
-				log.Println("method", method.FullName())
-				sig := method.Type().(*types.Signature)
-				log.Println("signature", sig.String(), sig.Recv())
-			}
-		} else {
-			log.Println("something else", obj)
-		}
-	}
 }
 
 func goSrcRoot() (string, error) {
@@ -158,47 +126,4 @@ func goSrcRoot() (string, error) {
 	}
 
 	return strings.TrimPrefix(wd, os.Getenv("GOPATH")+"/src/"), nil
-}
-
-func findPackages() ([]string, error) {
-	// cuz no set impl
-	dirs := make(map[string]string)
-
-	err := filepath.Walk(".",
-		func(p string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			if !info.IsDir() && strings.HasSuffix(p, ".go") {
-
-				if !strings.Contains(p, "cmd") && !strings.Contains(p, "handlers") {
-					dir := path.Dir(p)
-					dirs[dir] = dir
-				}
-			}
-			return nil
-		})
-
-	if err != nil {
-		return nil, err
-	}
-
-	wd, err := os.Getwd()
-	if err != nil {
-		log.Println("failed to get working directory: ", err)
-		panic(err)
-	}
-
-	log.Println("working directory", wd)
-	goSrc, err := goSrcRoot()
-	if err != nil {
-		panic(err)
-	}
-
-	pkgs := []string{}
-	for k := range dirs {
-		pkgs = append(pkgs, path.Join(goSrc, k))
-	}
-
-	return pkgs, nil
 }
