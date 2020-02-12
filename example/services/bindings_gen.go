@@ -133,13 +133,19 @@ func ContactsServiceGetByDateHandlerFunc() http.HandlerFunc {
 		// resolve ctx dependency through a provider function
 		ctx := ProvideContext(r)
 
-		// resolve df dependency through a provider function
-		df := ProvideDateFilter(r)
+		// parse path parameter month
+		month := chi.URLParam(r, "month")
+
+		// parse path parameter day
+		day := chi.URLParam(r, "day")
+
+		// parse path parameter year
+		year := chi.URLParam(r, "year")
 
 		// initialize application handler
 		contactsService := InitContactsService()
 		// execute application handler
-		response, err := contactsService.GetByDate(ctx, df)
+		response, err := contactsService.GetByDate(ctx, month, day, year)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return

@@ -36,6 +36,25 @@ type ZiplineTemplate struct {
 	ReturnError            func() error
 }
 
+func (z ZiplineTemplate) Path(w http.ResponseWriter, r *http.Request) {
+	// id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	// if err != nil {
+	// 	// invalid request error
+	// 	http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+	// 	return
+	// }
+}
+
+func (z ZiplineTemplate) Body(w http.ResponseWriter, r *http.Request) {
+	data := struct{}{}
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		// invalid request error
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+}
+
 func (z ZiplineTemplate) Post(i interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not

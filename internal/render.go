@@ -193,14 +193,9 @@ func (r *renderer) deps(b *binding, buf buffer) []string {
 
 	params := []string{}
 	for _, p := range b.handler.params {
-		ft := r.provider.provide(p)
-		if ft != nil {
-			buf.ws("\n// resolve %s dependency through a provider function\n", p.varName())
 
-			buf.ws("%s\n\n", ft.call())
-		} else if isPathParam(b, p) {
+		if isPathParam(b, p) {
 			buf.ws("\n// parse path parameter %s\n", p.varName())
-
 			switch p.signature {
 			case "int":
 				buf.ws("%s, err := strconv.Atoi(chi.URLParam(%s, \"%s\"))\n", p.name, hreq.varName(), p.name)
@@ -212,6 +207,10 @@ func (r *renderer) deps(b *binding, buf buffer) []string {
 			case "string":
 				buf.ws("%s := chi.URLParam(%s, \"%s\")\n\n", p.name, hreq.varName(), p.name)
 			}
+		} else if ft := r.provider.provide(p); ft != nil {
+			buf.ws("\n// resolve %s dependency through a provider function\n", p.varName())
+
+			buf.ws("%s\n\n", ft.call())
 		} else if b.template == "Post" || b.template == "Put" {
 			buf.ws("\n// extract json body and marshall %s\n", p.varName())
 

@@ -1,14 +1,25 @@
 {
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "OpenAPI Version 2 Specification",
+    "title": "OpenAPI Version 2 Specification",
+    "version": "1.0.0"
+  },
+  "host": "api.example.com",
+  "basePath": "/api",
   "paths": {
     "/contacts": {
       "post": {
-        "description": "controler",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "description": "Route description",
         "parameters": [
           {
             "name": "body",
@@ -21,8 +32,15 @@
         ],
         "responses": {
           "200": {
+            "description": "200 response",
             "schema": {
               "$ref": "#/definitions/models.ContactResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
             }
           }
         }
@@ -30,13 +48,7 @@
     },
     "/contacts/{id}": {
       "get": {
-        "description": "controler",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "description": "Route description",
         "parameters": [
           {
             "type": "integer",
@@ -47,20 +59,21 @@
         ],
         "responses": {
           "200": {
+            "description": "200 response",
             "schema": {
               "$ref": "#/definitions/models.ContactResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
             }
           }
         }
       },
       "put": {
-        "description": "controler",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "description": "Route description",
         "parameters": [
           {
             "type": "integer",
@@ -79,20 +92,21 @@
         ],
         "responses": {
           "200": {
+            "description": "200 response",
             "schema": {
               "$ref": "#/definitions/models.ContactResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
             }
           }
         }
       },
       "post": {
-        "description": "controler",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "description": "Route description",
         "parameters": [
           {
             "type": "integer",
@@ -111,8 +125,15 @@
         ],
         "responses": {
           "200": {
+            "description": "200 response",
             "schema": {
               "$ref": "#/definitions/models.ContactResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
             }
           }
         }
@@ -120,27 +141,38 @@
     },
     "/contacts/{month}-{day}-{year}": {
       "get": {
-        "description": "controler",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "description": "Route description",
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/services.DateFilter"
-            }
+            "type": "string",
+            "name": "month",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "day",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "year",
+            "in": "path",
+            "required": true
           }
         ],
         "responses": {
           "200": {
+            "description": "200 response",
             "schema": {
               "$ref": "#/definitions/models.ContactResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
             }
           }
         }
@@ -148,13 +180,7 @@
     },
     "/echo": {
       "post": {
-        "description": "controler",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "description": "Route description",
         "parameters": [
           {
             "name": "body",
@@ -167,8 +193,15 @@
         ],
         "responses": {
           "200": {
+            "description": "200 response",
             "schema": {
               "$ref": "#/definitions/services.EchoResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
             }
           }
         }
@@ -176,13 +209,7 @@
     },
     "/things/{id}": {
       "delete": {
-        "description": "controler",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "description": "Route description",
         "parameters": [
           {
             "type": "integer",
@@ -190,11 +217,34 @@
             "in": "path",
             "required": true
           }
-        ]
+        ],
+        "responses": {
+          "204": {
+            "description": "no content"
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
       }
     }
   },
   "definitions": {
+    "Error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
     "models.ContactRequest": {
       "type": "object",
       "properties": {
@@ -230,20 +280,6 @@
       "type": "object",
       "properties": {
         "output": {
-          "type": "string"
-        }
-      }
-    },
-    "services.DateFilter": {
-      "type": "object",
-      "properties": {
-        "Day": {
-          "type": "string"
-        },
-        "Month": {
-          "type": "string"
-        },
-        "Year": {
           "type": "string"
         }
       }

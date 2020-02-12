@@ -67,6 +67,7 @@ func (z *Zipline) Start() {
 		if err != nil {
 			panic(err)
 		}
+		// z.renderer.print(os.Stdout, false) // TODO: in case of error dump out for debug
 		z.renderer.print(f, true)
 		f.Close()
 

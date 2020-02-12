@@ -21,8 +21,22 @@ type swagger struct {
 }
 
 func newSwagger() swagger {
+	// init defaults
 	swag := &spec.Swagger{
 		SwaggerProps: spec.SwaggerProps{
+			Swagger: "2.0",
+			Info: &spec.Info{
+				InfoProps: spec.InfoProps{
+					Version:     "1.0.0",
+					Title:       "OpenAPI Version 2 Specification",
+					Description: "OpenAPI Version 2 Specification",
+				},
+			},
+			Host:     "api.host.com",
+			BasePath: "/api",
+			Schemes:  []string{"http"},
+			Consumes: []string{"application/json"},
+			Produces: []string{"application/json"},
 			Paths: &spec.Paths{
 				Paths: make(map[string]spec.PathItem),
 			},
@@ -31,12 +45,24 @@ func newSwagger() swagger {
 		},
 	}
 
+	ert := skema("object")
+	ert.Properties["code"] = *spec.Int32Property()
+	ert.Properties["status"] = *spec.StringProperty()
+	swag.Definitions["Error"] = ert
+
 	return swagger{
 		swag: swag,
 	}
 }
 
 func (s swagger) generate(packets []*packet) {
+	erref := &spec.Schema{
+		SchemaProps: spec.SchemaProps{
+			Ref: spec.MustCreateRef("#/definitions/Error"),
+		},
+	}
+	erresp := spec.NewResponse().WithDescription("unexpected error").WithSchema(erref)
+
 	for _, packet := range packets {
 		for _, b := range packet.bindings {
 			var pi spec.PathItem
@@ -47,9 +73,12 @@ func (s swagger) generate(packets []*packet) {
 
 			op := &spec.Operation{
 				OperationProps: spec.OperationProps{
-					Description: "controler",
-					Produces:    []string{"application/json"},
-					Consumes:    []string{"application/json"},
+					Description: "Route description",
+					Responses: &spec.Responses{
+						ResponsesProps: spec.ResponsesProps{
+							StatusCodeResponses: make(map[int]spec.Response),
+						},
+					},
 				},
 			}
 
@@ -67,7 +96,7 @@ func (s swagger) generate(packets []*packet) {
 							Required: true,
 						},
 						SimpleSchema: spec.SimpleSchema{
-							Type: typeMap[param.signature],
+							Type: toJSONType(param.signature),
 						},
 					})
 				} else {
@@ -94,6 +123,7 @@ func (s swagger) generate(packets []*packet) {
 
 			for _, ret := range b.handler.returns {
 				if ret.varType.Type().String() == "error" {
+					op.Responses.ResponsesProps.Default = erresp
 					continue
 				}
 
@@ -106,21 +136,21 @@ func (s swagger) generate(packets []*packet) {
 
 				s.swag.Definitions[ret.shortSignature()] = skema
 
-				op.Responses = &spec.Responses{
-					ResponsesProps: spec.ResponsesProps{
-						StatusCodeResponses: map[int]spec.Response{
-							200: spec.Response{
-								ResponseProps: spec.ResponseProps{
-									Schema: &ref,
-								},
-							},
-							// TODO: handle error responses, maybe?
-						},
+				op.Responses.ResponsesProps.StatusCodeResponses[200] = spec.Response{
+					ResponseProps: spec.ResponseProps{
+						Description: "200 response",
+						Schema:      &ref,
 					},
 				}
 			}
-			// TODO: if len(b.handler.returns) == 0
-			// ResponseCode should be NoContent
+
+			if len(b.handler.returns) == 1 && b.handler.returns[0].varType.Type().String() == "error" {
+				op.Responses.ResponsesProps.StatusCodeResponses[204] = spec.Response{
+					ResponseProps: spec.ResponseProps{
+						Description: "no content",
+					},
+				}
+			}
 
 			switch strings.ToUpper(b.template) {
 			case "GET":
@@ -141,6 +171,16 @@ func (s swagger) generate(packets []*packet) {
 		}
 	}
 
+	s.write()
+}
+
+func (s swagger) write() {
+	// merge some info if spec exists
+	err := s.readAndMergeSchema()
+	if err != nil {
+		// nothing to do
+	}
+
 	bites, err := json.MarshalIndent(s.swag, "", "  ")
 	if err != nil {
 		log.Fatal("Failed to generate json", err)
@@ -157,6 +197,29 @@ func (s swagger) generate(packets []*packet) {
 	}
 
 	log.Println("Wrote OpenAPI spec to", path.Join(wd, OpenAPIFile))
+}
+
+func (s swagger) readAndMergeSchema() error {
+	bites, err := ioutil.ReadFile(OpenAPIFile)
+	if err != nil {
+		return err
+	}
+
+	old := &spec.Swagger{}
+	err = old.UnmarshalJSON(bites)
+	if err != nil {
+		return err
+	}
+
+	s.swag.Swagger = old.Swagger
+	s.swag.Info = old.Info
+	s.swag.Host = old.Host
+	s.swag.BasePath = old.BasePath
+	s.swag.Schemes = old.Schemes
+	s.swag.Consumes = old.Consumes
+	s.swag.Produces = old.Produces
+
+	return nil
 }
 
 func field(name string, t types.Type) spec.Schema {
@@ -232,13 +295,13 @@ func skema(t string) spec.Schema {
 	case "int", "int64", "uint", "uint8", "uint64":
 		return spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Type: spec.StringOrArray{typeMap[t]},
+				Type: spec.StringOrArray{toJSONType(t)},
 			},
 		}
 	case "float64":
 		return spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Type: spec.StringOrArray{typeMap[t]},
+				Type: spec.StringOrArray{toJSONType(t)},
 			},
 		}
 	case "string", "array":
@@ -250,7 +313,7 @@ func skema(t string) spec.Schema {
 	case "bool":
 		return spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Type: spec.StringOrArray{typeMap[t]},
+				Type: spec.StringOrArray{toJSONType(t)},
 			},
 		}
 	default:
@@ -258,15 +321,23 @@ func skema(t string) spec.Schema {
 	}
 }
 
-var typeMap = map[string]string{
-	"int":     "integer",
-	"int8":    "integer",
-	"int32":   "integer",
-	"int64":   "integer",
-	"uint":    "integer",
-	"uint8":   "integer",
-	"uint32":  "integer",
-	"uint64":  "integer",
-	"float64": "number",
-	"bool":    "boolean",
+func toJSONType(t string) string {
+	var typeMap = map[string]string{
+		"int":     "integer",
+		"int8":    "integer",
+		"int32":   "integer",
+		"int64":   "integer",
+		"uint":    "integer",
+		"uint8":   "integer",
+		"uint32":  "integer",
+		"uint64":  "integer",
+		"float64": "number",
+		"bool":    "boolean",
+	}
+
+	jt := typeMap[t]
+	if jt == "" {
+		return t
+	}
+	return jt
 }
