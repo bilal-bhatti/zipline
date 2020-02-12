@@ -1,0 +1,268 @@
+{
+  "paths": {
+    "/contacts": {
+      "post": {
+        "description": "controler",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.ContactRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "schema": {
+              "$ref": "#/definitions/models.ContactResponse"
+            }
+          }
+        }
+      }
+    },
+    "/contacts/{id}": {
+      "get": {
+        "description": "controler",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "schema": {
+              "$ref": "#/definitions/models.ContactResponse"
+            }
+          }
+        }
+      },
+      "put": {
+        "description": "controler",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.ContactRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "schema": {
+              "$ref": "#/definitions/models.ContactResponse"
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "controler",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.ContactRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "schema": {
+              "$ref": "#/definitions/models.ContactResponse"
+            }
+          }
+        }
+      }
+    },
+    "/contacts/{month}-{day}-{year}": {
+      "get": {
+        "description": "controler",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/services.DateFilter"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "schema": {
+              "$ref": "#/definitions/models.ContactResponse"
+            }
+          }
+        }
+      }
+    },
+    "/echo": {
+      "post": {
+        "description": "controler",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/services.EchoRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "schema": {
+              "$ref": "#/definitions/services.EchoResponse"
+            }
+          }
+        }
+      }
+    },
+    "/things/{id}": {
+      "delete": {
+        "description": "controler",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "models.ContactRequest": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string"
+            },
+            "state": {
+              "type": "string"
+            },
+            "street": {
+              "type": "string"
+            },
+            "zipCode": {
+              "type": "string"
+            }
+          }
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "input": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        }
+      }
+    },
+    "models.ContactResponse": {
+      "type": "object",
+      "properties": {
+        "output": {
+          "type": "string"
+        }
+      }
+    },
+    "services.DateFilter": {
+      "type": "object",
+      "properties": {
+        "Day": {
+          "type": "string"
+        },
+        "Month": {
+          "type": "string"
+        },
+        "Year": {
+          "type": "string"
+        }
+      }
+    },
+    "services.EchoRequest": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "string"
+        }
+      }
+    },
+    "services.EchoResponse": {
+      "type": "object",
+      "properties": {
+        "output": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -18,7 +18,7 @@ func (s scanner) scan() (map[string]*template, []*packet) {
 		for _, file := range pkg.Syntax {
 			for _, decl := range file.Decls {
 				if funcD, ok := decl.(*ast.FuncDecl); ok {
-					if isBindingSpecNode(pkg.TypesInfo, funcD) {
+					if isZiplineNode(pkg.TypesInfo, funcD) {
 						if funcD.Recv != nil && len(funcD.Recv.List) == 1 {
 							// match ZiplineTemplate as receiver
 							field := funcD.Recv.List[0]
@@ -38,7 +38,7 @@ func (s scanner) scan() (map[string]*template, []*packet) {
 						// else this is a func that declares zipline bindings
 						packets = append(packets, &packet{
 							pkg:      pkg,
-							bindings: funcD,
+							funcDecl: funcD,
 						})
 					}
 				}

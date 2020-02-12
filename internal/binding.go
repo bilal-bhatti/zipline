@@ -1,12 +1,21 @@
 package internal
 
-import "go/ast"
+import (
+	"go/ast"
+
+	"golang.org/x/tools/go/packages"
+)
 
 type (
+	packet struct {
+		pkg      *packages.Package
+		funcDecl *ast.FuncDecl
+		bindings []*binding
+	}
+
 	binding struct {
-		name, method, path string
-		handler            *handlerInfo
-		zipline            *ast.CallExpr
+		template, path string
+		handler        *handlerInfo
 	}
 
 	handlerInfo struct {

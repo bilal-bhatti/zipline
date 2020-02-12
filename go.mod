@@ -3,7 +3,9 @@ module github.com/bilal-bhatti/zipline
 go 1.13
 
 require (
+	github.com/fatih/structtag v1.2.0
 	github.com/go-chi/chi v4.0.3+incompatible
+	github.com/go-openapi/spec v0.19.6
 	github.com/google/wire v0.4.0
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
 	github.com/pkg/errors v0.9.1

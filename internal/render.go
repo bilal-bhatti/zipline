@@ -38,7 +38,7 @@ func newRenderer(templates map[string]*template, provider *provider) *renderer {
 }
 
 func (r *renderer) render(info *binding) {
-	template := r.templates[info.method]
+	template := r.templates[info.template]
 	if template != nil {
 		bites, err := r.renderTemplate(template, info)
 		if err != nil {
@@ -46,7 +46,7 @@ func (r *renderer) render(info *binding) {
 		}
 		r.body.buf.Write(bites)
 	} else {
-		log.Println("Template not found for", info.method)
+		log.Println("Template not found for", info.template)
 	}
 }
 
@@ -75,7 +75,7 @@ func (r *renderer) complete(packet *packet) {
 	// write binding func
 	fset := token.NewFileSet()
 	var buf bytes.Buffer
-	printer.Fprint(&buf, fset, packet.bindings)
+	printer.Fprint(&buf, fset, packet.funcDecl)
 	r.preamble.ws("\n\n")
 	r.preamble.buf.Write(buf.Bytes())
 	r.preamble.ws("\n\n")
@@ -117,7 +117,7 @@ func (r *renderer) renderTemplate(t *template, b *binding) ([]byte, error) {
 
 		buf.ws("// %s%s handles requests to:\n", b.id(), t.funcSuffix())
 		buf.ws("// path  : %s\n", b.path)
-		buf.ws("// method: %s\n", strings.ToLower(b.method))
+		buf.ws("// method: %s\n", strings.ToLower(b.template))
 		buf.ws("func %s%s() %s {\n", b.id(), t.funcSuffix(), t.returnType())
 		buf.ws("return ")
 		printer.Fprint(buf.buf, fset, funclit.Type)
@@ -198,7 +198,7 @@ func (r *renderer) deps(b *binding, buf buffer) []string {
 			buf.ws("\n// resolve %s dependency through a provider function\n", p.varName())
 
 			buf.ws("%s\n\n", ft.call())
-		} else if pathParam(b, p) {
+		} else if isPathParam(b, p) {
 			buf.ws("\n// parse path parameter %s\n", p.varName())
 
 			switch p.signature {
@@ -212,7 +212,7 @@ func (r *renderer) deps(b *binding, buf buffer) []string {
 			case "string":
 				buf.ws("%s := chi.URLParam(%s, \"%s\")\n\n", p.name, hreq.varName(), p.name)
 			}
-		} else if b.method == "Post" || b.method == "Put" {
+		} else if b.template == "Post" || b.template == "Put" {
 			buf.ws("\n// extract json body and marshall %s\n", p.varName())
 
 			buf.ws("%s := %s\n", p.varName(), p.inst())

@@ -3,6 +3,7 @@ package internal
 import (
 	"bytes"
 	"fmt"
+	"go/types"
 	"strings"
 
 	"github.com/iancoleman/strcase"
@@ -11,6 +12,7 @@ import (
 type typeToken struct {
 	cpkg, name, signature string
 	isPtr                 bool
+	varType               *types.Var
 }
 
 func (tt typeToken) String() string {
@@ -110,6 +112,24 @@ func (tt typeToken) param() string {
 
 	// remove package prefix if same
 	vn = strings.TrimPrefix(vn, tt.cpkg)
+	vn = strings.TrimPrefix(vn, ".")
+
+	b.WriteString(vn)
+
+	return b.String()
+}
+
+func (tt typeToken) shortSignature() string {
+	var b bytes.Buffer
+
+	vn := tt.signature
+	idx := strings.LastIndex(vn, "/")
+
+	if idx > 0 {
+		vn = strings.Trim(vn[idx:len(vn)], "/")
+	}
+
+	// remove package prefix if same
 	vn = strings.TrimPrefix(vn, ".")
 
 	b.WriteString(vn)

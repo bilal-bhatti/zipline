@@ -12,14 +12,20 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
+var tr = false
+
+func trace(f string, a ...interface{}) {
+	if tr {
+		log.Print(f, a)
+	}
+}
+
 func load() []*packages.Package {
 	wd, err := os.Getwd()
 	if err != nil {
-		log.Println("failed to get working directory: ", err)
+		log.Println("Failed to get working directory: ", err)
 		panic(err)
 	}
-
-	log.Println("Working directory", wd)
 
 	cfg := &packages.Config{
 		Context:    context.Background(),
@@ -69,8 +75,8 @@ func qualifiedIdentObject(info *types.Info, expr ast.Expr) types.Object {
 	}
 }
 
-// Useful to do a broad search for binding call or a template
-func isBindingSpecNode(info *types.Info, fn ast.Node) bool {
+// Useful to do a broad search for a zipline spec or a template
+func isZiplineNode(info *types.Info, fn ast.Node) bool {
 	foundit := false
 	ast.Inspect(fn, func(n ast.Node) bool {
 		// ****************
@@ -78,30 +84,20 @@ func isBindingSpecNode(info *types.Info, fn ast.Node) bool {
 		// any further and want to move on to the next node
 		// ****************
 
-		callExp, ok := n.(*ast.CallExpr)
+		// check the token ident is the ZiplineTemplate type
+		id, ok := n.(*ast.Ident)
 		if !ok {
 			return true
 		}
 
-		selExp, ok := callExp.Fun.(*ast.SelectorExpr)
-		if !ok {
-			return true
-		}
+		ido := qualifiedIdentObject(info, id)
 
-		// check the receiver is the ZiplineTemplate
-		x, ok := selExp.X.(*ast.Ident)
-		if !ok {
-			return true
-		}
-
-		xo := qualifiedIdentObject(info, x)
-
-		if xo == nil {
+		if ido == nil {
 			return true
 		}
 
 		// ensure receiver var type is ZiplineTemplate
-		if !strings.HasSuffix(xo.Type().String(), ZiplineTemplate) {
+		if !strings.HasSuffix(ido.Type().String(), ZiplineTemplate) {
 			return true
 		}
 

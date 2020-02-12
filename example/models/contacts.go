@@ -1,9 +1,24 @@
 package models
 
-type ContactRequest struct {
-	Input string `json:"input"`
-}
+type (
+	Name struct {
+		FirstName string `json:"firstName"`
+		LastName  string `json:"lastName"`
+	}
+	Address struct {
+		Street  string `json:"street"`
+		City    string `json:"city"`
+		State   string `json:"state"`
+		ZipCode string `json:"zipCode"`
+	}
 
-type ContactResponse struct {
-	Output string `json:"output"`
-}
+	ContactRequest struct {
+		Input string `json:"input"`
+		Name
+		Address *Address `json:"address"`
+	}
+
+	ContactResponse struct {
+		Output string `json:"output"`
+	}
+)

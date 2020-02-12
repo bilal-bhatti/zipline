@@ -16,11 +16,6 @@ import (
 	"golang.org/x/tools/imports"
 )
 
-type packet struct {
-	pkg      *packages.Package
-	bindings *ast.FuncDecl
-}
-
 type Zipline struct {
 	packets   []*packet
 	templates map[string]*template
@@ -95,47 +90,75 @@ func (z *Zipline) Start() {
 
 		log.Println("Wrote bindings to", out)
 	}
+
+	swagger := newSwagger()
+	swagger.generate(z.packets)
 }
 
 func (z *Zipline) prepare(packet *packet) {
-	dfunc := packet.bindings
+	dfunc := packet.funcDecl
 
-	// TODO: clean this up. use ast.Inspect to simplify this mess
 	for _, stmt := range dfunc.Body.List {
-		switch stmtType := stmt.(type) {
-		case *ast.ExprStmt:
-			// does the statement contain zipline binding
-			if isBindingSpecNode(packet.pkg.TypesInfo, stmtType) {
-				switch expType := stmtType.X.(type) {
-				case *ast.CallExpr:
-					for i := 0; i < len(expType.Args); i++ {
-						arg := expType.Args[i]
-						if call, ok := arg.(*ast.CallExpr); ok {
-							if isBindingSpecNode(packet.pkg.TypesInfo, call) {
-								// actual call to ZiplineTemplate
-								if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
-									if id, ok := sel.X.(*ast.Ident); ok {
-										ido := z.provider.qualifiedIdentObject(id)
+		// looking for expression statements
+		expStmt, ok := stmt.(*ast.ExprStmt)
+		if !ok {
+			// keep going
+			continue
+		}
 
-										// ensure var type is ZiplineTemplate
-										if ido != nil && strings.HasSuffix(ido.Type().String(), ZiplineTemplate) {
-											// generate function body first
-											binding := z.processStatement(packet.pkg, stmtType)
+		// does the statement contain zipline binding
+		if !isZiplineNode(packet.pkg.TypesInfo, expStmt) {
+			// if not
+			continue
+		}
 
-											// rewrite ast to replace zipline spec
-											expType.Args[i] = newCallExpression(binding, expType.Args[i])
-										}
-									}
-								} else {
-									log.Println("Somethinger other than call to zipline found")
-								}
-							}
-						}
-					}
-				default:
-					log.Println("Unhandled expression type", reflect.TypeOf(expType))
+		switch expType := expStmt.X.(type) {
+		case *ast.CallExpr:
+			// call expression, let's examine the arguments
+			for i := 0; i < len(expType.Args); i++ {
+				arg := expType.Args[i]
+
+				// is argument a call expression
+				call, ok := arg.(*ast.CallExpr)
+				if !ok {
+					// if not
+					continue
+				}
+
+				// is call expression a zipline call expression
+				if !isZiplineNode(packet.pkg.TypesInfo, call) {
+					continue
+				}
+
+				// actual call to ZiplineTemplate, i.e. ZiplineTemplate.TemplateFunc
+				sel, ok := call.Fun.(*ast.SelectorExpr)
+				if !ok {
+					// TODO: fix this
+					// handler/zipline call is being wrapped
+					// should handle this properly
+					log.Println("Somethinger other than call to zipline found")
+					continue
+				}
+
+				id, ok := sel.X.(*ast.Ident)
+				if !ok {
+					continue
+				}
+
+				ido := z.provider.qualifiedIdentObject(id)
+
+				// ensure var type is ZiplineTemplate
+				if ido != nil && strings.HasSuffix(ido.Type().String(), ZiplineTemplate) {
+					// generate function body first
+					binding := z.processStatement(packet.pkg, expStmt)
+
+					// rewrite ast to replace zipline spec
+					expType.Args[i] = newCallExpression(binding, expType.Args[i])
+					packet.bindings = append(packet.bindings, binding)
 				}
 			}
+		default:
+			log.Println("Unhandled expression type", reflect.TypeOf(expType))
 		}
 	}
 }
@@ -169,8 +192,8 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) *binding {
 	path := strings.Trim(call.Args[0].(*ast.BasicLit).Value, "\"")
 
 	binding := &binding{
-		method: sel.Sel.Name,
-		path:   path,
+		template: sel.Sel.Name,
+		path:     path,
 	}
 
 	zipline, ok := call.Args[1].(*ast.CallExpr)
@@ -229,12 +252,16 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) *handler
 
 	for i := 0; i < sig.Params().Len(); i++ {
 		p := sig.Params().At(i)
-		hi.params = append(hi.params, newTypeToken(pkg.Name, p.Type().String(), p.Name()))
+		tt := newTypeToken(pkg.Name, p.Type().String(), p.Name())
+		tt.varType = p
+		hi.params = append(hi.params, tt)
 	}
 
 	for i := 0; i < sig.Results().Len(); i++ {
 		r := sig.Results().At(i)
-		hi.returns = append(hi.returns, newTypeToken(pkg.Name, r.Type().String(), r.Name()))
+		tt := newTypeToken(pkg.Name, r.Type().String(), r.Name())
+		tt.varType = r
+		hi.returns = append(hi.returns, tt)
 	}
 
 	return hi
