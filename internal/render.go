@@ -126,26 +126,30 @@ func (r *renderer) renderTemplate(t *template, b *binding) ([]byte, error) {
 		for _, fstmt := range funclit.Body.List {
 			var expand = false
 
-			switch stmtType := fstmt.(type) {
-			case *ast.AssignStmt:
-				if call, ok := stmtType.Rhs[0].(*ast.CallExpr); ok {
-					if selector, ok := call.Fun.(*ast.SelectorExpr); ok {
-						obj := r.provider.qualifiedIdentObject(selector.X)
-						if obj != nil && strings.HasSuffix(obj.Type().String(), ZiplineTemplate) {
-							expand = true
-							r.expand(b, stmtType, buf)
-						}
+			assnStmt, ok := fstmt.(*ast.AssignStmt)
+
+			if !ok {
+				printer.Fprint(buf.buf, fset, fstmt)
+				buf.ws("\n")
+				continue
+			}
+
+			if call, ok := assnStmt.Rhs[0].(*ast.CallExpr); ok {
+				if selector, ok := call.Fun.(*ast.SelectorExpr); ok {
+					obj := r.provider.qualifiedIdentObject(selector.X)
+					if obj != nil && strings.HasSuffix(obj.Type().String(), ZiplineTemplate) {
+						expand = true
+						r.expand(b, assnStmt, buf)
 					}
 				}
-				if !expand {
-					printer.Fprint(buf.buf, fset, fstmt)
-					buf.ws("\n")
-				}
-			default:
+			}
+
+			if !expand {
 				printer.Fprint(buf.buf, fset, fstmt)
 				buf.ws("\n")
 			}
 		}
+
 		buf.ws("}\n")
 		buf.ws("}\n\n")
 	}
