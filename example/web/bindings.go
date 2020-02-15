@@ -1,6 +1,6 @@
-// +build ziplinegen
+//+build ziplinegen
 
-package services
+package web
 
 import (
 	"log"
@@ -9,22 +9,26 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/bilal-bhatti/zipline/example/services"
 	"github.com/go-chi/chi"
 )
 
 func NewRouter() *chi.Mux {
 	mux := chi.NewRouter()
-	mux.Use(Authentication)
+	mux.Use(services.Authentication)
 
-	mux.Post("/contacts", zipline.Post(ContactsService.Create))
+	mux.Post("/contacts", zipline.Post(services.ContactsService.Create))
 
-	mux.Get("/contacts/{id}", zipline.Get(ContactsService.GetOne))
-	mux.Get("/contacts/{month}-{day}-{year}", zipline.Get(ContactsService.GetByDate))
-	mux.Post("/contacts/{id}", zipline.Post(ContactsService.Update))
-	mux.Put("/contacts/{id}", zipline.Put(ContactsService.Replace))
+	mux.Get("/contacts/{id}", zipline.Get(services.ContactsService.GetOne))
+	mux.Get("/contacts/{month}-{day}-{year}", zipline.Get(services.ContactsService.GetByDate))
+	mux.Post("/contacts/{id}", zipline.Post(services.ContactsService.Update))
+	mux.Put("/contacts/{id}", zipline.Put(services.ContactsService.Replace))
 
 	mux.Delete("/things/{id}", zipline.Delete(ThingsService.Delete))
+
 	mux.Post("/echo", zipline.Post(Echo))
+
+	// mux.Post("/ping", zipline.Post(services.Ping))
 
 	return mux
 }
@@ -34,6 +38,7 @@ var zipline ZiplineTemplate
 type ZiplineTemplate struct {
 	ReturnResponseAndError func() (interface{}, error)
 	ReturnError            func() error
+	Resolve func() (ZiplineTemplate, error)
 }
 
 func (z ZiplineTemplate) Path(w http.ResponseWriter, r *http.Request) {
@@ -67,7 +72,14 @@ func (z ZiplineTemplate) Post(i interface{}) http.HandlerFunc {
 			log.Printf("It took %d to process request\n", duration)
 		}()
 
-		response, err := z.ReturnResponseAndError()
+		handler, err := z.Resolve()
+		if err != nil {
+			// write error response
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		response, err := handler.ReturnResponseAndError()
 		if err != nil {
 			// write error response
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -98,7 +110,14 @@ func (z ZiplineTemplate) Get(i interface{}) http.HandlerFunc {
 			log.Printf("It took %d to process request\n", duration)
 		}()
 
-		response, err := z.ReturnResponseAndError()
+		handler, err := z.Resolve()
+		if err != nil {
+			// write error response
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		response, err := handler.ReturnResponseAndError()
 		if err != nil {
 			// write error response
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -129,7 +148,14 @@ func (z ZiplineTemplate) Delete(i interface{}) http.HandlerFunc {
 			log.Printf("It took %d to process request\n", duration)
 		}()
 
-		err = z.ReturnError()
+		handler, err := z.Resolve()
+		if err != nil {
+			// write error response
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		err = handler.ReturnError()
 
 		if err != nil {
 			// write error response
@@ -153,7 +179,14 @@ func (z ZiplineTemplate) Put(i interface{}) http.HandlerFunc {
 			log.Printf("It took %d to process request\n", duration)
 		}()
 
-		response, err := z.ReturnResponseAndError()
+		handler, err := z.Resolve()
+		if err != nil {
+			// write error response
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		response, err := handler.ReturnResponseAndError()
 		if err != nil {
 			// write error response
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

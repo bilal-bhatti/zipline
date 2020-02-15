@@ -11,6 +11,12 @@ type ContactsService struct {
 	DataConnector *connectors.DataConnector
 }
 
+func NewContactsService(dc *connectors.DataConnector) ContactsService {
+	return ContactsService{
+		DataConnector: dc,
+	}
+}
+
 func (cs ContactsService) Create(ctx context.Context, contactRequest *models.ContactRequest) (*models.ContactResponse, error) {
 	return &models.ContactResponse{Output: "Out"}, nil
 }

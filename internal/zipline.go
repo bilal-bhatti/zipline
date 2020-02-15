@@ -166,7 +166,7 @@ func (z *Zipline) prepare(packet *packet) {
 
 func (z *Zipline) processStatement(pkg *packages.Package, stmt *ast.ExprStmt) *binding {
 	binding := parseSpec(pkg, stmt)
-	z.renderer.render(binding)
+	z.renderer.render(pkg, binding)
 	return binding
 }
 
@@ -207,7 +207,11 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) *binding {
 		binding.handler = newHandlerInfoFromSelectorExpr(pkg, handler)
 	case *ast.Ident:
 		binding.handler = newHandlerInfoFromIdent(pkg, handler)
+	default:
+		panic("unsupported expression")
 	}
+
+	// log.Println("binding signature", binding.handler.sel, binding.handler.pkg)
 
 	return binding
 }
@@ -215,14 +219,26 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) *binding {
 func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.SelectorExpr) *handlerInfo {
 	hi := newHandlerInfoFromIdent(pkg, handler.Sel)
 
-	xid, ok := handler.X.(*ast.Ident)
-	if !ok {
-		panic("Zipline must be a function selector expression (X.Y) where X is a service struct and Y is a method")
+	switch xt := handler.X.(type) {
+	case *ast.Ident:
+		// same package
+		obj := qualifiedIdentObject(pkg.TypesInfo, xt)
+		if obj != nil {
+			if _, ok := obj.Type().(*types.Basic); !ok {
+				hi.x = newTypeToken("", obj.Type().String(), "")
+			}
+		}
+	case *ast.SelectorExpr:
+		// different package
+		// xt.X = package
+		// xt.Sel = type
+		obj := qualifiedIdentObject(pkg.TypesInfo, xt.Sel)
+		if obj != nil {
+			hi.x = newTypeToken("", obj.Type().String(), "")
+		}
+	default:
+		panic("CONFUSING: FIX: Zipline must be a function selector expression (X.Y.Z or Y.Z) where X is a pakcage and Y is a struct and Z is a method")
 	}
-
-	obj := qualifiedIdentObject(pkg.TypesInfo, xid)
-
-	hi.x = newTypeToken("", obj.Type().String(), "")
 
 	return hi
 }
@@ -249,6 +265,7 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) *handler
 	hi := &handlerInfo{
 		id:  string(id.Bytes()),
 		sel: handler.String(),
+		pkg: obj.Pkg().Path(),
 	}
 
 	for i := 0; i < sig.Params().Len(); i++ {

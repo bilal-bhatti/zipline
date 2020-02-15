@@ -3,7 +3,7 @@
 //go:generate wire
 //+build !wireinject
 
-package services
+package web
 
 import (
 	"github.com/bilal-bhatti/zipline/example/connectors"
@@ -11,13 +11,13 @@ import (
 
 // Injectors from wire.go:
 
-func InitContactsService() (*ContactsService, error) {
+func InitThingsService() (*ThingsService, error) {
 	dataConnector, err := connectors.ProvideDataConnector()
 	if err != nil {
 		return nil, err
 	}
-	contactsService := &ContactsService{
+	thingsService := &ThingsService{
 		DataConnector: dataConnector,
 	}
-	return contactsService, nil
+	return thingsService, nil
 }

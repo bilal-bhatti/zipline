@@ -8,5 +8,6 @@ var (
 
 // global type key
 const ZiplineTemplate = "ZiplineTemplate"
+const ZiplineTemplateResolve = "Resolve"
 
 const OpenAPIFile = "api.oasv2.json"

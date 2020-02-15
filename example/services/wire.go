@@ -7,10 +7,6 @@ import (
 	"github.com/google/wire"
 )
 
-func InitContactsService() *ContactsService {
+func InitContactsService() (*ContactsService, error) {
 	panic(wire.Build(connectors.ProvideDataConnector, wire.Struct(new(ContactsService), "*")))
-}
-
-func InitThingsService() *ThingsService {
-	panic(wire.Build(connectors.ProvideDataConnector, wire.Struct(new(ThingsService), "*")))
 }

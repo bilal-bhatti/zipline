@@ -87,6 +87,11 @@ func (s swagger) generate(packets []*packet) {
 					continue
 				}
 
+				// if strings.HasSuffix(param.varType.Type().String(), "util.Claims") {
+				// 	// log.Println("skipping claims type")
+				// 	continue
+				// }
+
 				// TODO: do better!
 				if isPathParam(b, param) {
 					op.AddParam(&spec.Parameter{
@@ -278,6 +283,12 @@ func field(name string, t types.Type) spec.Schema {
 		return arr
 	case *types.Basic:
 		return skema(tt.String())
+	case *types.Map:
+		return spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: spec.StringOrArray{"object"},
+			},
+		}
 	default:
 		panic(fmt.Sprint("Oh noos unknown type: ", reflect.TypeOf(tt)))
 	}
@@ -314,6 +325,16 @@ func skema(t string) spec.Schema {
 		return spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: spec.StringOrArray{toJSONType(t)},
+			},
+		}
+	case "byte":
+		// TODO: Swagger 2.0 doesn't support binary data type
+		// map byte to string, but it should really be removed
+		// fail at this point? maybe a strict mode vs lax mode?
+		log.Print("Swagger 2.0 doesn't support byte type, generated spec will not be valid")
+		return spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: spec.StringOrArray{t},
 			},
 		}
 	default:

@@ -5,9 +5,9 @@ import (
 )
 
 type funcToken struct {
-	cpkg, signature string
-	args            []*typeToken
-	rets            []*typeToken
+	signature string
+	args      []*typeToken
+	rets      []*typeToken
 }
 
 func (ft funcToken) pkg() string {
@@ -25,19 +25,21 @@ func (ft funcToken) pkg() string {
 	return pn
 }
 
-func (ft funcToken) call() string {
+func (ft funcToken) call(cpkgpath string) string {
 	b := newBuffer()
 
 	var fn string
-	idx := strings.LastIndex(ft.signature, "/")
+
+	// remove package prefix if same
+	fn = strings.TrimPrefix(ft.signature, cpkgpath)
+	fn = strings.TrimPrefix(fn, ".")
+
+	// if above didn't do the job
+	idx := strings.LastIndex(fn, "/")
 
 	if idx > 0 {
 		fn = strings.Trim(ft.signature[idx:len(ft.signature)], "/")
 	}
-
-	// remove package prefix if same
-	fn = strings.TrimPrefix(fn, ft.cpkg)
-	fn = strings.TrimPrefix(fn, ".")
 
 	args := []string{}
 	for _, arg := range ft.args {

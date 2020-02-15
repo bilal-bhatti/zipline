@@ -18,8 +18,8 @@ var dc = &DataConnector{
 	Data: data,
 }
 
-func ProvideDataConnector() *DataConnector {
-	return dc
+func ProvideDataConnector() (*DataConnector, error) {
+	return dc, nil
 }
 
 func (dc *DataConnector) Create(input string) string {
