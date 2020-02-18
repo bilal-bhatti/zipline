@@ -11,19 +11,6 @@ Produces:    [application/json]
 ```
 
 <details>
-<summary>/things/{id}: delete</summary>
-
-`path parameters`
-- name: `id`, type: `integer`
-
-
-`responses`
-- `default`, type: `Error`
-	- name: `code`, type: `integer`
-	- name: `status`, type: `string`
-</details>
-
-<details>
 <summary>/echo: post</summary>
 
 `body parameter`
@@ -43,21 +30,21 @@ Produces:    [application/json]
 
 `body parameter`
 - name: `body`, type: `models.ContactRequest`
+	- name: `input`, type: `string`
 	- name: `firstName`, type: `string`
 	- name: `lastName`, type: `string`
 	- name: `address`, type: `object`
+		- name: `street`, type: `string`
 		- name: `city`, type: `string`
 		- name: `state`, type: `string`
 		- name: `zipCode`, type: `string`
-		- name: `street`, type: `string`
-	- name: `input`, type: `string`
 
 `responses`
 - code: `200`, type: `models.ContactResponse`
 	- name: `output`, type: `string`
 - `default`, type: `Error`
-	- name: `code`, type: `integer`
 	- name: `status`, type: `string`
+	- name: `code`, type: `integer`
 </details>
 
 <details>
@@ -83,7 +70,6 @@ Produces:    [application/json]
 
 `body parameter`
 - name: `body`, type: `models.ContactRequest`
-	- name: `firstName`, type: `string`
 	- name: `lastName`, type: `string`
 	- name: `address`, type: `object`
 		- name: `street`, type: `string`
@@ -91,13 +77,14 @@ Produces:    [application/json]
 		- name: `state`, type: `string`
 		- name: `zipCode`, type: `string`
 	- name: `input`, type: `string`
+	- name: `firstName`, type: `string`
 
 `responses`
 - code: `200`, type: `models.ContactResponse`
 	- name: `output`, type: `string`
 - `default`, type: `Error`
-	- name: `status`, type: `string`
 	- name: `code`, type: `integer`
+	- name: `status`, type: `string`
 </details>
 
 <details>
@@ -108,6 +95,7 @@ Produces:    [application/json]
 
 `body parameter`
 - name: `body`, type: `models.ContactRequest`
+	- name: `input`, type: `string`
 	- name: `firstName`, type: `string`
 	- name: `lastName`, type: `string`
 	- name: `address`, type: `object`
@@ -115,7 +103,6 @@ Produces:    [application/json]
 		- name: `city`, type: `string`
 		- name: `state`, type: `string`
 		- name: `zipCode`, type: `string`
-	- name: `input`, type: `string`
 
 `responses`
 - code: `200`, type: `models.ContactResponse`
@@ -155,6 +142,19 @@ Produces:    [application/json]
 `responses`
 - code: `200`, type: `[]web.ThingResponse`
 	- name: `output`, type: `string`
+- `default`, type: `Error`
+	- name: `code`, type: `integer`
+	- name: `status`, type: `string`
+</details>
+
+<details>
+<summary>/things/{id}: delete</summary>
+
+`path parameters`
+- name: `id`, type: `integer`
+
+
+`responses`
 - `default`, type: `Error`
 	- name: `code`, type: `integer`
 	- name: `status`, type: `string`
