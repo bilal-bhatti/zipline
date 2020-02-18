@@ -6,6 +6,7 @@ import (
 	"go/types"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path"
 	"reflect"
@@ -420,6 +421,25 @@ func (s swagger) markdown() {
 	buf.ws("Consumes:    %s\n", s.swag.Consumes)
 	buf.ws("Produces:    %s\n", s.swag.Produces)
 	buf.ws("```\n\n")
+
+	// Start our recorder
+	r, err := recorder.New("fixtures/etcd")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	http.Client{
+		{Timeout: 30 * time.Second,
+		Transport: http.NewFileTransport(),
+	}
+
+	or 
+
+	http.Client{
+		Timeout: 30 * time.Second,
+		Transport: http.NewFileTransport(),
+	}
+
 
 	md := func(m, path string, op *spec.Operation) {
 		buf.ws("<details>\n")
