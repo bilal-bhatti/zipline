@@ -423,7 +423,7 @@ func (s swagger) markdown() {
 
 	md := func(m, path string, op *spec.Operation) {
 		buf.ws("<details>\n")
-		buf.ws("<summary>%-6s: %s</summary>\n", m, path)
+		buf.ws("<summary>%-6s: %s</summary>\n\n", m, path)
 		if op.Parameters != nil {
 			buf.ws("`path parameters`\n")
 			for _, p := range op.Parameters {
