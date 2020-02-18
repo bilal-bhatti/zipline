@@ -151,7 +151,7 @@ func (r *renderer) renderTemplate(pkg *packages.Package, t *template, b *binding
 				}
 			}
 
-			// TODO: assignment statement, let's record the declared types
+			// assignment statement, let's record the declared types
 			for _, lhs := range assnStmt.Lhs {
 				if id, ok := lhs.(*ast.Ident); ok {
 					obj := r.provider.qualifiedIdentObject(id)
