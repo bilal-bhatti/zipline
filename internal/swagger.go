@@ -394,14 +394,14 @@ func obj(lvl int, s spec.Schema, buf buffer) {
 	for k, v := range s.Properties {
 
 		if v.Type.Contains("object") {
-			buf.ws("%s- name: %s, type: %s\n", strings.Repeat("\t", lvl), k, v.Type[0])
+			buf.ws("%s- name: `%s`, type: `%s`\n", strings.Repeat("\t", lvl), k, v.Type[0])
 			obj(lvl+1, v, buf)
 		} else if v.Type.Contains("array") {
 			log.Println("array")
-			buf.ws("%s- name: %s, type: []%s\n", strings.Repeat("\t", lvl), k, v.Type[0])
+			buf.ws("%s- name: `%s`, type: `[]%s`\n", strings.Repeat("\t", lvl), k, v.Type[0])
 			obj(lvl+1, *v.Items.Schema, buf)
 		} else {
-			buf.ws("%s- name: %s, type: %s\n", strings.Repeat("\t", lvl), k, v.Type[0])
+			buf.ws("%s- name: `%s`, type: `%s`\n", strings.Repeat("\t", lvl), k, v.Type[0])
 		}
 	}
 }
@@ -428,21 +428,21 @@ func (s swagger) markdown() {
 			buf.ws("`path parameters`\n")
 			for _, p := range op.Parameters {
 				if p.In == "path" {
-					buf.ws("- name: %s, type: %s\n", p.Name, p.Type)
+					buf.ws("- name: `%s`, type: `%s`\n", p.Name, p.Type)
 				}
 			}
 			buf.ws("\n")
 			buf.ws("`query parameters`\n")
 			for _, p := range op.Parameters {
 				if p.In == "query" {
-					buf.ws("- name: %s, type: %s\n", p.Name, p.Type)
+					buf.ws("- name: `%s`, type: `%s`\n", p.Name, p.Type)
 				}
 			}
 			buf.ws("\n")
 			buf.ws("`body parameter`\n")
 			for _, p := range op.Parameters {
 				if p.In == "body" {
-					buf.ws("- name: %s, type: %s\n", p.Name, strings.Split(p.Schema.Ref.GetPointer().String(), "/")[2])
+					buf.ws("- name: `%s`, type: `%s`\n", p.Name, strings.Split(p.Schema.Ref.GetPointer().String(), "/")[2])
 					if p.Schema != nil {
 						def := s.swag.Definitions[strings.Split(p.Schema.Ref.GetPointer().String(), "/")[2]]
 
@@ -475,10 +475,10 @@ func (s swagger) markdown() {
 					// if ref == "web.ThingResponse" {
 					// }
 					if r.ResponseProps.Schema.Items != nil {
-						buf.ws("- code: %d, type: []%s\n", code, ref)
+						buf.ws("- code: `%d`, type: `[]%s`\n", code, ref)
 						obj(1, *def.Items.Schema, buf)
 					} else {
-						buf.ws("- code: %d, type: %s\n", code, ref)
+						buf.ws("- code: `%d`, type: `%s`\n", code, ref)
 						obj(1, def, buf)
 					}
 				}
