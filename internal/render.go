@@ -152,6 +152,15 @@ func (r *renderer) renderTemplate(pkg *packages.Package, t *template, b *binding
 			}
 
 			// TODO: assignment statement, let's record the declared types
+			for _, lhs := range assnStmt.Lhs {
+				if id, ok := lhs.(*ast.Ident); ok {
+					obj := r.provider.qualifiedIdentObject(id)
+
+					// this will keep the later declarations
+					tt := newTypeToken("", obj.Type().String(), obj.Name())
+					r.provider.known[tt.signature] = tt
+				}
+			}
 
 			printer.Fprint(buf.buf, fset, fstmt)
 			buf.ws("\n")
