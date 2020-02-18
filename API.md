@@ -11,24 +11,7 @@ Produces:    [application/json]
 ```
 
 <details>
-<summary>delete: /things/{id}</summary>
-
-`path parameters`
-- name: `id`, type: `integer`
-
-`query parameters`
-
-`body parameter`
-
-`responses`
-</details>
-
-<details>
-<summary>post  : /echo</summary>
-
-`path parameters`
-
-`query parameters`
+<summary>/echo: post</summary>
 
 `body parameter`
 - name: `body`, type: `web.EchoRequest`
@@ -37,14 +20,13 @@ Produces:    [application/json]
 `responses`
 - code: `200`, type: `web.EchoResponse`
 	- name: `output`, type: `string`
+- `default`, type: `Error`
+	- name: `code`, type: `integer`
+	- name: `status`, type: `string`
 </details>
 
 <details>
-<summary>post  : /contacts</summary>
-
-`path parameters`
-
-`query parameters`
+<summary>/contacts: post</summary>
 
 `body parameter`
 - name: `body`, type: `models.ContactRequest`
@@ -60,54 +42,31 @@ Produces:    [application/json]
 `responses`
 - code: `200`, type: `models.ContactResponse`
 	- name: `output`, type: `string`
+- `default`, type: `Error`
+	- name: `code`, type: `integer`
+	- name: `status`, type: `string`
 </details>
 
 <details>
-<summary>get   : /contacts/{id}</summary>
+<summary>/contacts/{id}: get</summary>
 
 `path parameters`
 - name: `id`, type: `integer`
 
-`query parameters`
-
-`body parameter`
 
 `responses`
 - code: `200`, type: `models.ContactResponse`
 	- name: `output`, type: `string`
+- `default`, type: `Error`
+	- name: `code`, type: `integer`
+	- name: `status`, type: `string`
 </details>
 
 <details>
-<summary>post  : /contacts/{id}</summary>
+<summary>/contacts/{id}: post</summary>
 
 `path parameters`
 - name: `id`, type: `integer`
-
-`query parameters`
-
-`body parameter`
-- name: `body`, type: `models.ContactRequest`
-	- name: `address`, type: `object`
-		- name: `street`, type: `string`
-		- name: `city`, type: `string`
-		- name: `state`, type: `string`
-		- name: `zipCode`, type: `string`
-	- name: `input`, type: `string`
-	- name: `firstName`, type: `string`
-	- name: `lastName`, type: `string`
-
-`responses`
-- code: `200`, type: `models.ContactResponse`
-	- name: `output`, type: `string`
-</details>
-
-<details>
-<summary>put   : /contacts/{id}</summary>
-
-`path parameters`
-- name: `id`, type: `integer`
-
-`query parameters`
 
 `body parameter`
 - name: `body`, type: `models.ContactRequest`
@@ -115,6 +74,31 @@ Produces:    [application/json]
 	- name: `firstName`, type: `string`
 	- name: `lastName`, type: `string`
 	- name: `address`, type: `object`
+		- name: `zipCode`, type: `string`
+		- name: `street`, type: `string`
+		- name: `city`, type: `string`
+		- name: `state`, type: `string`
+
+`responses`
+- code: `200`, type: `models.ContactResponse`
+	- name: `output`, type: `string`
+- `default`, type: `Error`
+	- name: `code`, type: `integer`
+	- name: `status`, type: `string`
+</details>
+
+<details>
+<summary>/contacts/{id}: put</summary>
+
+`path parameters`
+- name: `id`, type: `integer`
+
+`body parameter`
+- name: `body`, type: `models.ContactRequest`
+	- name: `input`, type: `string`
+	- name: `firstName`, type: `string`
+	- name: `lastName`, type: `string`
+	- name: `address`, type: `object`
 		- name: `street`, type: `string`
 		- name: `city`, type: `string`
 		- name: `state`, type: `string`
@@ -123,27 +107,30 @@ Produces:    [application/json]
 `responses`
 - code: `200`, type: `models.ContactResponse`
 	- name: `output`, type: `string`
+- `default`, type: `Error`
+	- name: `code`, type: `integer`
+	- name: `status`, type: `string`
 </details>
 
 <details>
-<summary>get   : /contacts/{month}-{day}-{year}</summary>
+<summary>/contacts/{month}-{day}-{year}: get</summary>
 
 `path parameters`
 - name: `month`, type: `string`
 - name: `day`, type: `string`
 - name: `year`, type: `string`
 
-`query parameters`
-
-`body parameter`
 
 `responses`
 - code: `200`, type: `models.ContactResponse`
 	- name: `output`, type: `string`
+- `default`, type: `Error`
+	- name: `code`, type: `integer`
+	- name: `status`, type: `string`
 </details>
 
 <details>
-<summary>get   : /things/{category}</summary>
+<summary>/things/{category}: get</summary>
 
 `path parameters`
 - name: `category`, type: `string`
@@ -151,10 +138,25 @@ Produces:    [application/json]
 `query parameters`
 - name: `q`, type: `string`
 
-`body parameter`
 
 `responses`
 - code: `200`, type: `[]web.ThingResponse`
 	- name: `output`, type: `string`
+- `default`, type: `Error`
+	- name: `code`, type: `integer`
+	- name: `status`, type: `string`
+</details>
+
+<details>
+<summary>/things/{id}: delete</summary>
+
+`path parameters`
+- name: `id`, type: `integer`
+
+
+`responses`
+- `default`, type: `Error`
+	- name: `code`, type: `integer`
+	- name: `status`, type: `string`
 </details>
 

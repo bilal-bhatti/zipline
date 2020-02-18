@@ -423,35 +423,65 @@ func (s swagger) markdown() {
 
 	md := func(m, path string, op *spec.Operation) {
 		buf.ws("<details>\n")
-		buf.ws("<summary>%-6s: %s</summary>\n\n", m, path)
-		if op.Parameters != nil {
-			buf.ws("`path parameters`\n")
+		buf.ws("<summary>%s: %s</summary>\n\n", path, m)
+
+		params := func(op *spec.Operation) ([]spec.Parameter, []spec.Parameter, []spec.Parameter) {
+			path, query, body := []spec.Parameter{}, []spec.Parameter{}, []spec.Parameter{}
+
 			for _, p := range op.Parameters {
 				if p.In == "path" {
-					buf.ws("- name: `%s`, type: `%s`\n", p.Name, p.Type)
+					path = append(path, p)
 				}
-			}
-			buf.ws("\n")
-			buf.ws("`query parameters`\n")
-			for _, p := range op.Parameters {
 				if p.In == "query" {
-					buf.ws("- name: `%s`, type: `%s`\n", p.Name, p.Type)
+					query = append(query, p)
+				}
+				if p.In == "body" {
+					body = append(body, p)
 				}
 			}
-			buf.ws("\n")
-			buf.ws("`body parameter`\n")
-			for _, p := range op.Parameters {
-				if p.In == "body" {
-					buf.ws("- name: `%s`, type: `%s`\n", p.Name, strings.Split(p.Schema.Ref.GetPointer().String(), "/")[2])
-					if p.Schema != nil {
-						def := s.swag.Definitions[strings.Split(p.Schema.Ref.GetPointer().String(), "/")[2]]
 
-						obj(1, def, buf)
+			return path, query, body
+		}
+
+		if op.Parameters != nil {
+			path, query, body := params(op)
+
+			if len(path) > 0 {
+				buf.ws("`path parameters`\n")
+				for _, p := range path {
+					if p.In == "path" {
+						buf.ws("- name: `%s`, type: `%s`\n", p.Name, p.Type)
+					}
+				}
+				buf.ws("\n")
+			}
+
+			if len(query) > 0 {
+				buf.ws("`query parameters`\n")
+				for _, p := range query {
+					if p.In == "query" {
+						buf.ws("- name: `%s`, type: `%s`\n", p.Name, p.Type)
+					}
+				}
+				buf.ws("\n")
+			}
+
+			if len(body) > 0 {
+				buf.ws("`body parameter`\n")
+				for _, p := range body {
+					if p.In == "body" {
+						buf.ws("- name: `%s`, type: `%s`\n", p.Name, strings.Split(p.Schema.Ref.GetPointer().String(), "/")[2])
+						if p.Schema != nil {
+							def := s.swag.Definitions[strings.Split(p.Schema.Ref.GetPointer().String(), "/")[2]]
+
+							obj(1, def, buf)
+						}
 					}
 				}
 			}
 		}
 		buf.ws("\n")
+
 		buf.ws("`responses`\n")
 		if op.Responses != nil {
 			for code, r := range op.Responses.StatusCodeResponses {
@@ -469,11 +499,8 @@ func (s swagger) markdown() {
 						ref = strings.TrimPrefix(ref[idx:], "/")
 					}
 
-					// log.Println("ref", ref)
 					def := s.swag.Definitions[ref]
 
-					// if ref == "web.ThingResponse" {
-					// }
 					if r.ResponseProps.Schema.Items != nil {
 						buf.ws("- code: `%d`, type: `[]%s`\n", code, ref)
 						obj(1, *def.Items.Schema, buf)
@@ -482,6 +509,20 @@ func (s swagger) markdown() {
 						obj(1, def, buf)
 					}
 				}
+			}
+
+			if op.Responses.Default != nil {
+				ref := op.Responses.Default.ResponseProps.Schema.Ref.GetPointer().String()
+
+				idx := strings.LastIndex(ref, "/")
+
+				if idx > 0 {
+					ref = strings.TrimPrefix(ref[idx:], "/")
+				}
+
+				def := s.swag.Definitions[ref]
+				buf.ws("- `default`, type: `%s`\n", ref)
+				obj(1, def, buf)
 			}
 		}
 		buf.ws("</details>\n\n")
