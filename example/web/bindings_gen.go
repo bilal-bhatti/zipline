@@ -25,6 +25,7 @@ func NewRouter() *chi.Mux {
 	mux.Get("/contacts/{month}-{day}-{year}", ContactsServiceGetByDateHandlerFunc())
 	mux.Post("/contacts/{id}", ContactsServiceUpdateHandlerFunc())
 	mux.Put("/contacts/{id}", ContactsServiceReplaceHandlerFunc())
+	mux.Get("/things/{category}", ThingsServiceGetByCategoryAndQueryHandlerFunc())
 	mux.Delete("/things/{id}", ThingsServiceDeleteHandlerFunc())
 	mux.Post("/echo", EchoHandlerFunc())
 	return mux
@@ -43,6 +44,7 @@ func ContactsServiceCreateHandlerFunc() http.HandlerFunc {
 			duration := time.Now().Sub(startTime)
 			log.Printf("It took %d to process request\n", duration)
 		}()
+
 		// initialize application handler
 		handler, err := services.InitContactsService()
 		if err != nil {
@@ -50,14 +52,13 @@ func ContactsServiceCreateHandlerFunc() http.HandlerFunc {
 			return
 		}
 
-		// resolve ctx dependency through a provider function
+		// resolve ctx dependency through a provider
 		ctx := services.ProvideContext(r)
 
-		// extract json body and marshall contactRequest
+		// parse Body parameter contactRequest
 		contactRequest := &models.ContactRequest{}
-		err = json.NewDecoder(r.Body).Decode(contactRequest)
-		if err != nil {
-			// invalid request error
+		erro := json.NewDecoder(r.Body).Decode(contactRequest)
+		if erro != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
@@ -74,7 +75,7 @@ func ContactsServiceCreateHandlerFunc() http.HandlerFunc {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	}
 }
 
@@ -91,6 +92,7 @@ func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 			duration := time.Now().Sub(startTime)
 			log.Printf("It took %d to process request\n", duration)
 		}()
+
 		// initialize application handler
 		handler, err := services.InitContactsService()
 		if err != nil {
@@ -98,13 +100,12 @@ func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 			return
 		}
 
-		// resolve ctx dependency through a provider function
+		// resolve ctx dependency through a provider
 		ctx := services.ProvideContext(r)
 
-		// parse path parameter id
+		// parse Path parameter id
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
 		if err != nil {
-			// invalid request error
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
@@ -121,7 +122,7 @@ func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	}
 }
 
@@ -138,6 +139,7 @@ func ContactsServiceGetByDateHandlerFunc() http.HandlerFunc {
 			duration := time.Now().Sub(startTime)
 			log.Printf("It took %d to process request\n", duration)
 		}()
+
 		// initialize application handler
 		handler, err := services.InitContactsService()
 		if err != nil {
@@ -145,16 +147,16 @@ func ContactsServiceGetByDateHandlerFunc() http.HandlerFunc {
 			return
 		}
 
-		// resolve ctx dependency through a provider function
+		// resolve ctx dependency through a provider
 		ctx := services.ProvideContext(r)
 
-		// parse path parameter month
+		// parse Path parameter month
 		month := chi.URLParam(r, "month")
 
-		// parse path parameter day
+		// parse Path parameter day
 		day := chi.URLParam(r, "day")
 
-		// parse path parameter year
+		// parse Path parameter year
 		year := chi.URLParam(r, "year")
 
 		// execute application handler
@@ -169,7 +171,7 @@ func ContactsServiceGetByDateHandlerFunc() http.HandlerFunc {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	}
 }
 
@@ -186,6 +188,7 @@ func ContactsServiceUpdateHandlerFunc() http.HandlerFunc {
 			duration := time.Now().Sub(startTime)
 			log.Printf("It took %d to process request\n", duration)
 		}()
+
 		// initialize application handler
 		handler, err := services.InitContactsService()
 		if err != nil {
@@ -193,22 +196,20 @@ func ContactsServiceUpdateHandlerFunc() http.HandlerFunc {
 			return
 		}
 
-		// resolve ctx dependency through a provider function
+		// resolve ctx dependency through a provider
 		ctx := services.ProvideContext(r)
 
-		// parse path parameter id
+		// parse Path parameter id
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
 		if err != nil {
-			// invalid request error
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 
-		// extract json body and marshall contactRequest
+		// parse Body parameter contactRequest
 		contactRequest := models.ContactRequest{}
-		err = json.NewDecoder(r.Body).Decode(&contactRequest)
-		if err != nil {
-			// invalid request error
+		erro := json.NewDecoder(r.Body).Decode(&contactRequest)
+		if erro != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
@@ -225,7 +226,7 @@ func ContactsServiceUpdateHandlerFunc() http.HandlerFunc {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	}
 }
 
@@ -242,6 +243,7 @@ func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
 			duration := time.Now().Sub(startTime)
 			log.Printf("It took %d to process request\n", duration)
 		}()
+
 		// initialize application handler
 		handler, err := services.InitContactsService()
 		if err != nil {
@@ -249,22 +251,20 @@ func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
 			return
 		}
 
-		// resolve ctx dependency through a provider function
+		// resolve ctx dependency through a provider
 		ctx := services.ProvideContext(r)
 
-		// parse path parameter id
+		// parse Path parameter id
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
 		if err != nil {
-			// invalid request error
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 
-		// extract json body and marshall contactRequest
+		// parse Body parameter contactRequest
 		contactRequest := models.ContactRequest{}
-		err = json.NewDecoder(r.Body).Decode(&contactRequest)
-		if err != nil {
-			// invalid request error
+		erro := json.NewDecoder(r.Body).Decode(&contactRequest)
+		if erro != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
@@ -281,7 +281,53 @@ func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	}
+}
+
+// ThingsServiceGetByCategoryAndQueryHandlerFunc handles requests to:
+// path  : /things/{category}
+// method: get
+func ThingsServiceGetByCategoryAndQueryHandlerFunc() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error // why not
+
+		log.Println("Processing get request")
+		startTime := time.Now()
+		defer func() {
+			duration := time.Now().Sub(startTime)
+			log.Printf("It took %d to process request\n", duration)
+		}()
+
+		// initialize application handler
+		handler, err := InitThingsService()
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		// resolve ctx dependency through a provider
+		ctx := services.ProvideContext(r)
+
+		// parse Path parameter category
+		category := chi.URLParam(r, "category")
+
+		// parse Query parameter q
+		q := r.URL.Query().Get("q")
+
+		// execute application handler
+		response, err := handler.GetByCategoryAndQuery(ctx, category, q)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(w).Encode(response)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	}
 }
 
@@ -298,6 +344,7 @@ func ThingsServiceDeleteHandlerFunc() http.HandlerFunc {
 			duration := time.Now().Sub(startTime)
 			log.Printf("It took %d to process request\n", duration)
 		}()
+
 		// initialize application handler
 		handler, err := InitThingsService()
 		if err != nil {
@@ -305,19 +352,15 @@ func ThingsServiceDeleteHandlerFunc() http.HandlerFunc {
 			return
 		}
 
-		// resolve ctx dependency through a provider function
-		ctx := services.ProvideContext(r)
-
-		// parse path parameter id
+		// parse Path parameter id
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
 		if err != nil {
-			// invalid request error
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 
 		// execute application handler
-		err = handler.Delete(ctx, id)
+		err = handler.Delete(id)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
@@ -344,14 +387,13 @@ func EchoHandlerFunc() http.HandlerFunc {
 			return
 		}
 
-		// resolve ctx dependency through a provider function
+		// resolve ctx dependency through a provider
 		ctx := services.ProvideContext(r)
 
-		// extract json body and marshall echoRequest
+		// parse Body parameter echoRequest
 		echoRequest := EchoRequest{}
-		err = json.NewDecoder(r.Body).Decode(&echoRequest)
-		if err != nil {
-			// invalid request error
+		erro := json.NewDecoder(r.Body).Decode(&echoRequest)
+		if erro != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
@@ -368,6 +410,6 @@ func EchoHandlerFunc() http.HandlerFunc {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	}
 }

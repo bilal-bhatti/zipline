@@ -82,18 +82,19 @@ func (s swagger) generate(packets []*packet) {
 				},
 			}
 
-			for _, param := range b.handler.params {
-				if param.varType.Type().String() == "context.Context" {
+			for i := 0; i < len(b.handler.params); i++ {
+				param := b.handler.params[i]
+
+				var template string
+				if len(b.paramTemplates) > i {
+					template = b.paramTemplates[i]
+				}
+
+				if template == "Resolve" {
 					continue
 				}
 
-				// if strings.HasSuffix(param.varType.Type().String(), "util.Claims") {
-				// 	// log.Println("skipping claims type")
-				// 	continue
-				// }
-
-				// TODO: do better!
-				if isPathParam(b, param) {
+				if template == "Path" {
 					op.AddParam(&spec.Parameter{
 						ParamProps: spec.ParamProps{
 							Name:     param.varName(),
@@ -104,6 +105,18 @@ func (s swagger) generate(packets []*packet) {
 							Type: toJSONType(param.signature),
 						},
 					})
+				} else if template == "Query" {
+					op.AddParam(&spec.Parameter{
+						ParamProps: spec.ParamProps{
+							Name:     param.varName(),
+							In:       "query",
+							Required: false,
+						},
+						SimpleSchema: spec.SimpleSchema{
+							Type: toJSONType(param.signature),
+						},
+					})
+
 				} else {
 					skema := field("--", param.varType.Type())
 
@@ -132,19 +145,27 @@ func (s swagger) generate(packets []*packet) {
 					continue
 				}
 
-				skema := field("--", ret.varType.Type())
+				sk := field("--", ret.varType.Type())
 				ref := spec.Schema{
 					SchemaProps: spec.SchemaProps{
 						Ref: spec.MustCreateRef("#/definitions/" + ret.shortSignature()),
 					},
 				}
 
-				s.swag.Definitions[ret.shortSignature()] = skema
+				s.swag.Definitions[ret.shortSignature()] = sk
+
+				var schema spec.Schema
+				if sk.Items != nil {
+					schema = skema("array")
+					schema.Items = &spec.SchemaOrArray{Schema: &ref}
+				} else {
+					schema = ref
+				}
 
 				op.Responses.ResponsesProps.StatusCodeResponses[200] = spec.Response{
 					ResponseProps: spec.ResponseProps{
 						Description: "200 response",
-						Schema:      &ref,
+						Schema:      &schema,
 					},
 				}
 			}
@@ -177,6 +198,7 @@ func (s swagger) generate(packets []*packet) {
 	}
 
 	s.write()
+	s.markdown()
 }
 
 func (s swagger) write() {
@@ -361,4 +383,124 @@ func toJSONType(t string) string {
 		return t
 	}
 	return jt
+}
+
+func obj(lvl int, s spec.Schema, buf buffer) {
+	if s.Items != nil {
+		buf.ws("%s- items\n", strings.Repeat("\t", lvl))
+		obj(lvl+1, *s.Items.Schema, buf)
+	}
+
+	for k, v := range s.Properties {
+
+		if v.Type.Contains("object") {
+			buf.ws("%s- name: %s, type: %s\n", strings.Repeat("\t", lvl), k, v.Type[0])
+			obj(lvl+1, v, buf)
+		} else if v.Type.Contains("array") {
+			log.Println("array")
+			buf.ws("%s- name: %s, type: []%s\n", strings.Repeat("\t", lvl), k, v.Type[0])
+			obj(lvl+1, *v.Items.Schema, buf)
+		} else {
+			buf.ws("%s- name: %s, type: %s\n", strings.Repeat("\t", lvl), k, v.Type[0])
+		}
+	}
+}
+
+func (s swagger) markdown() {
+	buf := newBuffer()
+
+	buf.ws("#API Summary\n\n")
+
+	md := func(m, path string, op *spec.Operation) {
+		buf.ws("<details>\n")
+		buf.ws("<summary>%-6s: %s</summary>\n", m, path)
+		if op.Parameters != nil {
+			buf.ws("`path parameters`\n")
+			for _, p := range op.Parameters {
+				if p.In == "path" {
+					buf.ws("- name: %s, type: %s\n", p.Name, p.Type)
+				}
+			}
+			buf.ws("\n")
+			buf.ws("`query parameters`\n")
+			for _, p := range op.Parameters {
+				if p.In == "query" {
+					buf.ws("- name: %s, type: %s\n", p.Name, p.Type)
+				}
+			}
+			buf.ws("\n")
+			buf.ws("`body parameter`\n")
+			for _, p := range op.Parameters {
+				if p.In == "body" {
+					buf.ws("- name: %s, type: %s\n", p.Name, strings.Split(p.Schema.Ref.GetPointer().String(), "/")[2])
+					if p.Schema != nil {
+						def := s.swag.Definitions[strings.Split(p.Schema.Ref.GetPointer().String(), "/")[2]]
+
+						obj(1, def, buf)
+					}
+				}
+			}
+		}
+		buf.ws("\n")
+		buf.ws("`responses`\n")
+		if op.Responses != nil {
+			for code, r := range op.Responses.StatusCodeResponses {
+				if r.ResponseProps.Schema != nil {
+					var ref string
+					if r.ResponseProps.Schema.Items != nil {
+						ref = r.ResponseProps.Schema.Items.Schema.Ref.GetPointer().String()
+					} else {
+						ref = r.ResponseProps.Schema.Ref.GetPointer().String()
+					}
+
+					idx := strings.LastIndex(ref, "/")
+
+					if idx > 0 {
+						ref = strings.TrimPrefix(ref[idx:], "/")
+					}
+
+					// log.Println("ref", ref)
+					def := s.swag.Definitions[ref]
+
+					// if ref == "web.ThingResponse" {
+					// }
+					if r.ResponseProps.Schema.Items != nil {
+						buf.ws("- code: %d, type: []%s\n", code, ref)
+						obj(1, *def.Items.Schema, buf)
+					} else {
+						buf.ws("- code: %d, type: %s\n", code, ref)
+						obj(1, def, buf)
+					}
+				}
+			}
+		}
+		buf.ws("</details>\n\n")
+	}
+
+	for k, route := range s.swag.Paths.Paths {
+		if route.Get != nil {
+			md("get", k, route.Get)
+		}
+		if route.Post != nil {
+			md("post", k, route.Post)
+		}
+		if route.Put != nil {
+			md("put", k, route.Put)
+		}
+		if route.Delete != nil {
+			md("delete", k, route.Delete)
+		}
+	}
+
+	err := ioutil.WriteFile("API.md", buf.buf.Bytes(), 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(errors.Wrap(err, "Failed to get working directory"))
+	}
+
+	log.Println("Wrote API.md to", path.Join(wd, "API.md"))
 }

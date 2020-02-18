@@ -154,6 +154,9 @@ func (p provider) provideWithReturns(vt *typeToken, retNames []string) *funcToke
 				if vt.sameType(result.Type().String()) {
 
 					rets := []*typeToken{}
+					if sig.Results().Len() != len(retNames) {
+						panic("expected and provided return value count don't match")
+					}
 
 					for j := 0; j < sig.Results().Len(); j++ {
 						ret := sig.Results().At(j)

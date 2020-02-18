@@ -2,6 +2,7 @@ package internal
 
 import (
 	"bytes"
+	"fmt"
 	"go/ast"
 	"go/token"
 	"go/types"
@@ -193,8 +194,9 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) *binding {
 	path := strings.Trim(call.Args[0].(*ast.BasicLit).Value, "\"")
 
 	binding := &binding{
-		template: sel.Sel.Name,
-		path:     path,
+		template:       sel.Sel.Name,
+		path:           path,
+		paramTemplates: []string{},
 	}
 
 	zipline, ok := call.Args[1].(*ast.CallExpr)
@@ -211,7 +213,24 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) *binding {
 		panic("unsupported expression")
 	}
 
-	// log.Println("binding signature", binding.handler.sel, binding.handler.pkg)
+	// parse additional parameters, if any
+	for i := 1; i < len(zipline.Args); i++ {
+		arg := zipline.Args[i]
+
+		expr, ok := arg.(*ast.SelectorExpr)
+		if !ok {
+			continue
+		}
+
+		if x, ok := expr.X.(*ast.Ident); ok {
+			xo := qualifiedIdentObject(pkg.TypesInfo, x)
+
+			// if receiver is ZiplineTemplate
+			if strings.HasSuffix(xo.Type().String(), ZiplineTemplate) {
+				binding.paramTemplates = append(binding.paramTemplates, expr.Sel.Name)
+			}
+		}
+	}
 
 	return binding
 }
@@ -236,8 +255,32 @@ func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.Selector
 		if obj != nil {
 			hi.x = newTypeToken("", obj.Type().String(), "")
 		}
+	case *ast.CallExpr:
+		// if it's a a new call
+		if id, ok := xt.Fun.(*ast.Ident); ok {
+			if id.String() == "new" {
+				switch newExpType := xt.Args[0].(type) {
+				case *ast.SelectorExpr:
+					// different package
+					obj := qualifiedIdentObject(pkg.TypesInfo, newExpType.Sel)
+					if obj != nil {
+						hi.x = newTypeToken("", obj.Type().String(), "")
+					}
+				case *ast.Ident:
+					// same package
+					obj := qualifiedIdentObject(pkg.TypesInfo, newExpType)
+					if obj != nil {
+						if _, ok := obj.Type().(*types.Basic); !ok {
+							hi.x = newTypeToken("", obj.Type().String(), "")
+						}
+					}
+				}
+			}
+		}
 	default:
-		panic("CONFUSING: FIX: Zipline must be a function selector expression (X.Y.Z or Y.Z) where X is a pakcage and Y is a struct and Z is a method")
+		msg := &bytes.Buffer{}
+		printNode(msg, handler)
+		panic(fmt.Sprintf("invalid zipline template parameter %s", msg.String()))
 	}
 
 	return hi

@@ -6,6 +6,7 @@ require (
 	github.com/fatih/structtag v1.2.0
 	github.com/go-chi/chi v4.0.3+incompatible
 	github.com/go-openapi/spec v0.19.6
+	github.com/go-toolsmith/astcopy v1.0.0
 	github.com/google/wire v0.4.0
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
 	github.com/patrickrand/swagdown v0.0.0-20161005123322-03c33e25ddf8 // indirect

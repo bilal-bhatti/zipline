@@ -4,6 +4,7 @@ package web
 
 import (
 	"log"
+	"strconv"
 	"time"
 
 	"encoding/json"
@@ -17,50 +18,75 @@ func NewRouter() *chi.Mux {
 	mux := chi.NewRouter()
 	mux.Use(services.Authentication)
 
-	mux.Post("/contacts", zipline.Post(services.ContactsService.Create))
+	mux.Post("/contacts", z.Post(services.ContactsService.Create, z.Resolve, z.Body))
 
-	mux.Get("/contacts/{id}", zipline.Get(services.ContactsService.GetOne))
-	mux.Get("/contacts/{month}-{day}-{year}", zipline.Get(services.ContactsService.GetByDate))
-	mux.Post("/contacts/{id}", zipline.Post(services.ContactsService.Update))
-	mux.Put("/contacts/{id}", zipline.Put(services.ContactsService.Replace))
+	mux.Get("/contacts/{id}", z.Get(services.ContactsService.GetOne, z.Resolve, z.Path))
+	mux.Get("/contacts/{month}-{day}-{year}", z.Get(services.ContactsService.GetByDate, z.Resolve, z.Path, z.Path, z.Path))
+	mux.Post("/contacts/{id}", z.Post(services.ContactsService.Update, z.Resolve, z.Path, z.Body))
+	mux.Put("/contacts/{id}", z.Put(new(services.ContactsService).Replace, z.Resolve, z.Path, z.Body))
 
-	mux.Delete("/things/{id}", zipline.Delete(ThingsService.Delete))
+	mux.Get("/things/{category}", z.Get(ThingsService.GetByCategoryAndQuery, z.Resolve, z.Path, z.Query))
+	mux.Delete("/things/{id}", z.Delete(new(ThingsService).Delete, z.Path))
 
-	mux.Post("/echo", zipline.Post(Echo))
+	mux.Post("/echo", z.Post(Echo, z.Resolve, z.Body))
 
 	// mux.Post("/ping", zipline.Post(services.Ping))
 
 	return mux
 }
 
-var zipline ZiplineTemplate
+var z ZiplineTemplate
 
 type ZiplineTemplate struct {
 	ReturnResponseAndError func() (interface{}, error)
 	ReturnError            func() error
-	Resolve func() (ZiplineTemplate, error)
+	Resolve                func() (ZiplineTemplate, error)
+	DevNull                func(i ...interface{})
 }
 
-func (z ZiplineTemplate) Path(w http.ResponseWriter, r *http.Request) {
-	// id, err := strconv.Atoi(chi.URLParam(r, "id"))
-	// if err != nil {
-	// 	// invalid request error
-	// 	http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-	// 	return
-	// }
+func (z ZiplineTemplate) Path(kind string, w http.ResponseWriter, r *http.Request) {
+	switch kind {
+	case "string":
+		name := chi.URLParam(r, "name")
+		z.DevNull(name)
+	case "int":
+		name, err := strconv.Atoi(chi.URLParam(r, "name"))
+		if err != nil {
+			// invalid request error
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		z.DevNull(name)
+	}
+}
+
+func (z ZiplineTemplate) Query(kind string, w http.ResponseWriter, r *http.Request) {
+	switch kind {
+	case "string":
+		name := r.URL.Query().Get("name")
+		z.DevNull(name)
+	case "int":
+		name, err := strconv.Atoi(r.URL.Query().Get("name"))
+		if err != nil {
+			// invalid request error
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		z.DevNull(name)
+	}
 }
 
 func (z ZiplineTemplate) Body(w http.ResponseWriter, r *http.Request) {
-	data := struct{}{}
-	err := json.NewDecoder(r.Body).Decode(&data)
-	if err != nil {
+	name := ZiplineTemplate{}
+	erro := json.NewDecoder(r.Body).Decode(&name)
+	if erro != nil {
 		// invalid request error
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 }
 
-func (z ZiplineTemplate) Post(i interface{}) http.HandlerFunc {
+func (z ZiplineTemplate) Post(i interface{}, p ...interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
@@ -94,11 +120,11 @@ func (z ZiplineTemplate) Post(i interface{}) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	}
 }
 
-func (z ZiplineTemplate) Get(i interface{}) http.HandlerFunc {
+func (z ZiplineTemplate) Get(i interface{}, p ...interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
@@ -132,11 +158,11 @@ func (z ZiplineTemplate) Get(i interface{}) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	}
 }
 
-func (z ZiplineTemplate) Delete(i interface{}) http.HandlerFunc {
+func (z ZiplineTemplate) Delete(i interface{}, params ...interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
@@ -167,7 +193,7 @@ func (z ZiplineTemplate) Delete(i interface{}) http.HandlerFunc {
 	}
 }
 
-func (z ZiplineTemplate) Put(i interface{}) http.HandlerFunc {
+func (z ZiplineTemplate) Put(i interface{}, p ...interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
@@ -201,6 +227,6 @@ func (z ZiplineTemplate) Put(i interface{}) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	}
 }

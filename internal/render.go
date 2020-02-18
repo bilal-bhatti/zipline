@@ -2,6 +2,7 @@ package internal
 
 import (
 	"bytes"
+	"fmt"
 	"go/ast"
 	"go/format"
 	"go/printer"
@@ -10,6 +11,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/go-toolsmith/astcopy"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -172,7 +174,7 @@ func (r *renderer) resolve(pkg *packages.Package, b *binding, assn *ast.AssignSt
 		}
 
 		xp := r.provider.provideWithReturns(b.handler.x, rets)
-		buf.ws("// initialize application handler\n")
+		buf.ws("\n// initialize application handler\n")
 		buf.ws(xp.call(pkg.PkgPath) + "\n")
 		r.imp(xp.pkg())
 	}
@@ -194,6 +196,7 @@ func (r *renderer) expand(pkg *packages.Package, b *binding, assn *ast.AssignStm
 	buf.ws(" %s ", assn.Tok.String())
 
 	if b.handler.x != nil {
+		// a struct method is the handler
 		funk, ok := r.provider.typeTokenFor(b.handler.x)
 		if !ok {
 			panic("Dependencies not satisfied")
@@ -201,50 +204,56 @@ func (r *renderer) expand(pkg *packages.Package, b *binding, assn *ast.AssignStm
 
 		buf.ws("%s.", funk.varName())
 	}
+
 	buf.ws("%s(%s)\n", b.handler.sel, strings.Join(params, ","))
 }
 
 func (r *renderer) deps(pkg *packages.Package, b *binding, buf buffer) []string {
-	hreq, _ := r.provider.typeTokenFor(HREQ)
-	hwri, _ := r.provider.typeTokenFor(HWRI)
+	// TODO: remove the need for these
+	// hreq, _ := r.provider.typeTokenFor(HREQ)
+	// hwri, _ := r.provider.typeTokenFor(HWRI)
 
 	params := []string{}
-	for _, p := range b.handler.params {
+	for i := 0; i < len(b.handler.params); i++ {
+		p := b.handler.params[i]
 
-		if isPathParam(b, p) {
-			buf.ws("\n// parse path parameter %s\n", p.varName())
-			switch p.signature {
-			case "int":
-				buf.ws("%s, err := strconv.Atoi(chi.URLParam(%s, \"%s\"))\n", p.name, hreq.varName(), p.name)
-				buf.ws("if err != nil {\n")
-				buf.ws("  // invalid request error\n")
-				buf.ws("  http.Error(%s, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)\n", hwri.varName())
-				buf.ws("  return\n")
-				buf.ws("}\n\n")
-			case "string":
-				buf.ws("%s := chi.URLParam(%s, \"%s\")\n\n", p.name, hreq.varName(), p.name)
+		if len(b.paramTemplates) > i {
+			tn := b.paramTemplates[i]
+			template := r.templates[tn]
+			if template != nil {
+				buf.ws("\n// parse %s parameter %s\n", tn, p.varName())
+				switch tn {
+				case "Query", "Path":
+					r.renderParamTemplate(pkg, template, b, p, buf)
+				case "Body":
+					r.renderBodyTemplate(pkg, template, b, p, buf)
+				default:
+					panic(fmt.Sprintf("unknown template %s", tn))
+				}
+
+				params = append(params, p.varName())
+				buf.ws("\n")
+				continue
 			}
-		} else if ft := r.provider.provide(p); ft != nil {
-			buf.ws("\n// resolve %s dependency through a provider function\n", p.varName())
+		}
+
+		if ft := r.provider.provide(p); ft != nil {
+			buf.ws("\n// resolve %s dependency through a provider\n", p.varName())
 
 			buf.ws("%s\n\n", ft.call(pkg.PkgPath))
-		} else if b.template == "Post" || b.template == "Put" {
-			buf.ws("\n// extract json body and marshall %s\n", p.varName())
+			// } else if b.template == "Post" || b.template == "Put" {
+			// 	buf.ws("\n// extract json body and marshall %s\n", p.varName())
 
-			buf.ws("%s := %s\n", p.varName(), p.inst())
-			buf.ws("err = json.NewDecoder(%s.Body).Decode(%s)\n", hreq.varName(), p.varNameAsPointer())
-			buf.ws("if err != nil {\n")
-			buf.ws("  // invalid request error\n")
-			buf.ws("  http.Error(%s, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)\n", hwri.varName())
-			buf.ws("  return\n")
-			buf.ws("}\n\n")
+			// 	buf.ws("%s := %s\n", p.varName(), p.inst())
+			// 	buf.ws("err = json.NewDecoder(%s.Body).Decode(%s)\n", hreq.varName(), p.varNameAsPointer())
+			// 	buf.ws("if err != nil {\n")
+			// 	buf.ws("  // invalid request error\n")
+			// 	buf.ws("  http.Error(%s, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)\n", hwri.varName())
+			// 	buf.ws("  return\n")
+			// 	buf.ws("}\n\n")
 		} else {
 			panic("Unable to resolve type " + p.signature)
 		}
-
-		// if kt, ok := r.provider.known[p.signature]; ok {
-		// 	log.Println("this type is known", kt.name, kt.varName(), p.signature, p.name, p.varName())
-		// }
 
 		params = append(params, p.varName())
 
@@ -254,6 +263,151 @@ func (r *renderer) deps(pkg *packages.Package, b *binding, buf buffer) []string 
 	}
 
 	return params
+}
+
+func (r *renderer) renderParamTemplate(pkg *packages.Package, t *template, b *binding, p *typeToken, buf buffer) {
+	var tmplBody []ast.Stmt
+
+	if len(t.funcDecl.Body.List) != 1 {
+		panic(fmt.Sprintf("template %s must contain a single switch statement", t.funcDecl.Name))
+	}
+
+	switchStmt, ok := t.funcDecl.Body.List[0].(*ast.SwitchStmt)
+	if !ok {
+		panic(fmt.Sprintf("template %s must contain a single switch statement", t.funcDecl.Name))
+	}
+
+	for _, sb := range switchStmt.Body.List {
+		caseStmt, ok := sb.(*ast.CaseClause)
+		if !ok {
+			panic(fmt.Sprintf("template %s must contain a signle switch statement", t.funcDecl.Name))
+		}
+
+		for _, csl := range caseStmt.List {
+			blit, ok := csl.(*ast.BasicLit)
+			if !ok {
+				continue
+			}
+
+			if blit.Value == fmt.Sprintf("\"%s\"", p.signature) {
+				tmplBody = caseStmt.Body
+				break
+			}
+		}
+	}
+
+	if tmplBody == nil {
+		panic(fmt.Sprintf("template %s doesn't support type %s", t.funcDecl.Name, p.signature))
+	}
+
+	tbuf := r.rename("name", p, tmplBody)
+	buf.buf.Write(tbuf.buf.Bytes())
+}
+
+func (r *renderer) renderBodyTemplate(pkg *packages.Package, t *template, b *binding, p *typeToken, buf buffer) {
+	tbuf := r.rename("name", p, t.funcDecl.Body.List)
+	buf.buf.Write(tbuf.buf.Bytes())
+}
+
+func (r *renderer) rename(old string, new *typeToken, body []ast.Stmt) *buffer {
+	renamer := func(n ast.Node) bool {
+		switch nt := n.(type) {
+		case *ast.BasicLit:
+			if nt.Value == fmt.Sprintf("\"%s\"", old) {
+				nt.Value = fmt.Sprintf("\"%s\"", new.name)
+			}
+		case *ast.Ident:
+			if nt.Name == old {
+				nt.Name = new.name
+			}
+		case *ast.CallExpr:
+			for i := 0; i < len(nt.Args); i++ {
+				arg := nt.Args[i]
+				if ue, ok := arg.(*ast.UnaryExpr); ok {
+					if id, ok := ue.X.(*ast.Ident); ok {
+						if id.Name == old {
+							if new.isPtr {
+								// param was declared as a pointer
+								// replace unary expression with ident
+								nt.Args[i] = ast.NewIdent(new.name)
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return true
+	}
+
+	buf := newBuffer()
+
+	for _, stmt := range body {
+		sc := astcopy.Stmt(stmt)
+
+		switch st := stmt.(type) {
+		case *ast.AssignStmt:
+			if r.newStructValue(st) {
+				// get new object
+				buf.ws("%s := %s\n", new.varName(), new.inst())
+				continue
+			}
+			ast.Inspect(sc, renamer)
+		case *ast.ExprStmt:
+			// filter out zipline directive
+			if r.devNull(st) {
+				continue
+			}
+			ast.Inspect(sc, renamer)
+		default:
+			ast.Inspect(sc, renamer)
+		}
+
+		printer.Fprint(buf.buf, token.NewFileSet(), sc)
+		buf.ws("\n")
+	}
+
+	return &buf
+}
+
+func (r *renderer) devNull(expr *ast.ExprStmt) bool {
+	if call, ok := expr.X.(*ast.CallExpr); ok {
+		if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
+			zobj := r.provider.qualifiedIdentObject(sel.X)
+			if zobj != nil && strings.HasSuffix(zobj.Type().String(), ZiplineTemplate) {
+				// if ignore
+				if sel.Sel.Name == "DevNull" {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+func (r *renderer) newStructValue(expr *ast.AssignStmt) bool {
+	// check if it's a new ZiplineTemplate object
+	// must be a simple assignment like
+	// name := ZiplineTemplate{} or name := &ZiplineTemplate{}
+	if len(expr.Lhs) != 1 && len(expr.Rhs) != 1 {
+		return false
+	}
+
+	newObj, ok := expr.Rhs[0].(*ast.CompositeLit)
+	if !ok {
+		return false
+	}
+
+	valueType, ok := newObj.Type.(*ast.Ident)
+	if !ok {
+		return false
+	}
+
+	if valueType.Name != ZiplineTemplate {
+		return false
+	}
+
+	return true
 }
 
 func join(tokens []*typeToken) string {

@@ -207,6 +207,41 @@
         }
       }
     },
+    "/things/{category}": {
+      "get": {
+        "description": "Route description",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "category",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/web.ThingResponse"
+              }
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/things/{id}": {
       "delete": {
         "description": "Route description",
@@ -297,6 +332,17 @@
       "properties": {
         "output": {
           "type": "string"
+        }
+      }
+    },
+    "web.ThingResponse": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "output": {
+            "type": "string"
+          }
         }
       }
     }

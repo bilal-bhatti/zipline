@@ -16,6 +16,7 @@ type (
 	binding struct {
 		template, path string
 		handler        *handlerInfo
+		paramTemplates []string
 	}
 
 	handlerInfo struct {
