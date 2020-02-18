@@ -409,7 +409,17 @@ func obj(lvl int, s spec.Schema, buf buffer) {
 func (s swagger) markdown() {
 	buf := newBuffer()
 
-	buf.ws("#API Summary\n\n")
+	buf.ws("# API Summary\n\n")
+
+	buf.ws("```\n")
+	buf.ws("Version:     %s\n", s.swag.SwaggerProps.Info.Version)
+	buf.ws("Title:       %s\n", s.swag.SwaggerProps.Info.Title)
+	buf.ws("Description: %s\n", s.swag.SwaggerProps.Info.Description)
+	buf.ws("Host:        %s\n", s.swag.Host)
+	buf.ws("BasePath:    %s\n", s.swag.BasePath)
+	buf.ws("Consumes:    %s\n", s.swag.Consumes)
+	buf.ws("Produces:    %s\n", s.swag.Produces)
+	buf.ws("```\n\n")
 
 	md := func(m, path string, op *spec.Operation) {
 		buf.ws("<details>\n")
