@@ -2,12 +2,12 @@ package internal
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/token"
 	"go/types"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"reflect"
@@ -33,7 +33,7 @@ func NewZipline() *Zipline {
 	}
 }
 
-func (z *Zipline) Start() {
+func (z *Zipline) Start() error {
 	pkgs := load()
 	scanner := scanner{pkgs: pkgs}
 	z.templates, z.packets = scanner.scan()
@@ -42,9 +42,17 @@ func (z *Zipline) Start() {
 	z.renderer = newRenderer(z.templates, z.provider)
 
 	for _, packet := range z.packets {
-		z.prepare(packet)
+		if err := z.prepare(packet); err != nil {
+			return err
+		}
 
 		z.renderer.complete(packet)
+
+		output := bytes.NewBuffer(make([]byte, 0))
+		err := z.renderer.print(output, true)
+		if err != nil {
+			return err
+		}
 
 		root, err := goSrcRoot()
 		if err != nil {
@@ -69,7 +77,16 @@ func (z *Zipline) Start() {
 			panic(err)
 		}
 		// z.renderer.print(os.Stdout, false) // TODO: in case of error dump out for debug
-		z.renderer.print(f, true)
+
+		if err != nil {
+
+		}
+		_, err = f.Write(output.Bytes())
+		if err != nil {
+			f.Close()
+			return err
+		}
+
 		f.Close()
 
 		bs, err := ioutil.ReadFile(out)
@@ -90,14 +107,19 @@ func (z *Zipline) Start() {
 			panic(err)
 		}
 
-		log.Println("Wrote bindings to", out)
+		fmt.Println("Wrote bindings to", out)
 	}
 
-	swagger := newSwagger()
+	swagger, err := newSwagger()
+	if err != nil {
+		return err
+	}
 	swagger.generate(z.packets)
+
+	return nil
 }
 
-func (z *Zipline) prepare(packet *packet) {
+func (z *Zipline) prepare(packet *packet) error {
 	dfunc := packet.funcDecl
 
 	for _, stmt := range dfunc.Body.List {
@@ -138,7 +160,7 @@ func (z *Zipline) prepare(packet *packet) {
 					// TODO: fix this
 					// handler/zipline call is being wrapped
 					// should handle this properly
-					log.Println("Somethinger other than call to zipline found")
+					return errors.New("omethinger other than call to zipline found")
 					continue
 				}
 
@@ -152,7 +174,10 @@ func (z *Zipline) prepare(packet *packet) {
 				// ensure var type is ZiplineTemplate
 				if ido != nil && strings.HasSuffix(ido.Type().String(), ZiplineTemplate) {
 					// generate function body first
-					binding := z.processStatement(packet.pkg, expStmt)
+					binding, err := z.processStatement(packet.pkg, expStmt)
+					if err != nil {
+						return err
+					}
 
 					// rewrite ast to replace zipline spec
 					expType.Args[i] = newCallExpression(binding, expType.Args[i])
@@ -160,15 +185,19 @@ func (z *Zipline) prepare(packet *packet) {
 				}
 			}
 		default:
-			log.Println("Unhandled expression type", reflect.TypeOf(expType))
+			return errors.New(fmt.Sprintf("unhandled expression type %v", reflect.TypeOf(expType)))
 		}
 	}
+
+	return nil
 }
 
-func (z *Zipline) processStatement(pkg *packages.Package, stmt *ast.ExprStmt) *binding {
+func (z *Zipline) processStatement(pkg *packages.Package, stmt *ast.ExprStmt) (*binding, error) {
 	binding := parseSpec(pkg, stmt)
-	z.renderer.render(pkg, binding)
-	return binding
+	if err := z.renderer.render(pkg, binding); err != nil {
+		return nil, err
+	}
+	return binding, nil
 }
 
 func newCallExpression(binding *binding, arg ast.Expr) *ast.CallExpr {
@@ -278,9 +307,9 @@ func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.Selector
 			}
 		}
 	default:
-		msg := &bytes.Buffer{}
+		msg := newBuffer()
 		printNode(msg, handler)
-		panic(fmt.Sprintf("invalid zipline template parameter %s", msg.String()))
+		panic(fmt.Sprintf("invalid zipline template parameter %s", msg.buf.String()))
 	}
 
 	return hi

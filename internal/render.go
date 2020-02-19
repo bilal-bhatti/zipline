@@ -1,14 +1,13 @@
 package internal
 
 import (
-	"bytes"
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/format"
 	"go/printer"
 	"go/token"
 	"io"
-	"log"
 	"strings"
 
 	"github.com/go-toolsmith/astcopy"
@@ -19,8 +18,8 @@ type renderer struct {
 	templates map[string]*template
 	provider  *provider
 	imps      []string
-	preamble  buffer
-	body      buffer
+	preamble  *buffer
+	body      *buffer
 }
 
 func (r *renderer) imp(imp string) {
@@ -41,17 +40,19 @@ func newRenderer(templates map[string]*template, provider *provider) *renderer {
 	return r
 }
 
-func (r *renderer) render(pkg *packages.Package, info *binding) {
+func (r *renderer) render(pkg *packages.Package, info *binding) error {
 	template := r.templates[info.template]
 	if template != nil {
 		bites, err := r.renderTemplate(pkg, template, info)
 		if err != nil {
-			panic(err)
+			return err
 		}
-		r.body.buf.Write(bites)
+		r.body.add(bites)
+		// r.body.buf.Write(bites)
 	} else {
-		log.Println("Template not found for", info.template)
+		return errors.New(fmt.Sprintf("template not found for %s", info.template))
 	}
+	return nil
 }
 
 func pkgName(packet *packet) string {
@@ -78,29 +79,31 @@ func (r *renderer) complete(packet *packet) {
 
 	// write binding func
 	fset := token.NewFileSet()
-	var buf bytes.Buffer
-	printer.Fprint(&buf, fset, packet.funcDecl)
+	buf := newBuffer()
+	printer.Fprint(buf.buf, fset, packet.funcDecl)
 	r.preamble.ws("\n\n")
-	r.preamble.buf.Write(buf.Bytes())
+	r.preamble.add(buf)
 	r.preamble.ws("\n\n")
 
 	// write generated handler funcs
-	r.preamble.buf.Write(r.body.buf.Bytes())
+	r.preamble.add(r.body)
 }
 
-func (r *renderer) print(w io.Writer, frmt bool) {
+func (r *renderer) print(w io.Writer, frmt bool) error {
 	if frmt {
 		formatted, err := format.Source(r.preamble.buf.Bytes())
 		if err != nil {
-			panic(err)
+			return err
 		}
 		w.Write(formatted)
 	} else {
 		w.Write(r.preamble.buf.Bytes())
 	}
+
+	return nil
 }
 
-func (r *renderer) renderTemplate(pkg *packages.Package, t *template, b *binding) ([]byte, error) {
+func (r *renderer) renderTemplate(pkg *packages.Package, t *template, b *binding) (*buffer, error) {
 	fset := token.NewFileSet()
 
 	buf := newBuffer()
@@ -141,9 +144,13 @@ func (r *renderer) renderTemplate(pkg *packages.Package, t *template, b *binding
 					obj := r.provider.qualifiedIdentObject(selector.X)
 					if obj != nil && strings.HasSuffix(obj.Type().String(), ZiplineTemplate) {
 						if selector.Sel.String() == ZiplineTemplateResolve {
-							r.resolve(pkg, b, assnStmt, buf)
+							if err := r.resolve(pkg, b, assnStmt, buf); err != nil {
+								return nil, err
+							}
 						} else {
-							r.expand(pkg, b, assnStmt, buf)
+							if err := r.expand(pkg, b, assnStmt, buf); err != nil {
+								return nil, err
+							}
 						}
 
 						continue
@@ -170,10 +177,10 @@ func (r *renderer) renderTemplate(pkg *packages.Package, t *template, b *binding
 		buf.ws("}\n\n")
 	}
 
-	return buf.buf.Bytes(), nil
+	return buf, nil
 }
 
-func (r *renderer) resolve(pkg *packages.Package, b *binding, assn *ast.AssignStmt, buf buffer) {
+func (r *renderer) resolve(pkg *packages.Package, b *binding, assn *ast.AssignStmt, buf *buffer) error {
 	// resolve/print handler
 	if b.handler.x != nil {
 		rets := []string{}
@@ -182,16 +189,24 @@ func (r *renderer) resolve(pkg *packages.Package, b *binding, assn *ast.AssignSt
 			rets = append(rets, lhs.(*ast.Ident).String())
 		}
 
-		xp := r.provider.provideWithReturns(b.handler.x, rets)
+		xp, err := r.provider.provideWithReturns(b.handler.x, rets)
+		if err != nil {
+			return err
+		}
 		buf.ws("\n// initialize application handler\n")
 		buf.ws(xp.call(pkg.PkgPath) + "\n")
 		r.imp(xp.pkg())
 	}
+
+	return nil
 }
 
-func (r *renderer) expand(pkg *packages.Package, b *binding, assn *ast.AssignStmt, buf buffer) {
+func (r *renderer) expand(pkg *packages.Package, b *binding, assn *ast.AssignStmt, buf *buffer) error {
 	// resolve/print app handler dependencies and retain their var names
-	params := r.deps(pkg, b, buf)
+	params, err := r.deps(pkg, b, buf)
+	if err != nil {
+		return err
+	}
 
 	rets := []string{}
 	// extract return names from the marker call
@@ -208,20 +223,18 @@ func (r *renderer) expand(pkg *packages.Package, b *binding, assn *ast.AssignStm
 		// a struct method is the handler
 		funk, ok := r.provider.typeTokenFor(b.handler.x)
 		if !ok {
-			panic("Dependencies not satisfied")
+			return errors.New("dependencies not satisfied")
 		}
 
 		buf.ws("%s.", funk.varName())
 	}
 
 	buf.ws("%s(%s)\n", b.handler.sel, strings.Join(params, ","))
+
+	return nil
 }
 
-func (r *renderer) deps(pkg *packages.Package, b *binding, buf buffer) []string {
-	// TODO: remove the need for these
-	// hreq, _ := r.provider.typeTokenFor(HREQ)
-	// hwri, _ := r.provider.typeTokenFor(HWRI)
-
+func (r *renderer) deps(pkg *packages.Package, b *binding, buf *buffer) ([]string, error) {
 	params := []string{}
 	for i := 0; i < len(b.handler.params); i++ {
 		p := b.handler.params[i]
@@ -233,11 +246,17 @@ func (r *renderer) deps(pkg *packages.Package, b *binding, buf buffer) []string 
 				buf.ws("\n// parse %s parameter %s\n", tn, p.varName())
 				switch tn {
 				case "Query", "Path":
-					r.renderParamTemplate(pkg, template, b, p, buf)
+					err := r.renderParamTemplate(pkg, template, b, p, buf)
+					if err != nil {
+						return nil, err
+					}
 				case "Body":
-					r.renderBodyTemplate(pkg, template, b, p, buf)
+					err := r.renderBodyTemplate(pkg, template, b, p, buf)
+					if err != nil {
+						return nil, err
+					}
 				default:
-					panic(fmt.Sprintf("unknown template %s", tn))
+					return nil, errors.New(fmt.Sprintf("unknown template %s", tn))
 				}
 
 				params = append(params, p.varName())
@@ -250,18 +269,8 @@ func (r *renderer) deps(pkg *packages.Package, b *binding, buf buffer) []string 
 			buf.ws("\n// resolve %s dependency through a provider\n", p.varName())
 
 			buf.ws("%s\n\n", ft.call(pkg.PkgPath))
-			// } else if b.template == "Post" || b.template == "Put" {
-			// 	buf.ws("\n// extract json body and marshall %s\n", p.varName())
-
-			// 	buf.ws("%s := %s\n", p.varName(), p.inst())
-			// 	buf.ws("err = json.NewDecoder(%s.Body).Decode(%s)\n", hreq.varName(), p.varNameAsPointer())
-			// 	buf.ws("if err != nil {\n")
-			// 	buf.ws("  // invalid request error\n")
-			// 	buf.ws("  http.Error(%s, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)\n", hwri.varName())
-			// 	buf.ws("  return\n")
-			// 	buf.ws("}\n\n")
 		} else {
-			panic("Unable to resolve type " + p.signature)
+			return nil, errors.New("unable to resolve type " + p.signature)
 		}
 
 		params = append(params, p.varName())
@@ -271,25 +280,25 @@ func (r *renderer) deps(pkg *packages.Package, b *binding, buf buffer) []string 
 		buf.ws("\n")
 	}
 
-	return params
+	return params, nil
 }
 
-func (r *renderer) renderParamTemplate(pkg *packages.Package, t *template, b *binding, p *typeToken, buf buffer) {
+func (r *renderer) renderParamTemplate(pkg *packages.Package, t *template, b *binding, p *typeToken, buf *buffer) error {
 	var tmplBody []ast.Stmt
 
 	if len(t.funcDecl.Body.List) != 1 {
-		panic(fmt.Sprintf("template %s must contain a single switch statement", t.funcDecl.Name))
+		return errors.New(fmt.Sprintf("template %s must contain a single switch statement", t.funcDecl.Name))
 	}
 
 	switchStmt, ok := t.funcDecl.Body.List[0].(*ast.SwitchStmt)
 	if !ok {
-		panic(fmt.Sprintf("template %s must contain a single switch statement", t.funcDecl.Name))
+		return errors.New(fmt.Sprintf("template %s must contain a single switch statement", t.funcDecl.Name))
 	}
 
 	for _, sb := range switchStmt.Body.List {
 		caseStmt, ok := sb.(*ast.CaseClause)
 		if !ok {
-			panic(fmt.Sprintf("template %s must contain a signle switch statement", t.funcDecl.Name))
+			return errors.New(fmt.Sprintf("template %s must contain a signle switch statement", t.funcDecl.Name))
 		}
 
 		for _, csl := range caseStmt.List {
@@ -306,16 +315,19 @@ func (r *renderer) renderParamTemplate(pkg *packages.Package, t *template, b *bi
 	}
 
 	if tmplBody == nil {
-		panic(fmt.Sprintf("template %s doesn't support type %s", t.funcDecl.Name, p.signature))
+		return errors.New(fmt.Sprintf("template %s doesn't support type %s", t.funcDecl.Name, p.signature))
 	}
 
 	tbuf := r.rename("name", p, tmplBody)
-	buf.buf.Write(tbuf.buf.Bytes())
+	buf.add(tbuf)
+
+	return nil
 }
 
-func (r *renderer) renderBodyTemplate(pkg *packages.Package, t *template, b *binding, p *typeToken, buf buffer) {
+func (r *renderer) renderBodyTemplate(pkg *packages.Package, t *template, b *binding, p *typeToken, buf *buffer) error {
 	tbuf := r.rename("name", p, t.funcDecl.Body.List)
-	buf.buf.Write(tbuf.buf.Bytes())
+	buf.add(tbuf)
+	return nil
 }
 
 func (r *renderer) rename(old string, new *typeToken, body []ast.Stmt) *buffer {
@@ -376,7 +388,7 @@ func (r *renderer) rename(old string, new *typeToken, body []ast.Stmt) *buffer {
 		buf.ws("\n")
 	}
 
-	return &buf
+	return buf
 }
 
 func (r *renderer) devNull(expr *ast.ExprStmt) bool {

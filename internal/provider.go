@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"go/ast"
 	"go/types"
 	"strings"
@@ -115,7 +116,7 @@ func (p provider) provide(vt *typeToken) *funcToken {
 	return nil
 }
 
-func (p provider) provideWithReturns(vt *typeToken, retNames []string) *funcToken {
+func (p provider) provideWithReturns(vt *typeToken, retNames []string) (*funcToken, error) {
 	for _, pkg := range p.pkgs {
 		info := pkg.TypesInfo
 		for _, v := range info.Defs {
@@ -155,7 +156,7 @@ func (p provider) provideWithReturns(vt *typeToken, retNames []string) *funcToke
 
 					rets := []*typeToken{}
 					if sig.Results().Len() != len(retNames) {
-						panic("expected and provided return value count don't match")
+						return nil, errors.New("expected and provided return value count don't match")
 					}
 
 					for j := 0; j < sig.Results().Len(); j++ {
@@ -171,16 +172,17 @@ func (p provider) provideWithReturns(vt *typeToken, retNames []string) *funcToke
 					// log.Println("rets", rets)
 					// log.Println("args", args)
 					return &funcToken{
-						signature: pf.FullName(),
-						args:      args,
-						rets:      rets,
-					}
+							signature: pf.FullName(),
+							args:      args,
+							rets:      rets,
+						},
+						nil
 				}
 			}
 		}
 	}
 
-	return nil
+	return nil, errors.New("no provider function found for " + vt.signature)
 }
 
 func (p provider) qualifiedIdentObject(expr ast.Expr) types.Object {

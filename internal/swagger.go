@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"go/types"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"reflect"
@@ -20,7 +19,7 @@ type swagger struct {
 	swag *spec.Swagger
 }
 
-func newSwagger() swagger {
+func newSwagger() (*swagger, error) {
 	// init defaults
 	swag := &spec.Swagger{
 		SwaggerProps: spec.SwaggerProps{
@@ -45,17 +44,20 @@ func newSwagger() swagger {
 		},
 	}
 
-	ert := skema("object")
+	ert, err := skema("object")
+	if err != nil {
+		return nil, err
+	}
 	ert.Properties["code"] = *spec.Int32Property()
 	ert.Properties["status"] = *spec.StringProperty()
-	swag.Definitions["Error"] = ert
+	swag.Definitions["Error"] = *ert
 
-	return swagger{
+	return &swagger{
 		swag: swag,
-	}
+	}, nil
 }
 
-func (s swagger) generate(packets []*packet) {
+func (s swagger) generate(packets []*packet) error {
 	erref := &spec.Schema{
 		SchemaProps: spec.SchemaProps{
 			Ref: spec.MustCreateRef("#/definitions/Error"),
@@ -118,7 +120,10 @@ func (s swagger) generate(packets []*packet) {
 					})
 
 				} else {
-					skema := field("--", param.varType.Type())
+					skema, err := field("--", param.varType.Type())
+					if err != nil {
+						return err
+					}
 
 					ref := spec.Schema{
 						SchemaProps: spec.SchemaProps{
@@ -126,7 +131,7 @@ func (s swagger) generate(packets []*packet) {
 						},
 					}
 
-					s.swag.Definitions[param.shortSignature()] = skema
+					s.swag.Definitions[param.shortSignature()] = *skema
 
 					op.AddParam(&spec.Parameter{
 						ParamProps: spec.ParamProps{
@@ -145,27 +150,33 @@ func (s swagger) generate(packets []*packet) {
 					continue
 				}
 
-				sk := field("--", ret.varType.Type())
+				sk, err := field("--", ret.varType.Type())
+				if err != nil {
+					return err
+				}
 				ref := spec.Schema{
 					SchemaProps: spec.SchemaProps{
 						Ref: spec.MustCreateRef("#/definitions/" + ret.shortSignature()),
 					},
 				}
 
-				s.swag.Definitions[ret.shortSignature()] = sk
+				s.swag.Definitions[ret.shortSignature()] = *sk
 
-				var schema spec.Schema
+				var schema *spec.Schema
 				if sk.Items != nil {
-					schema = skema("array")
+					schema, err = skema("array")
+					if err != nil {
+						return err
+					}
 					schema.Items = &spec.SchemaOrArray{Schema: &ref}
 				} else {
-					schema = ref
+					schema = &ref
 				}
 
 				op.Responses.ResponsesProps.StatusCodeResponses[200] = spec.Response{
 					ResponseProps: spec.ResponseProps{
 						Description: "200 response",
-						Schema:      &schema,
+						Schema:      schema,
 					},
 				}
 			}
@@ -190,7 +201,7 @@ func (s swagger) generate(packets []*packet) {
 			case "PUT":
 				pi.Put = op
 			default:
-				panic("Oh noos what's this: " + b.template)
+				return errors.New(fmt.Sprintf("oh noos what's this: %s", b.template))
 			}
 
 			s.swag.Paths.Paths[b.path] = pi
@@ -199,9 +210,11 @@ func (s swagger) generate(packets []*packet) {
 
 	s.write()
 	s.markdown()
+
+	return nil
 }
 
-func (s swagger) write() {
+func (s swagger) write() error {
 	// merge some info if spec exists
 	err := s.readAndMergeSchema()
 	if err != nil {
@@ -210,20 +223,21 @@ func (s swagger) write() {
 
 	bites, err := json.MarshalIndent(s.swag, "", "  ")
 	if err != nil {
-		log.Fatal("Failed to generate json", err)
+		return errors.Wrap(err, "failed to generate write swagger json")
 	}
 
 	err = ioutil.WriteFile(OpenAPIFile, bites, 0644)
 	if err != nil {
-		panic(err)
+		return errors.Wrap(err, "failed to write swagger json to file")
 	}
 
 	wd, err := os.Getwd()
 	if err != nil {
-		panic(errors.Wrap(err, "Failed to get working directory"))
+		return errors.Wrap(err, "failed to get working directory")
 	}
 
-	log.Println("Wrote OpenAPI spec to", path.Join(wd, OpenAPIFile))
+	fmt.Printf("Wrote OpenAPI spec to %s\n", path.Join(wd, OpenAPIFile))
+	return nil
 }
 
 func (s swagger) readAndMergeSchema() error {
@@ -249,13 +263,17 @@ func (s swagger) readAndMergeSchema() error {
 	return nil
 }
 
-func field(name string, t types.Type) spec.Schema {
+func field(name string, t types.Type) (*spec.Schema, error) {
 
 	switch tt := t.(type) {
 	case *types.Pointer:
 		return field(name, tt.Elem())
 	case *types.Struct:
-		skema := skema("object")
+		skema, err := skema("object")
+		if err != nil {
+			return nil, err
+		}
+
 		for i := 0; i < tt.NumFields(); i++ {
 			f := tt.Field(i)
 
@@ -278,7 +296,10 @@ func field(name string, t types.Type) spec.Schema {
 			// TODO: handle recursive refs
 			// what to do when Account struct has an Account field?
 			if f.Name() != name && tn != "-" {
-				fs := field(f.Name(), f.Type())
+				fs, err := field(f.Name(), f.Type())
+				if err != nil {
+					return nil, err
+				}
 				if f.Embedded() && tn == "" {
 					for k, v := range fs.Properties {
 						skema.Properties[k] = v
@@ -289,78 +310,84 @@ func field(name string, t types.Type) spec.Schema {
 						named = f.Name()
 					}
 
-					skema.Properties[named] = fs
+					skema.Properties[named] = *fs
 				}
 			}
 		}
-		return skema
+		return skema, nil
 	case *types.Named:
 		return field(name, tt.Underlying())
 	case *types.Slice:
-		arr := skema("array")
-		sk := field(name, tt.Elem())
-		arr.Items = &spec.SchemaOrArray{
-			Schema: &sk,
+		arr, err := skema("array")
+		if err != nil {
+			return nil, err
 		}
-		return arr
+		sk, err := field(name, tt.Elem())
+		if err != nil {
+			return nil, err
+		}
+		arr.Items = &spec.SchemaOrArray{
+			Schema: sk,
+		}
+		return arr, nil
 	case *types.Basic:
 		return skema(tt.String())
 	case *types.Map:
-		return spec.Schema{
+		return &spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: spec.StringOrArray{"object"},
 			},
-		}
+		}, nil
 	default:
-		panic(fmt.Sprint("Oh noos unknown type: ", reflect.TypeOf(tt)))
+		return nil, errors.New(fmt.Sprintf("oh noos unknown type: %v", reflect.TypeOf(tt)))
 	}
 }
 
-func skema(t string) spec.Schema {
+func skema(t string) (*spec.Schema, error) {
 	switch t {
 	case "object":
-		return spec.Schema{
+		return &spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type:       spec.StringOrArray{"object"},
 				Properties: make(map[string]spec.Schema),
 			},
-		}
+		}, nil
 	case "int", "int64", "uint", "uint8", "uint64":
-		return spec.Schema{
+		return &spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: spec.StringOrArray{toJSONType(t)},
 			},
-		}
+		}, nil
 	case "float64":
-		return spec.Schema{
+		return &spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: spec.StringOrArray{toJSONType(t)},
 			},
-		}
+		}, nil
 	case "string", "array":
-		return spec.Schema{
+		return &spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: spec.StringOrArray{t},
 			},
-		}
+		}, nil
 	case "bool":
-		return spec.Schema{
+		return &spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: spec.StringOrArray{toJSONType(t)},
 			},
-		}
+		}, nil
 	case "byte":
 		// TODO: Swagger 2.0 doesn't support binary data type
 		// map byte to string, but it should really be removed
 		// fail at this point? maybe a strict mode vs lax mode?
-		log.Print("Swagger 2.0 doesn't support byte type, generated spec will not be valid")
-		return spec.Schema{
+		fmt.Println("Swagger 2.0 doesn't support byte type, generated spec will not be valid")
+		return &spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: spec.StringOrArray{t},
 			},
-		}
+		}, nil
 	default:
-		panic("Oh noos, what's this: " + t)
+		return nil, errors.New(fmt.Sprintf("oh noos, what's this: %s", t))
 	}
 }
 
@@ -385,7 +412,7 @@ func toJSONType(t string) string {
 	return jt
 }
 
-func obj(lvl int, s spec.Schema, buf buffer) {
+func obj(lvl int, s spec.Schema, buf *buffer) {
 	if s.Items != nil {
 		buf.ws("%s- items\n", strings.Repeat("\t", lvl))
 		obj(lvl+1, *s.Items.Schema, buf)
@@ -397,7 +424,6 @@ func obj(lvl int, s spec.Schema, buf buffer) {
 			buf.ws("%s- name: `%s`, type: `%s`\n", strings.Repeat("\t", lvl), k, v.Type[0])
 			obj(lvl+1, v, buf)
 		} else if v.Type.Contains("array") {
-			log.Println("array")
 			buf.ws("%s- name: `%s`, type: `[]%s`\n", strings.Repeat("\t", lvl), k, v.Type[0])
 			obj(lvl+1, *v.Items.Schema, buf)
 		} else {
@@ -423,7 +449,7 @@ func (s swagger) markdown() {
 
 	md := func(m, path string, op *spec.Operation) {
 		buf.ws("<details>\n")
-		buf.ws("<summary>%s: %s</summary>\n\n", path, m)
+		buf.ws("<summary>`%s`: `%s`</summary>\n\n", path, m)
 
 		params := func(op *spec.Operation) ([]spec.Parameter, []spec.Parameter, []spec.Parameter) {
 			path, query, body := []spec.Parameter{}, []spec.Parameter{}, []spec.Parameter{}
@@ -550,8 +576,8 @@ func (s swagger) markdown() {
 
 	wd, err := os.Getwd()
 	if err != nil {
-		panic(errors.Wrap(err, "Failed to get working directory"))
+		panic(errors.Wrap(err, "zipline: failed to get working directory"))
 	}
 
-	log.Println("Wrote API.md to", path.Join(wd, "API.md"))
+	fmt.Println("Wrote API.md to", path.Join(wd, "API.md"))
 }
