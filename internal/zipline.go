@@ -160,8 +160,7 @@ func (z *Zipline) prepare(packet *packet) error {
 					// TODO: fix this
 					// handler/zipline call is being wrapped
 					// should handle this properly
-					return errors.New("omethinger other than call to zipline found")
-					continue
+					return errors.New("something other than call to zipline found in route registration")
 				}
 
 				id, ok := sel.X.(*ast.Ident)
@@ -193,7 +192,11 @@ func (z *Zipline) prepare(packet *packet) error {
 }
 
 func (z *Zipline) processStatement(pkg *packages.Package, stmt *ast.ExprStmt) (*binding, error) {
-	binding := parseSpec(pkg, stmt)
+	binding, err := parseSpec(pkg, stmt)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := z.renderer.render(pkg, binding); err != nil {
 		return nil, err
 	}
@@ -209,15 +212,15 @@ func newCallExpression(binding *binding, arg ast.Expr) *ast.CallExpr {
 	return ce
 }
 
-func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) *binding {
+func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 	call, ok := spec.X.(*ast.CallExpr)
 	if !ok {
-		panic("spec invalid")
+		return nil, errors.New("spec invalid")
 	}
 
 	sel, ok := call.Fun.(*ast.SelectorExpr)
 	if !ok {
-		panic("spec invalid")
+		return nil, errors.New("spec invalid")
 	}
 
 	path := strings.Trim(call.Args[0].(*ast.BasicLit).Value, "\"")
@@ -230,7 +233,7 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) *binding {
 
 	zipline, ok := call.Args[1].(*ast.CallExpr)
 	if !ok {
-		panic("invalid expression")
+		return nil, errors.New("invalid expression")
 	}
 
 	switch handler := zipline.Args[0].(type) {
@@ -239,7 +242,7 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) *binding {
 	case *ast.Ident:
 		binding.handler = newHandlerInfoFromIdent(pkg, handler)
 	default:
-		panic("unsupported expression")
+		return nil, errors.New("unsupported expression")
 	}
 
 	// parse additional parameters, if any
@@ -261,7 +264,7 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) *binding {
 		}
 	}
 
-	return binding
+	return binding, nil
 }
 
 func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.SelectorExpr) *handlerInfo {
