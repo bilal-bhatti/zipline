@@ -14,7 +14,7 @@
     "title": "OpenAPI Version 2 Specification",
     "version": "1.0.0"
   },
-  "host": "api.example.com",
+  "host": "api.host.com",
   "basePath": "/api",
   "paths": {
     "/contacts": {

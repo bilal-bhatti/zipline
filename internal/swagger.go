@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"go/types"
 	"io/ioutil"
-	"os"
-	"path"
 	"reflect"
 	"strings"
 
@@ -208,8 +206,14 @@ func (s swagger) generate(packets []*packet) error {
 		}
 	}
 
-	s.write()
-	s.markdown()
+	err := s.write()
+	if err != nil {
+		return errors.Wrap(err, "OpenAPI spec generated failed")
+	}
+	err = s.markdown()
+	if err != nil {
+		return errors.Wrap(err, "failed to generate API.md summary file")
+	}
 
 	return nil
 }
@@ -223,20 +227,15 @@ func (s swagger) write() error {
 
 	bites, err := json.MarshalIndent(s.swag, "", "  ")
 	if err != nil {
-		return errors.Wrap(err, "failed to generate write swagger json")
+		return errors.Wrap(err, "failed to generate write OpenAPI json")
 	}
 
 	err = ioutil.WriteFile(OpenAPIFile, bites, 0644)
 	if err != nil {
-		return errors.Wrap(err, "failed to write swagger json to file")
+		return errors.Wrap(err, "failed to write OpenAPI json to file")
 	}
 
-	wd, err := os.Getwd()
-	if err != nil {
-		return errors.Wrap(err, "failed to get working directory")
-	}
-
-	fmt.Printf("Wrote OpenAPI spec to %s\n", path.Join(wd, OpenAPIFile))
+	fmt.Printf("Wrote OpenAPI spec to ./%s\n", OpenAPIFile)
 	return nil
 }
 
@@ -432,7 +431,7 @@ func obj(lvl int, s spec.Schema, buf *buffer) {
 	}
 }
 
-func (s swagger) markdown() {
+func (s swagger) markdown() error {
 	buf := newBuffer()
 
 	buf.ws("# API Summary\n\n")
@@ -571,13 +570,10 @@ func (s swagger) markdown() {
 
 	err := ioutil.WriteFile("API.md", buf.buf.Bytes(), 0644)
 	if err != nil {
-		panic(err)
+		return errors.Wrap(err, "failed to write file API.md")
 	}
 
-	wd, err := os.Getwd()
-	if err != nil {
-		panic(errors.Wrap(err, "zipline: failed to get working directory"))
-	}
+	fmt.Printf("Wrote API summary to ./%s\n", "API.md")
 
-	fmt.Println("Wrote API.md to", path.Join(wd, "API.md"))
+	return nil
 }

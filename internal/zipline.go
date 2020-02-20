@@ -2,7 +2,6 @@ package internal
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"go/ast"
 	"go/token"
@@ -13,6 +12,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/pkg/errors"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/imports"
 )
@@ -107,14 +107,17 @@ func (z *Zipline) Start() error {
 			panic(err)
 		}
 
-		fmt.Println("Wrote bindings to", out)
+		fmt.Printf("Wrote bindings to .%s\n", strings.TrimPrefix(out, cwd))
 	}
 
 	swagger, err := newSwagger()
 	if err != nil {
 		return err
 	}
-	swagger.generate(z.packets)
+	err = swagger.generate(z.packets)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -160,7 +163,8 @@ func (z *Zipline) prepare(packet *packet) error {
 					// TODO: fix this
 					// handler/zipline call is being wrapped
 					// should handle this properly
-					return errors.New("something other than call to zipline found in route registration")
+
+					return newError("failed to parse zipline expression, call likely wrapped", stmt)
 				}
 
 				id, ok := sel.X.(*ast.Ident)
@@ -184,7 +188,7 @@ func (z *Zipline) prepare(packet *packet) error {
 				}
 			}
 		default:
-			return errors.New(fmt.Sprintf("unhandled expression type %v", reflect.TypeOf(expType)))
+			return newError(fmt.Sprintf("unhandled expression type %v", reflect.TypeOf(expType)), stmt)
 		}
 	}
 
@@ -238,7 +242,12 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 
 	switch handler := zipline.Args[0].(type) {
 	case *ast.SelectorExpr:
-		binding.handler = newHandlerInfoFromSelectorExpr(pkg, handler)
+		handle, err := newHandlerInfoFromSelectorExpr(pkg, handler)
+		if err != nil {
+			return nil, err
+		}
+
+		binding.handler = handle
 	case *ast.Ident:
 		binding.handler = newHandlerInfoFromIdent(pkg, handler)
 	default:
@@ -267,7 +276,7 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 	return binding, nil
 }
 
-func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.SelectorExpr) *handlerInfo {
+func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.SelectorExpr) (*handlerInfo, error) {
 	hi := newHandlerInfoFromIdent(pkg, handler.Sel)
 
 	switch xt := handler.X.(type) {
@@ -312,10 +321,10 @@ func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.Selector
 	default:
 		msg := newBuffer()
 		printNode(msg, handler)
-		panic(fmt.Sprintf("invalid zipline template parameter %s", msg.buf.String()))
+		return nil, errors.New(fmt.Sprintf("invalid zipline template parameter %s", msg.buf.String()))
 	}
 
-	return hi
+	return hi, nil
 }
 
 func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) *handlerInfo {

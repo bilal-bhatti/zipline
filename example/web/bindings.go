@@ -14,6 +14,11 @@ import (
 	"github.com/go-chi/chi"
 )
 
+func T (next http.HandlerFunc) http.HandlerFunc {
+
+	return next
+}
+
 func NewRouter() *chi.Mux {
 	mux := chi.NewRouter()
 	mux.Use(services.Authentication)
