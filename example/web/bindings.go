@@ -14,11 +14,6 @@ import (
 	"github.com/go-chi/chi"
 )
 
-func T (next http.HandlerFunc) http.HandlerFunc {
-
-	return next
-}
-
 func NewRouter() *chi.Mux {
 	mux := chi.NewRouter()
 	mux.Use(services.Authentication)
@@ -95,12 +90,10 @@ func (z ZiplineTemplate) Post(i interface{}, p ...interface{}) http.HandlerFunc 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
-		log.Println("Processing post request")
 		startTime := time.Now()
-
 		defer func() {
 			duration := time.Now().Sub(startTime)
-			log.Printf("It took %d to process request\n", duration)
+			log.Printf("It took %s to process request\n", duration.String())
 		}()
 
 		handler, err := z.Resolve()
@@ -133,12 +126,10 @@ func (z ZiplineTemplate) Get(i interface{}, p ...interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
-		log.Println("Processing get request")
 		startTime := time.Now()
-
 		defer func() {
 			duration := time.Now().Sub(startTime)
-			log.Printf("It took %d to process request\n", duration)
+			log.Printf("It took %s to process request\n", duration.String())
 		}()
 
 		handler, err := z.Resolve()
@@ -171,12 +162,10 @@ func (z ZiplineTemplate) Delete(i interface{}, params ...interface{}) http.Handl
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
-		log.Println("Processing delete request")
 		startTime := time.Now()
-
 		defer func() {
 			duration := time.Now().Sub(startTime)
-			log.Printf("It took %d to process request\n", duration)
+			log.Printf("It took %s to process request\n", duration.String())
 		}()
 
 		handler, err := z.Resolve()
@@ -202,12 +191,10 @@ func (z ZiplineTemplate) Put(i interface{}, p ...interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
-		log.Println("Processing put request")
 		startTime := time.Now()
-
 		defer func() {
 			duration := time.Now().Sub(startTime)
-			log.Printf("It took %d to process request\n", duration)
+			log.Printf("It took %s to process request\n", duration.String())
 		}()
 
 		handler, err := z.Resolve()

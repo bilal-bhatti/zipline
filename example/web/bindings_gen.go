@@ -38,11 +38,10 @@ func ContactsServiceCreateHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
-		log.Println("Processing post request")
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
-			log.Printf("It took %d to process request\n", duration)
+			log.Printf("It took %s to process request\n", duration.String())
 		}()
 
 		// initialize application handler
@@ -86,11 +85,10 @@ func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
-		log.Println("Processing get request")
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
-			log.Printf("It took %d to process request\n", duration)
+			log.Printf("It took %s to process request\n", duration.String())
 		}()
 
 		// initialize application handler
@@ -133,11 +131,10 @@ func ContactsServiceGetByDateHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
-		log.Println("Processing get request")
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
-			log.Printf("It took %d to process request\n", duration)
+			log.Printf("It took %s to process request\n", duration.String())
 		}()
 
 		// initialize application handler
@@ -182,11 +179,10 @@ func ContactsServiceUpdateHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
-		log.Println("Processing post request")
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
-			log.Printf("It took %d to process request\n", duration)
+			log.Printf("It took %s to process request\n", duration.String())
 		}()
 
 		// initialize application handler
@@ -237,11 +233,10 @@ func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
-		log.Println("Processing put request")
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
-			log.Printf("It took %d to process request\n", duration)
+			log.Printf("It took %s to process request\n", duration.String())
 		}()
 
 		// initialize application handler
@@ -292,11 +287,10 @@ func ThingsServiceGetByCategoryAndQueryHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
-		log.Println("Processing get request")
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
-			log.Printf("It took %d to process request\n", duration)
+			log.Printf("It took %s to process request\n", duration.String())
 		}()
 
 		// initialize application handler
@@ -338,11 +332,10 @@ func ThingsServiceDeleteHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
-		log.Println("Processing delete request")
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
-			log.Printf("It took %d to process request\n", duration)
+			log.Printf("It took %s to process request\n", duration.String())
 		}()
 
 		// initialize application handler
@@ -376,11 +369,10 @@ func EchoHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
-		log.Println("Processing post request")
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
-			log.Printf("It took %d to process request\n", duration)
+			log.Printf("It took %s to process request\n", duration.String())
 		}()
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

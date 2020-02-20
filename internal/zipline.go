@@ -108,6 +108,10 @@ func (z *Zipline) Start() error {
 		}
 
 		fmt.Printf("Wrote bindings to .%s\n", strings.TrimPrefix(out, cwd))
+
+		// reset code buffers
+		z.renderer.body.buf.Reset()
+		z.renderer.preamble.buf.Reset()
 	}
 
 	swagger, err := newSwagger()
