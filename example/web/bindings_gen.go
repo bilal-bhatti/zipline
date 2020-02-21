@@ -56,8 +56,8 @@ func ContactsServiceCreateHandlerFunc() http.HandlerFunc {
 
 		// parse Body parameter contactRequest
 		contactRequest := &models.ContactRequest{}
-		erro := json.NewDecoder(r.Body).Decode(contactRequest)
-		if erro != nil {
+		err = json.NewDecoder(r.Body).Decode(contactRequest)
+		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
@@ -204,8 +204,8 @@ func ContactsServiceUpdateHandlerFunc() http.HandlerFunc {
 
 		// parse Body parameter contactRequest
 		contactRequest := models.ContactRequest{}
-		erro := json.NewDecoder(r.Body).Decode(&contactRequest)
-		if erro != nil {
+		err = json.NewDecoder(r.Body).Decode(&contactRequest)
+		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
@@ -258,8 +258,8 @@ func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
 
 		// parse Body parameter contactRequest
 		contactRequest := models.ContactRequest{}
-		erro := json.NewDecoder(r.Body).Decode(&contactRequest)
-		if erro != nil {
+		err = json.NewDecoder(r.Body).Decode(&contactRequest)
+		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
@@ -384,8 +384,8 @@ func EchoHandlerFunc() http.HandlerFunc {
 
 		// parse Body parameter echoRequest
 		echoRequest := EchoRequest{}
-		erro := json.NewDecoder(r.Body).Decode(&echoRequest)
-		if erro != nil {
+		err = json.NewDecoder(r.Body).Decode(&echoRequest)
+		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}

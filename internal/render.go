@@ -48,7 +48,6 @@ func (r *renderer) render(pkg *packages.Package, info *binding) error {
 			return err
 		}
 		r.body.add(bites)
-		// r.body.buf.Write(bites)
 	} else {
 		return errors.New(fmt.Sprintf("template not found for %s", info.template))
 	}
@@ -131,12 +130,14 @@ func (r *renderer) renderTemplate(pkg *packages.Package, t *template, b *binding
 		buf.ws(" {\n")
 
 		for _, fstmt := range funclit.Body.List {
-			assnStmt, ok := fstmt.(*ast.AssignStmt)
-
-			if !ok {
-				printer.Fprint(buf.buf, fset, fstmt)
-				buf.ws("\n")
+			if r.devNull(fstmt) {
+				// omit
 				continue
+			}
+
+			assnStmt, ok := fstmt.(*ast.AssignStmt)
+			if !ok {
+				goto Include
 			}
 
 			if call, ok := assnStmt.Rhs[0].(*ast.CallExpr); ok {
@@ -169,6 +170,7 @@ func (r *renderer) renderTemplate(pkg *packages.Package, t *template, b *binding
 				}
 			}
 
+		Include:
 			printer.Fprint(buf.buf, fset, fstmt)
 			buf.ws("\n")
 		}
@@ -341,18 +343,25 @@ func (r *renderer) rename(old string, new *typeToken, body []ast.Stmt) *buffer {
 			if nt.Name == old {
 				nt.Name = new.name
 			}
+		// TODO: else rename if var name clash
 		case *ast.CallExpr:
 			for i := 0; i < len(nt.Args); i++ {
 				arg := nt.Args[i]
-				if ue, ok := arg.(*ast.UnaryExpr); ok {
-					if id, ok := ue.X.(*ast.Ident); ok {
-						if id.Name == old {
-							if new.isPtr {
-								// param was declared as a pointer
-								// replace unary expression with ident
-								nt.Args[i] = ast.NewIdent(new.name)
-							}
-						}
+				ue, ok := arg.(*ast.UnaryExpr)
+				if !ok {
+					return true
+				}
+
+				id, ok := ue.X.(*ast.Ident)
+				if !ok {
+					return true
+				}
+
+				if id.Name == old {
+					if new.isPtr {
+						// param was declared as a pointer
+						// replace unary expression with ident
+						nt.Args[i] = ast.NewIdent(new.name)
 					}
 				}
 			}
@@ -367,6 +376,30 @@ func (r *renderer) rename(old string, new *typeToken, body []ast.Stmt) *buffer {
 		sc := astcopy.Stmt(stmt)
 
 		switch st := stmt.(type) {
+		case *ast.DeclStmt:
+			// omit printing var decls that are repeated
+			gd, ok := st.Decl.(*ast.GenDecl)
+			if !ok {
+				goto Include
+			}
+
+			// only if a single var declaration
+			if gd.Tok != token.VAR || len(gd.Specs) != 1 {
+				goto Include
+			}
+
+			vs, ok := gd.Specs[0].(*ast.ValueSpec)
+			if !ok || len(vs.Names) != 1 {
+				goto Include
+			}
+
+			if id, ok := vs.Type.(*ast.Ident); ok {
+				v, ok := r.provider.known[id.Name]
+				// omit if known var with same name
+				if ok && v.name == vs.Names[0].String() {
+					continue
+				}
+			}
 		case *ast.AssignStmt:
 			if r.newStructValue(st) {
 				// get new object
@@ -383,7 +416,7 @@ func (r *renderer) rename(old string, new *typeToken, body []ast.Stmt) *buffer {
 		default:
 			ast.Inspect(sc, renamer)
 		}
-
+	Include:
 		printer.Fprint(buf.buf, token.NewFileSet(), sc)
 		buf.ws("\n")
 	}
@@ -391,18 +424,27 @@ func (r *renderer) rename(old string, new *typeToken, body []ast.Stmt) *buffer {
 	return buf
 }
 
-func (r *renderer) devNull(expr *ast.ExprStmt) bool {
-	if call, ok := expr.X.(*ast.CallExpr); ok {
-		if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
-			zobj := r.provider.qualifiedIdentObject(sel.X)
-			if zobj != nil && strings.HasSuffix(zobj.Type().String(), ZiplineTemplate) {
-				// if ignore
-				if sel.Sel.Name == "DevNull" {
-					return true
-				}
+func (r *renderer) devNull(stmt ast.Stmt) bool {
+	expr, ok := stmt.(*ast.ExprStmt)
+	if !ok {
+		return false
+	}
+
+	call, ok := expr.X.(*ast.CallExpr)
+	if !ok {
+		return false
+	}
+
+	if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
+		zobj := r.provider.qualifiedIdentObject(sel.X)
+		if zobj != nil && strings.HasSuffix(zobj.Type().String(), ZiplineTemplate) {
+			// if ignore
+			if sel.Sel.Name == "DevNull" || sel.Sel.Name == "Ignore" {
+				return true
 			}
 		}
 	}
+
 	return false
 }
 

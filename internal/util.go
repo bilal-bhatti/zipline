@@ -29,7 +29,7 @@ func load() []*packages.Package {
 
 	cfg := &packages.Config{
 		Context:    context.Background(),
-		Mode:       packages.LoadAllSyntax,
+		Mode:       packages.NeedName | packages.NeedFiles | packages.NeedImports | packages.NeedTypes | packages.NeedSyntax | packages.NeedTypesInfo,
 		Dir:        wd,
 		Env:        os.Environ(),
 		BuildFlags: []string{"-tags=ziplinegen"},

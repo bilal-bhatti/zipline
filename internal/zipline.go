@@ -34,6 +34,8 @@ func NewZipline() *Zipline {
 }
 
 func (z *Zipline) Start() error {
+	cw, err := os.Getwd()
+	fmt.Println("zipline:", cw)
 	pkgs := load()
 	scanner := scanner{pkgs: pkgs}
 	z.templates, z.packets = scanner.scan()
