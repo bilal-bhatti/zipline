@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"go/types"
 	"io/ioutil"
+	"log"
+	"path"
 	"reflect"
 	"strings"
 
@@ -14,7 +16,8 @@ import (
 )
 
 type swagger struct {
-	swag *spec.Swagger
+	swag     *spec.Swagger
+	location string
 }
 
 func newSwagger() (*swagger, error) {
@@ -51,7 +54,8 @@ func newSwagger() (*swagger, error) {
 	swag.Definitions["Error"] = *ert
 
 	return &swagger{
-		swag: swag,
+		swag:     swag,
+		location: "/Users/bilal/Projects/Go/src/github.com/bilal-bhatti/zipline",
 	}, nil
 }
 
@@ -90,7 +94,7 @@ func (s swagger) generate(packets []*packet) error {
 					template = b.paramTemplates[i]
 				}
 
-				if template == "Resolve" {
+				if template != "Body" && template != "Path" && template != "Query" {
 					continue
 				}
 
@@ -230,12 +234,12 @@ func (s swagger) write() error {
 		return errors.Wrap(err, "failed to generate write OpenAPI json")
 	}
 
-	err = ioutil.WriteFile(OpenAPIFile, bites, 0644)
+	err = ioutil.WriteFile(path.Join(s.location, OpenAPIFile), bites, 0644)
 	if err != nil {
 		return errors.Wrap(err, "failed to write OpenAPI json to file")
 	}
 
-	fmt.Printf("Wrote OpenAPI spec to ./%s\n", OpenAPIFile)
+	log.Printf("wrote OpenAPI spec to ./%s\n", OpenAPIFile)
 	return nil
 }
 
@@ -287,8 +291,6 @@ func field(name string, t types.Type) (*spec.Schema, error) {
 				if err != nil {
 					panic(err)
 				}
-
-				trace("name", jsonTag.Name)
 				tn = jsonTag.Name
 			}
 
@@ -568,12 +570,12 @@ func (s swagger) markdown() error {
 		}
 	}
 
-	err := ioutil.WriteFile("API.md", buf.buf.Bytes(), 0644)
+	err := ioutil.WriteFile(path.Join(s.location, Markdown), buf.buf.Bytes(), 0644)
 	if err != nil {
-		return errors.Wrap(err, "failed to write file API.md")
+		return errors.Wrap(err, fmt.Sprintf("failed to write file %s", Markdown))
 	}
 
-	fmt.Printf("Wrote API summary to ./%s\n", "API.md")
+	log.Printf("wrote API summary to ./%s\n", Markdown)
 
 	return nil
 }

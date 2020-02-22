@@ -78,7 +78,7 @@ func (z ZiplineTemplate) Query(kind string, w http.ResponseWriter, r *http.Reque
 
 func (z ZiplineTemplate) Body(w http.ResponseWriter, r *http.Request) {
 	var err error
-	name := ZiplineTemplate{}
+	name := &ZiplineTemplate{}
 	err = json.NewDecoder(r.Body).Decode(&name)
 	if err != nil {
 		// invalid request error

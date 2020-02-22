@@ -51,10 +51,10 @@ func ContactsServiceCreateHandlerFunc() http.HandlerFunc {
 			return
 		}
 
-		// resolve ctx dependency through a provider
+		// resolve parameter [ctx] through a provider
 		ctx := services.ProvideContext(r)
 
-		// parse Body parameter contactRequest
+		// resolve parameter [contactRequest] with [Body] template
 		contactRequest := &models.ContactRequest{}
 		err = json.NewDecoder(r.Body).Decode(contactRequest)
 		if err != nil {
@@ -98,10 +98,10 @@ func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 			return
 		}
 
-		// resolve ctx dependency through a provider
+		// resolve parameter [ctx] through a provider
 		ctx := services.ProvideContext(r)
 
-		// parse Path parameter id
+		// resolve parameter [id] with [Path] template
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
@@ -144,16 +144,16 @@ func ContactsServiceGetByDateHandlerFunc() http.HandlerFunc {
 			return
 		}
 
-		// resolve ctx dependency through a provider
+		// resolve parameter [ctx] through a provider
 		ctx := services.ProvideContext(r)
 
-		// parse Path parameter month
+		// resolve parameter [month] with [Path] template
 		month := chi.URLParam(r, "month")
 
-		// parse Path parameter day
+		// resolve parameter [day] with [Path] template
 		day := chi.URLParam(r, "day")
 
-		// parse Path parameter year
+		// resolve parameter [year] with [Path] template
 		year := chi.URLParam(r, "year")
 
 		// execute application handler
@@ -192,17 +192,17 @@ func ContactsServiceUpdateHandlerFunc() http.HandlerFunc {
 			return
 		}
 
-		// resolve ctx dependency through a provider
+		// resolve parameter [ctx] through a provider
 		ctx := services.ProvideContext(r)
 
-		// parse Path parameter id
+		// resolve parameter [id] with [Path] template
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 
-		// parse Body parameter contactRequest
+		// resolve parameter [contactRequest] with [Body] template
 		contactRequest := models.ContactRequest{}
 		err = json.NewDecoder(r.Body).Decode(&contactRequest)
 		if err != nil {
@@ -246,17 +246,17 @@ func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
 			return
 		}
 
-		// resolve ctx dependency through a provider
+		// resolve parameter [ctx] through a provider
 		ctx := services.ProvideContext(r)
 
-		// parse Path parameter id
+		// resolve parameter [id] with [Path] template
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 
-		// parse Body parameter contactRequest
+		// resolve parameter [contactRequest] with [Body] template
 		contactRequest := models.ContactRequest{}
 		err = json.NewDecoder(r.Body).Decode(&contactRequest)
 		if err != nil {
@@ -300,13 +300,13 @@ func ThingsServiceGetByCategoryAndQueryHandlerFunc() http.HandlerFunc {
 			return
 		}
 
-		// resolve ctx dependency through a provider
+		// resolve parameter [ctx] through a provider
 		ctx := services.ProvideContext(r)
 
-		// parse Path parameter category
+		// resolve parameter [category] with [Path] template
 		category := chi.URLParam(r, "category")
 
-		// parse Query parameter q
+		// resolve parameter [q] with [Query] template
 		q := r.URL.Query().Get("q")
 
 		// execute application handler
@@ -345,7 +345,7 @@ func ThingsServiceDeleteHandlerFunc() http.HandlerFunc {
 			return
 		}
 
-		// parse Path parameter id
+		// resolve parameter [id] with [Path] template
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
@@ -379,10 +379,10 @@ func EchoHandlerFunc() http.HandlerFunc {
 			return
 		}
 
-		// resolve ctx dependency through a provider
+		// resolve parameter [ctx] through a provider
 		ctx := services.ProvideContext(r)
 
-		// parse Body parameter echoRequest
+		// resolve parameter [echoRequest] with [Body] template
 		echoRequest := EchoRequest{}
 		err = json.NewDecoder(r.Body).Decode(&echoRequest)
 		if err != nil {

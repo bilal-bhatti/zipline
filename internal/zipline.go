@@ -7,6 +7,7 @@ import (
 	"go/token"
 	"go/types"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"reflect"
@@ -33,10 +34,13 @@ func NewZipline() *Zipline {
 	}
 }
 
-func (z *Zipline) Start() error {
+func (z *Zipline) Start(pkgPaths []string) error {
 	cw, err := os.Getwd()
-	fmt.Println("zipline:", cw)
-	pkgs := load()
+
+	// log current directory
+	log.Println(cw)
+
+	pkgs := load(pkgPaths)
 	scanner := scanner{pkgs: pkgs}
 	z.templates, z.packets = scanner.scan()
 
@@ -67,10 +71,11 @@ func (z *Zipline) Start() error {
 		}
 
 		od := strings.TrimPrefix(packet.pkg.PkgPath, root)
-		// log.Println("cwd", cwd)
-		// log.Println("pkg path", packet.pkg.PkgPath)
-		// log.Println("source root", root)
-		// log.Println("output dir", od)
+		trace("****** calculating output package location ******")
+		trace("cwd: %s", cwd)
+		trace("package path: %s", packet.pkg.PkgPath)
+		trace("source root: %s", root)
+		trace("output dir: %s", od)
 
 		out := path.Join(cwd, od, "bindings_gen.go")
 
@@ -109,7 +114,7 @@ func (z *Zipline) Start() error {
 			panic(err)
 		}
 
-		fmt.Printf("Wrote bindings to .%s\n", strings.TrimPrefix(out, cwd))
+		log.Printf("wrote bindings to .%s\n", strings.TrimPrefix(out, cwd))
 
 		// reset code buffers
 		z.renderer.body.buf.Reset()
