@@ -17,19 +17,209 @@
   "host": "api.host.com",
   "basePath": "/",
   "paths": {
-    "/v1/reports/campaigns/{campaignID}": {
+    "/contacts": {
+      "post": {
+        "description": "Route description",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.ContactRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "schema": {
+              "$ref": "#/definitions/models.ContactResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/contacts/{id}": {
+      "get": {
+        "description": "Route description",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "schema": {
+              "$ref": "#/definitions/models.ContactResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "put": {
+        "description": "Route description",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.ContactRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "schema": {
+              "$ref": "#/definitions/models.ContactResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Route description",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.ContactRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "schema": {
+              "$ref": "#/definitions/models.ContactResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/contacts/{month}-{day}-{year}": {
       "get": {
         "description": "Route description",
         "parameters": [
           {
             "type": "string",
-            "name": "campaignID",
+            "name": "month",
             "in": "path",
             "required": true
           },
           {
             "type": "string",
-            "name": "channelFilter",
+            "name": "day",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "year",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "schema": {
+              "$ref": "#/definitions/models.ContactResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/echo": {
+      "post": {
+        "description": "Route description",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/web.EchoRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "schema": {
+              "$ref": "#/definitions/web.EchoResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/things/{category}": {
+      "get": {
+        "description": "Route description",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "category",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "q",
             "in": "query"
           }
         ],
@@ -39,7 +229,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/json.RawMessage"
+                "$ref": "#/definitions/web.ThingResponse"
               }
             }
           },
@@ -52,28 +242,20 @@
         }
       }
     },
-    "/v1/reports/summary/{campaignID}": {
-      "get": {
+    "/things/{id}": {
+      "delete": {
         "description": "Route description",
         "parameters": [
           {
-            "type": "string",
-            "name": "campaignID",
+            "type": "integer",
+            "name": "id",
             "in": "path",
             "required": true
-          },
-          {
-            "type": "string",
-            "name": "t",
-            "in": "query"
           }
         ],
         "responses": {
-          "200": {
-            "description": "200 response",
-            "schema": {
-              "$ref": "#/definitions/service.SummaryMetrics"
-            }
+          "204": {
+            "description": "no content"
           },
           "default": {
             "description": "unexpected error",
@@ -98,44 +280,68 @@
         }
       }
     },
-    "json.RawMessage": {
-      "type": "array",
-      "items": {
-        "type": "byte"
-      }
-    },
-    "service.SummaryMetrics": {
+    "models.ContactRequest": {
       "type": "object",
       "properties": {
-        "brand_id": {
-          "type": "string"
-        },
-        "campaign_id": {
-          "type": "integer"
-        },
-        "date_range": {
+        "address": {
           "type": "object",
           "properties": {
-            "end_date": {
+            "city": {
               "type": "string"
             },
-            "start_date": {
+            "state": {
+              "type": "string"
+            },
+            "street": {
+              "type": "string"
+            },
+            "zipCode": {
               "type": "string"
             }
           }
         },
-        "gross_sale": {
-          "type": "object",
-          "properties": {
-            "channel_type": {
-              "type": "string"
-            },
-            "sale_count": {
-              "type": "integer"
-            },
-            "total": {
-              "type": "number"
-            }
+        "firstName": {
+          "type": "string"
+        },
+        "input": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        }
+      }
+    },
+    "models.ContactResponse": {
+      "type": "object",
+      "properties": {
+        "output": {
+          "type": "string"
+        }
+      }
+    },
+    "web.EchoRequest": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "string"
+        }
+      }
+    },
+    "web.EchoResponse": {
+      "type": "object",
+      "properties": {
+        "output": {
+          "type": "string"
+        }
+      }
+    },
+    "web.ThingResponse": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "output": {
+            "type": "string"
           }
         }
       }

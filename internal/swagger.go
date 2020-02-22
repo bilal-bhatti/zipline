@@ -6,7 +6,6 @@ import (
 	"go/types"
 	"io/ioutil"
 	"log"
-	"path"
 	"reflect"
 	"strings"
 
@@ -16,8 +15,7 @@ import (
 )
 
 type swagger struct {
-	swag     *spec.Swagger
-	location string
+	swag *spec.Swagger
 }
 
 func newSwagger() (*swagger, error) {
@@ -54,8 +52,7 @@ func newSwagger() (*swagger, error) {
 	swag.Definitions["Error"] = *ert
 
 	return &swagger{
-		swag:     swag,
-		location: "/Users/bilal/Projects/Go/src/github.com/bilal-bhatti/zipline",
+		swag: swag,
 	}, nil
 }
 
@@ -234,7 +231,7 @@ func (s swagger) write() error {
 		return errors.Wrap(err, "failed to generate write OpenAPI json")
 	}
 
-	err = ioutil.WriteFile(path.Join(s.location, OpenAPIFile), bites, 0644)
+	err = ioutil.WriteFile(OpenAPIFile, bites, 0644)
 	if err != nil {
 		return errors.Wrap(err, "failed to write OpenAPI json to file")
 	}
@@ -570,7 +567,7 @@ func (s swagger) markdown() error {
 		}
 	}
 
-	err := ioutil.WriteFile(path.Join(s.location, Markdown), buf.buf.Bytes(), 0644)
+	err := ioutil.WriteFile(Markdown, buf.buf.Bytes(), 0644)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("failed to write file %s", Markdown))
 	}
