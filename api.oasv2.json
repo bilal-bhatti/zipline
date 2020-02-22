@@ -10,12 +10,12 @@
   ],
   "swagger": "2.0",
   "info": {
-    "description": "Collabs Reporting Service ",
-    "title": "Collabs Reporting Service ",
+    "description": "OpenAPI Version 2 Specification",
+    "title": "OpenAPI Version 2 Specification",
     "version": "1.0.0"
   },
   "host": "api.host.com",
-  "basePath": "/",
+  "basePath": "/api",
   "paths": {
     "/contacts": {
       "post": {
