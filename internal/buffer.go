@@ -3,7 +3,7 @@ package internal
 import (
 	"bytes"
 	"fmt"
-	"github.com/pkg/errors"
+	"log"
 )
 
 type buffer struct {
@@ -27,13 +27,13 @@ func (b *buffer) ws(s string, vals ...interface{}) {
 
 	// if this fails no point in continuing
 	if err != nil {
-		panic(errors.Wrap(err, "writing to a byte buffer failed"))
+		log.Fatalf("writing to a byte buffer failed with error: %v", err)
 	}
 }
 
 func (b *buffer) add(other *buffer) {
 	_, err := b.buf.Write(other.buf.Bytes())
 	if err != nil {
-		panic(errors.Wrap(err, "writing to a byte buffer failed"))
+		log.Fatalf("writing to a byte buffer failed with error: %v", err)
 	}
 }

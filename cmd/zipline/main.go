@@ -45,6 +45,7 @@ func (*defaultCmd) Usage() string {
 	return `gen [packages]:
 	Generates bindings_gen.go for given packages.
 	If no packages provided, defaults to ".".
+	example: "zipline gen ./..."
   `
 }
 func (p *defaultCmd) SetFlags(f *flag.FlagSet) {

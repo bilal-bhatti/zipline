@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"go/ast"
 	"go/types"
 	"log"
@@ -12,42 +13,42 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-func load(ps []string) []*packages.Package {
+func load(ps []string) ([]*packages.Package, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		log.Println("Failed to get working directory: ", err)
-		panic(err)
+		return nil, err
 	}
 
 	cfg := &packages.Config{
-		Context: context.Background(),
-		Mode:    packages.LoadAllSyntax,
-		// Mode:       packages.NeedName | packages.NeedFiles | packages.NeedImports | packages.NeedTypes | packages.NeedSyntax | packages.NeedTypesInfo,
+		Context:    context.Background(),
+		Mode:       packages.NeedName | packages.NeedFiles | packages.NeedImports | packages.NeedTypes | packages.NeedSyntax | packages.NeedTypesInfo,
 		Dir:        wd,
 		Env:        os.Environ(),
 		BuildFlags: []string{"-tags=ziplinegen"},
 	}
 
-	// Package pattern to search
-	// ps := []string{"./..."}
-	// ps := pkgs(nil)
-
 	pkgs, err := packages.Load(cfg, ps...)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
+
 	var errs []error
 	for _, p := range pkgs {
 		for _, e := range p.Errors {
 			errs = append(errs, e)
 		}
 	}
+
 	if len(errs) > 0 {
-		log.Println(errs)
-		panic(errs)
+		var erm string
+		for _, e := range errs {
+			erm = fmt.Sprintf("%s\n", e.Error())
+		}
+		return nil, errors.New(erm)
 	}
 
-	return pkgs
+	return pkgs, nil
 }
 
 func qualifiedIdentObject(info *types.Info, expr ast.Expr) types.Object {

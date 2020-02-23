@@ -40,7 +40,10 @@ func (z *Zipline) Start(pkgPaths []string) error {
 	// log current directory
 	log.Println(cw)
 
-	pkgs := load(pkgPaths)
+	pkgs, err := load(pkgPaths)
+	if err != nil {
+		return err
+	}
 	scanner := scanner{pkgs: pkgs}
 	z.templates, z.packets = scanner.scan()
 
@@ -62,12 +65,12 @@ func (z *Zipline) Start(pkgPaths []string) error {
 
 		root, err := goSrcRoot()
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		cwd, err := os.Getwd()
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		od := strings.TrimPrefix(packet.pkg.PkgPath, root)
@@ -81,7 +84,7 @@ func (z *Zipline) Start(pkgPaths []string) error {
 
 		f, err := os.OpenFile(out, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		// z.renderer.print(os.Stdout, false) // TODO: in case of error dump out for debug
 
@@ -98,7 +101,7 @@ func (z *Zipline) Start(pkgPaths []string) error {
 
 		bs, err := ioutil.ReadFile(out)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		opt := imports.Options{
 			Comments:   true,
@@ -106,12 +109,12 @@ func (z *Zipline) Start(pkgPaths []string) error {
 		}
 		bs, err = imports.Process(out, bs, &opt)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		err = ioutil.WriteFile(out, bs, os.ModePerm)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		log.Printf("wrote bindings to .%s\n", strings.TrimPrefix(out, cwd))
@@ -125,6 +128,7 @@ func (z *Zipline) Start(pkgPaths []string) error {
 	if err != nil {
 		return err
 	}
+
 	err = swagger.generate(z.packets)
 	if err != nil {
 		return err
