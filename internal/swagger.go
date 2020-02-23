@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"reflect"
-	"sort"
 	"strings"
 
 	"github.com/fatih/structtag"
@@ -409,33 +408,4 @@ func toJSONType(t string) string {
 		return t
 	}
 	return jt
-}
-
-func obj(lvl int, s spec.Schema, buf *buffer) {
-	// if s.Items != nil {
-	// 	buf.ws("%s- items\n", strings.Repeat("\t", lvl))
-	// 	obj(lvl+1, *s.Items.Schema, buf)
-	// }
-
-	// sort keys so we can have predictable output
-	keys := make([]string, len(s.Properties))
-	i := 0
-	for key := range s.Properties {
-		keys[i] = key
-		i++
-	}
-	sort.Strings(keys)
-
-	for _, key := range keys {
-		v := s.Properties[key]
-		if v.Type.Contains("object") {
-			buf.ws("%s- name: `%s`, type: `%s`\n", strings.Repeat("\t", lvl), key, v.Type[0])
-			obj(lvl+1, v, buf)
-		} else if v.Type.Contains("array") {
-			buf.ws("%s- name: `%s`, type: `[]%s`\n", strings.Repeat("\t", lvl), key, v.Type[0])
-			obj(lvl+1, *v.Items.Schema, buf)
-		} else {
-			buf.ws("%s- name: `%s`, type: `%s`\n", strings.Repeat("\t", lvl), key, v.Type[0])
-		}
-	}
 }
