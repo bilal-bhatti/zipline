@@ -38,6 +38,7 @@ func (p provider) provideWithReturns(vt *typeToken, retNames []string) (*funcTok
 	for _, pkg := range p.pkgs {
 		pkgSet[pkg.PkgPath] = pkg
 
+		// TODO: simplify this
 		// only scan packages that share the same root as binding package
 		path := strings.Split(pkg.PkgPath, "/")
 		if len(path) >= 2 {
@@ -56,6 +57,10 @@ func (p provider) provideWithReturns(vt *typeToken, retNames []string) (*funcTok
 
 	for _, pkg := range pkgsToScan {
 		info := pkg.TypesInfo
+		if info == nil || info.Defs == nil {
+			continue
+		}
+
 		for _, v := range info.Defs {
 			pf, ok := v.(*types.Func)
 			if !ok || !v.Exported() {

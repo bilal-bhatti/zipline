@@ -209,7 +209,7 @@ func (s swagger) generate(packets []*packet) error {
 
 	err := s.write()
 	if err != nil {
-		return errors.Wrap(err, "OpenAPI spec generated failed")
+		return errors.Wrap(err, "OpenAPI spec generation failed")
 	}
 	err = s.markdown()
 	if err != nil {

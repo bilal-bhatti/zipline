@@ -157,6 +157,9 @@ func (s swagger) markdown() error {
 		if route.Delete != nil {
 			md("delete", key, route.Delete)
 		}
+		if route.Patch != nil {
+			md("patch", key, route.Patch)
+		}
 	}
 
 	err := ioutil.WriteFile(Markdown, buf.buf.Bytes(), 0644)
