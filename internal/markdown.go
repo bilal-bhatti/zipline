@@ -28,7 +28,8 @@ func (s swagger) markdown() error {
 
 	md := func(m, path string, op *spec.Operation) {
 		buf.ws("<details>\n")
-		buf.ws("<summary>%s: %s</summary>\n\n", path, m)
+		buf.ws("<summary>%s: %s</summary>\n", path, m)
+		buf.ws("%s\n\n", op.Summary)
 
 		params := func(op *spec.Operation) ([]spec.Parameter, []spec.Parameter, []spec.Parameter) {
 			path, query, body := []spec.Parameter{}, []spec.Parameter{}, []spec.Parameter{}
@@ -73,12 +74,13 @@ func (s swagger) markdown() error {
 
 			if len(body) > 0 {
 				buf.ws("`body parameter`\n")
+
 				for _, p := range body {
 					if p.In == "body" {
-						buf.ws("- name: `%s`, type: `%s`\n", p.Name, strings.Split(p.Schema.Ref.GetPointer().String(), "/")[2])
 						if p.Schema != nil {
-							def := s.swag.Definitions[strings.Split(p.Schema.Ref.GetPointer().String(), "/")[2]]
-
+							path := strings.Split(p.Schema.Ref.GetPointer().String(), "/")[2]
+							def := s.swag.Definitions[path]
+							buf.ws("- name: `%s`, type: `%s`\n", p.Name, path)
 							obj(1, def, buf)
 						}
 					}

@@ -20,12 +20,13 @@ type (
 	}
 
 	handlerInfo struct {
-		id      string
-		pkg     string
-		x       *typeToken
-		sel     string
-		params  []*typeToken
-		returns []*typeToken
+		comments []string
+		id       string
+		pkg      string
+		x        *typeToken
+		sel      string
+		params   []*typeToken
+		returns  []*typeToken
 	}
 )
 

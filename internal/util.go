@@ -48,6 +48,16 @@ func load(ps []string) ([]*packages.Package, error) {
 		return nil, errors.New(erm)
 	}
 
+	//
+	// for _, pkg := range pkgs {
+	// 	d, err := parser.ParseDir(fset, "./example", nil, parser.ParseComments)
+	// 	if err != nil {
+	// 		return nil, errors.Wrap(err, "unable to parse package: "+pkg.PkgPath)
+	// 	}
+	// 	log.Println("parsed directory", d)
+	// }
+	// log.Println("fset", fset)
+
 	return pkgs, nil
 }
 
@@ -116,4 +126,11 @@ func goSrcRoot() (string, error) {
 	}
 
 	return strings.TrimPrefix(wd, os.Getenv("GOPATH")+"/src/"), nil
+}
+
+func reverse(ss []string) {
+	last := len(ss) - 1
+	for i := 0; i < len(ss)/2; i++ {
+		ss[i], ss[last-i] = ss[last-i], ss[i]
+	}
 }

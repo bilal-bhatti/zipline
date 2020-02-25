@@ -15,10 +15,11 @@ import (
 )
 
 type swagger struct {
-	swag *spec.Swagger
+	swag      *spec.Swagger
+	typeSpecs map[string]*typeSpecWithPkg
 }
 
-func newSwagger() (*swagger, error) {
+func newSwagger(typeSpecs map[string]*typeSpecWithPkg) (*swagger, error) {
 	// init defaults
 	swag := &spec.Swagger{
 		SwaggerProps: spec.SwaggerProps{
@@ -32,7 +33,7 @@ func newSwagger() (*swagger, error) {
 			},
 			Host:     "api.host.com",
 			BasePath: "/api",
-			Schemes:  []string{"http"},
+			Schemes:  []string{"http", "https"},
 			Consumes: []string{"application/json"},
 			Produces: []string{"application/json"},
 			Paths: &spec.Paths{
@@ -47,12 +48,14 @@ func newSwagger() (*swagger, error) {
 	if err != nil {
 		return nil, err
 	}
+	ert.Description = "error object"
 	ert.Properties["code"] = *spec.Int32Property()
 	ert.Properties["status"] = *spec.StringProperty()
 	swag.Definitions["Error"] = *ert
 
 	return &swagger{
-		swag: swag,
+		swag:      swag,
+		typeSpecs: typeSpecs,
 	}, nil
 }
 
@@ -124,6 +127,18 @@ func (s swagger) generate(packets []*packet) error {
 						return err
 					}
 
+					ts := s.typeSpecs[param.signature]
+					if ts != nil {
+						pos := ts.pkg.Fset.PositionFor(ts.typeSpec.Pos(), true)
+						comms, err := comments(pos)
+						if err != nil {
+							// let's not fail on comments but log the error
+							log.Println("failed to extract comments", err.Error())
+						}
+
+						skema.Description = strings.Join(comms, "\n")
+					}
+
 					ref := spec.Schema{
 						SchemaProps: spec.SchemaProps{
 							Ref: spec.MustCreateRef("#/definitions/" + param.shortSignature()),
@@ -134,10 +149,11 @@ func (s swagger) generate(packets []*packet) error {
 
 					op.AddParam(&spec.Parameter{
 						ParamProps: spec.ParamProps{
-							Name:     "body",
-							In:       "body",
-							Required: true,
-							Schema:   &ref,
+							Name:        "body",
+							In:          "body",
+							Required:    true,
+							Description: skema.Description,
+							Schema:      &ref,
 						},
 					})
 				}
@@ -153,6 +169,19 @@ func (s swagger) generate(packets []*packet) error {
 				if err != nil {
 					return err
 				}
+
+				ts := s.typeSpecs[ret.signature]
+				if ts != nil {
+					pos := ts.pkg.Fset.PositionFor(ts.typeSpec.Pos(), true)
+					comms, err := comments(pos)
+					if err != nil {
+						// let's not fail on comments but log the error
+						log.Println("failed to extract comments", err.Error())
+					}
+
+					sk.Description = strings.Join(comms, "\n")
+				}
+
 				ref := spec.Schema{
 					SchemaProps: spec.SchemaProps{
 						Ref: spec.MustCreateRef("#/definitions/" + ret.shortSignature()),
@@ -186,6 +215,11 @@ func (s swagger) generate(packets []*packet) error {
 						Description: "no content",
 					},
 				}
+			}
+
+			if len(b.handler.comments) > 0 {
+				op.Description = strings.Join(b.handler.comments, "\n")
+				op.Summary = op.Description
 			}
 
 			switch strings.ToUpper(b.template) {
@@ -259,6 +293,8 @@ func (s swagger) readAndMergeSchema() error {
 	s.swag.Schemes = old.Schemes
 	s.swag.Consumes = old.Consumes
 	s.swag.Produces = old.Produces
+	s.swag.SecurityDefinitions = old.SecurityDefinitions
+	s.swag.Security = old.Security
 
 	return nil
 }
@@ -350,13 +386,13 @@ func skema(t string) (*spec.Schema, error) {
 				Properties: make(map[string]spec.Schema),
 			},
 		}, nil
-	case "int", "int64", "uint", "uint8", "uint64":
+	case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64":
 		return &spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: spec.StringOrArray{toJSONType(t)},
 			},
 		}, nil
-	case "float64":
+	case "float32", "float64":
 		return &spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: spec.StringOrArray{toJSONType(t)},
@@ -393,12 +429,15 @@ func toJSONType(t string) string {
 	var typeMap = map[string]string{
 		"int":     "integer",
 		"int8":    "integer",
+		"int16":   "integer",
 		"int32":   "integer",
 		"int64":   "integer",
 		"uint":    "integer",
 		"uint8":   "integer",
+		"uint16":  "integer",
 		"uint32":  "integer",
 		"uint64":  "integer",
+		"float32": "number",
 		"float64": "number",
 		"bool":    "boolean",
 	}

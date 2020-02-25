@@ -19,9 +19,11 @@
   "paths": {
     "/contacts": {
       "post": {
-        "description": "Route description",
+        "description": "Create a new contact request entity.",
+        "summary": "Create a new contact request entity.",
         "parameters": [
           {
+            "description": "Contact request model",
             "name": "body",
             "in": "body",
             "required": true,
@@ -48,7 +50,8 @@
     },
     "/contacts/{id}": {
       "get": {
-        "description": "Route description",
+        "description": "GetOne contact by id",
+        "summary": "GetOne contact by id",
         "parameters": [
           {
             "type": "integer",
@@ -73,7 +76,8 @@
         }
       },
       "put": {
-        "description": "Route description",
+        "description": "Replace a contact entity completely.",
+        "summary": "Replace a contact entity completely.",
         "parameters": [
           {
             "type": "integer",
@@ -82,6 +86,7 @@
             "required": true
           },
           {
+            "description": "Contact request model",
             "name": "body",
             "in": "body",
             "required": true,
@@ -106,7 +111,8 @@
         }
       },
       "post": {
-        "description": "Route description",
+        "description": "Update a contact entity with provided data.",
+        "summary": "Update a contact entity with provided data.",
         "parameters": [
           {
             "type": "integer",
@@ -115,6 +121,7 @@
             "required": true
           },
           {
+            "description": "Contact request model",
             "name": "body",
             "in": "body",
             "required": true,
@@ -141,7 +148,8 @@
     },
     "/contacts/{month}-{day}-{year}": {
       "get": {
-        "description": "Route description",
+        "description": "Get contacts list by date",
+        "summary": "Get contacts list by date",
         "parameters": [
           {
             "type": "string",
@@ -180,9 +188,11 @@
     },
     "/echo": {
       "post": {
-        "description": "Route description",
+        "description": "Echo returns body with 'i's replaced with 'o's",
+        "summary": "Echo returns body with 'i's replaced with 'o's",
         "parameters": [
           {
+            "description": "EchoRequest model",
             "name": "body",
             "in": "body",
             "required": true,
@@ -209,7 +219,8 @@
     },
     "/things/{category}": {
       "get": {
-        "description": "Route description",
+        "description": "Get things by category and search query",
+        "summary": "Get things by category and search query",
         "parameters": [
           {
             "type": "string",
@@ -244,7 +255,8 @@
     },
     "/things/{id}": {
       "delete": {
-        "description": "Route description",
+        "description": "Delete thing by id",
+        "summary": "Delete thing by id",
         "parameters": [
           {
             "type": "integer",
@@ -269,6 +281,7 @@
   },
   "definitions": {
     "Error": {
+      "description": "error object",
       "type": "object",
       "properties": {
         "code": {
@@ -281,6 +294,7 @@
       }
     },
     "models.ContactRequest": {
+      "description": "Contact request model",
       "type": "object",
       "properties": {
         "address": {
@@ -303,7 +317,7 @@
         "firstName": {
           "type": "string"
         },
-        "input": {
+        "id": {
           "type": "string"
         },
         "lastName": {
@@ -312,14 +326,16 @@
       }
     },
     "models.ContactResponse": {
+      "description": "Contact response model",
       "type": "object",
       "properties": {
-        "output": {
+        "id": {
           "type": "string"
         }
       }
     },
     "web.EchoRequest": {
+      "description": "EchoRequest model",
       "type": "object",
       "properties": {
         "input": {
@@ -328,6 +344,7 @@
       }
     },
     "web.EchoResponse": {
+      "description": "EchoResponse model",
       "type": "object",
       "properties": {
         "output": {

@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/chi"
 )
 
+// NewRouter returns a router configured with endpoints and handlers.
 func NewRouter() *chi.Mux {
 	mux := chi.NewRouter()
 	mux.Use(services.Authentication)

@@ -11,12 +11,12 @@ import (
 
 type typeToken struct {
 	cpkg, name, signature string
-	isPtr                 bool
+	isPtr, isSlice        bool
 	varType               *types.Var
 }
 
 func (tt typeToken) String() string {
-	return fmt.Sprintf("{name: %s, type: %s, ptr: %v}", tt.varName(), tt.signature, tt.isPtr)
+	return fmt.Sprintf("{name: %s, type: %s, slice: %v, ptr: %v}", tt.varName(), tt.signature, tt.isSlice, tt.isPtr)
 }
 
 func newTypeToken(cpkg, signature, name string) *typeToken {
@@ -25,8 +25,11 @@ func newTypeToken(cpkg, signature, name string) *typeToken {
 		name: name,
 	}
 
-	tt.isPtr = strings.HasPrefix(signature, "*")
-	tt.signature = strings.TrimPrefix(signature, "*")
+	tt.isSlice = strings.HasPrefix(signature, "[]")
+	tt.signature = strings.TrimPrefix(signature, "[]")
+
+	tt.isPtr = strings.HasPrefix(tt.signature, "*")
+	tt.signature = strings.TrimPrefix(tt.signature, "*")
 
 	return tt
 }

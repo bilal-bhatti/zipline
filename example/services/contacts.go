@@ -17,22 +17,27 @@ func NewContactsService(dc *connectors.DataConnector) ContactsService {
 	}
 }
 
+// Create a new contact request entity.
 func (cs ContactsService) Create(ctx context.Context, contactRequest *models.ContactRequest) (*models.ContactResponse, error) {
-	return &models.ContactResponse{Output: "Out"}, nil
+	return &models.ContactResponse{ID: "id"}, nil
 }
 
+// Update a contact entity with provided data.
 func (cs ContactsService) Update(ctx context.Context, id int, contactRequest models.ContactRequest) (*models.ContactResponse, error) {
-	return &models.ContactResponse{Output: "Out"}, nil
+	return &models.ContactResponse{ID: "id"}, nil
 }
 
+// Replace a contact entity completely.
 func (cs *ContactsService) Replace(ctx context.Context, id int, contactRequest models.ContactRequest) (*models.ContactResponse, error) {
-	return &models.ContactResponse{Output: "Out"}, nil
+	return &models.ContactResponse{ID: "id"}, nil
 }
 
+// GetOne contact by id
 func (cs ContactsService) GetOne(ctx context.Context, id int) (*models.ContactResponse, error) {
-	return &models.ContactResponse{Output: "Out"}, nil
+	return &models.ContactResponse{ID: "id"}, nil
 }
 
+// Get contacts list by date
 func (cs ContactsService) GetByDate(ctx context.Context, month, day, year string) (*models.ContactResponse, error) {
-	return &models.ContactResponse{Output: "Out"}, nil
+	return &models.ContactResponse{ID: "id"}, nil
 }

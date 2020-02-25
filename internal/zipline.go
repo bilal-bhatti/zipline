@@ -21,16 +21,16 @@ import (
 type Zipline struct {
 	packets   []*packet
 	templates map[string]*template
+	typeSpecs map[string]*typeSpecWithPkg
 	renderer  *renderer
 	provider  *provider
-	fset      *token.FileSet
 }
 
 func NewZipline() *Zipline {
 	return &Zipline{
 		packets:   []*packet{},
 		templates: make(map[string]*template),
-		fset:      token.NewFileSet(),
+		typeSpecs: make(map[string]*typeSpecWithPkg),
 	}
 }
 
@@ -45,7 +45,7 @@ func (z *Zipline) Start(pkgPaths []string) error {
 		return err
 	}
 	scanner := scanner{pkgs: pkgs}
-	z.templates, z.packets = scanner.scan()
+	z.typeSpecs, z.templates, z.packets = scanner.scan()
 
 	z.provider = newProvider(pkgs)
 	z.renderer = newRenderer(z.templates, z.provider)
@@ -124,7 +124,7 @@ func (z *Zipline) Start(pkgPaths []string) error {
 		z.renderer.preamble.buf.Reset()
 	}
 
-	swagger, err := newSwagger()
+	swagger, err := newSwagger(z.typeSpecs)
 	if err != nil {
 		return err
 	}
@@ -361,10 +361,18 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) *handler
 	}
 	id.WriteString(obj.Name())
 
+	pos := pkg.Fset.PositionFor(obj.Pos(), true)
+	comments, err := comments(pos)
+	if err != nil {
+		// let's not fail on comments but log the error
+		log.Println("failed to extract comments", err.Error())
+	}
+
 	hi := &handlerInfo{
-		id:  string(id.Bytes()),
-		sel: handler.String(),
-		pkg: obj.Pkg().Path(),
+		comments: comments,
+		id:       string(id.Bytes()),
+		sel:      handler.String(),
+		pkg:      obj.Pkg().Path(),
 	}
 
 	for i := 0; i < sig.Params().Len(); i++ {
@@ -376,10 +384,43 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) *handler
 
 	for i := 0; i < sig.Results().Len(); i++ {
 		r := sig.Results().At(i)
+		if _, ok := r.Type().(*types.Slice); ok {
+			log.Println("return type should not be a slice:", r.Type().String())
+		}
 		tt := newTypeToken(pkg.Name, r.Type().String(), r.Name())
 		tt.varType = r
 		hi.returns = append(hi.returns, tt)
 	}
 
 	return hi
+}
+
+func comments(pos token.Position) ([]string, error) {
+	fileBytes, err := ioutil.ReadFile(pos.Filename)
+	if err != nil {
+		return nil, err
+	}
+
+	lines := strings.Split(string(fileBytes), "\n")
+
+	comments := []string{}
+
+	// just in case
+	if pos.Line-2 <= 0 {
+		return comments, nil
+	}
+
+	// start from func declaration and go backwards
+	// stop when non comment line found
+	for i := pos.Line - 2; i >= 0; i-- {
+		line := strings.TrimSpace(lines[i])
+		if strings.HasPrefix(line, "//") {
+			comments = append(comments, strings.TrimSpace(strings.TrimPrefix(line, "//")))
+		} else {
+			break
+		}
+	}
+
+	reverse(comments)
+	return comments, nil
 }

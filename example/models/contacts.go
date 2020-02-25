@@ -12,13 +12,16 @@ type (
 		ZipCode string `json:"zipCode"`
 	}
 
+	// Contact request model
 	ContactRequest struct {
-		Input string `json:"input"`
+		ID string `json:"id"`
 		Name
 		Address *Address `json:"address"`
 	}
 
+	// Contact response model
 	ContactResponse struct {
-		Output string `json:"output"`
+		// id is the unique id of contact
+		ID string `json:"id"`
 	}
 )
