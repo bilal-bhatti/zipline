@@ -179,7 +179,7 @@ func (z *Zipline) prepare(packet *packet) error {
 					// handler/zipline call is being wrapped
 					// should handle this properly
 
-					return newError("failed to parse zipline expression, call likely wrapped", stmt)
+					return newErrorForStmt("failed to parse zipline expression, call likely wrapped", stmt)
 				}
 
 				id, ok := sel.X.(*ast.Ident)
@@ -203,7 +203,7 @@ func (z *Zipline) prepare(packet *packet) error {
 				}
 			}
 		default:
-			return newError(fmt.Sprintf("unhandled expression type %v", reflect.TypeOf(expType)), stmt)
+			return newErrorForStmt(fmt.Sprintf("unhandled expression type %v", reflect.TypeOf(expType)), stmt)
 		}
 	}
 
@@ -264,7 +264,11 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 
 		binding.handler = handle
 	case *ast.Ident:
-		binding.handler = newHandlerInfoFromIdent(pkg, handler)
+		handlerInfo, err := newHandlerInfoFromIdent(pkg, handler)
+		if err != nil {
+			return nil, err
+		}
+		binding.handler = handlerInfo
 	default:
 		return nil, errors.New("unsupported expression")
 	}
@@ -292,7 +296,10 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 }
 
 func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.SelectorExpr) (*handlerInfo, error) {
-	hi := newHandlerInfoFromIdent(pkg, handler.Sel)
+	handlerInfo, err := newHandlerInfoFromIdent(pkg, handler.Sel)
+	if err != nil {
+		return nil, err
+	}
 
 	switch xt := handler.X.(type) {
 	case *ast.Ident:
@@ -300,7 +307,7 @@ func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.Selector
 		obj := qualifiedIdentObject(pkg.TypesInfo, xt)
 		if obj != nil {
 			if _, ok := obj.Type().(*types.Basic); !ok {
-				hi.x = newTypeToken("", obj.Type().String(), "")
+				handlerInfo.x = newTypeToken("", obj.Type().String(), "")
 			}
 		}
 	case *ast.SelectorExpr:
@@ -309,7 +316,7 @@ func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.Selector
 		// xt.Sel = type
 		obj := qualifiedIdentObject(pkg.TypesInfo, xt.Sel)
 		if obj != nil {
-			hi.x = newTypeToken("", obj.Type().String(), "")
+			handlerInfo.x = newTypeToken("", obj.Type().String(), "")
 		}
 	case *ast.CallExpr:
 		// if it's a a new call
@@ -320,14 +327,14 @@ func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.Selector
 					// different package
 					obj := qualifiedIdentObject(pkg.TypesInfo, newExpType.Sel)
 					if obj != nil {
-						hi.x = newTypeToken("", obj.Type().String(), "")
+						handlerInfo.x = newTypeToken("", obj.Type().String(), "")
 					}
 				case *ast.Ident:
 					// same package
 					obj := qualifiedIdentObject(pkg.TypesInfo, newExpType)
 					if obj != nil {
 						if _, ok := obj.Type().(*types.Basic); !ok {
-							hi.x = newTypeToken("", obj.Type().String(), "")
+							handlerInfo.x = newTypeToken("", obj.Type().String(), "")
 						}
 					}
 				}
@@ -339,10 +346,10 @@ func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.Selector
 		return nil, errors.New(fmt.Sprintf("invalid zipline template parameter %s", msg.buf.String()))
 	}
 
-	return hi, nil
+	return handlerInfo, nil
 }
 
-func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) *handlerInfo {
+func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) (*handlerInfo, error) {
 	obj := qualifiedIdentObject(pkg.TypesInfo, handler)
 
 	sig := obj.Type().(*types.Signature)
@@ -385,16 +392,14 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) *handler
 	for i := 0; i < sig.Results().Len(); i++ {
 		r := sig.Results().At(i)
 		if _, ok := r.Type().(*types.Slice); ok {
-			// TODO: improve this, return error
-			log.Println("return type should not be a slice:")
-			log.Println(" - ", obj.String())
+			return nil, newErrorForSliceVar("return type should not be a slice", obj)
 		}
 		tt := newTypeToken(pkg.Name, r.Type().String(), r.Name())
 		tt.varType = r
 		hi.returns = append(hi.returns, tt)
 	}
 
-	return hi
+	return hi, nil
 }
 
 func comments(pos token.Position) ([]string, error) {

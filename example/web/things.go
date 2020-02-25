@@ -5,14 +5,13 @@ import (
 	"log"
 
 	"github.com/bilal-bhatti/zipline/example/connectors"
+	"github.com/bilal-bhatti/zipline/example/models"
 )
 
 type (
-	ThingResponse struct {
-		Output string `json:"output"`
-	}
-	ThingResponseList struct {
-		Things ThingResponse `json:"things"`
+	// List of things
+	ThingListResponse struct {
+		Things []models.ThingResponse `json:"things"`
 	}
 	ThingsService struct {
 		DataConnector *connectors.DataConnector
@@ -25,7 +24,7 @@ func (cs *ThingsService) Delete(id int) error {
 }
 
 // Get things by category and search query
-func (cs ThingsService) GetByCategoryAndQuery(ctx context.Context, category string, q string) (ThingResponseList, error) {
+func (cs ThingsService) GetByCategoryAndQuery(ctx context.Context, category string, q string) (ThingListResponse, error) {
 	log.Println("Getting by category and query", category, q)
-	return ThingResponseList{}, nil
+	return ThingListResponse{}, nil
 }

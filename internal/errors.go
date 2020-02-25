@@ -5,23 +5,35 @@ import (
 	"go/ast"
 	"go/printer"
 	"go/token"
+	"go/types"
 )
 
 type ziplineError struct {
-	msg, stmt string
+	msg, hint string
 }
 
 func (e ziplineError) Error() string {
-	return fmt.Sprintf("%s:\n\t%s", e.msg, e.stmt)
+	return fmt.Sprintf("%s:\n\t%s", e.msg, e.hint)
 }
 
-func newError(msg string, stmt ast.Stmt) error {
+func newErrorForStmt(msg string, stmt ast.Stmt) error {
 	fset := token.NewFileSet()
 	buf := newBuffer()
 	printer.Fprint(buf.buf, fset, stmt)
 
 	return ziplineError{
 		msg:  msg,
-		stmt: buf.buf.String(),
+		hint: buf.buf.String(),
+	}
+}
+
+func newErrorForSliceVar(msg string, obj types.Object) error {
+	fset := token.NewFileSet()
+	buf := newBuffer()
+	printer.Fprint(buf.buf, fset, obj.String())
+
+	return ziplineError{
+		msg:  msg,
+		hint: buf.buf.String(),
 	}
 }

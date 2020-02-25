@@ -300,7 +300,6 @@ func (s swagger) readAndMergeSchema() error {
 }
 
 func field(name string, t types.Type) (*spec.Schema, error) {
-
 	switch tt := t.(type) {
 	case *types.Pointer:
 		return field(name, tt.Elem())
@@ -352,11 +351,11 @@ func field(name string, t types.Type) (*spec.Schema, error) {
 	case *types.Named:
 		return field(name, tt.Underlying())
 	case *types.Slice:
-		sk, err := field(name, tt.Elem())
+		obj, err := field(name, tt.Elem())
 		if err != nil {
 			return nil, err
 		}
-		return sk, nil
+		return spec.ArrayProperty(obj), nil
 	case *types.Basic:
 		return skema(tt.String())
 	case *types.Map:
@@ -379,30 +378,28 @@ func skema(t string) (*spec.Schema, error) {
 				Properties: make(map[string]spec.Schema),
 			},
 		}, nil
-	case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64":
+	case "int", "uint":
 		return &spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: spec.StringOrArray{toJSONType(t)},
 			},
 		}, nil
-	case "float32", "float64":
-		return &spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: spec.StringOrArray{toJSONType(t)},
-			},
-		}, nil
-	case "string", "array":
-		return &spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: spec.StringOrArray{t},
-			},
-		}, nil
+	case "int8", "uint8":
+		return spec.Int8Property(), nil
+	case "int16", "uint16":
+		return spec.Int16Property(), nil
+	case "int32", "uint32":
+		return spec.Int32Property(), nil
+	case "int64", "uint64":
+		return spec.Int64Property(), nil
+	case "float32":
+		return spec.Float32Property(), nil
+	case "float64":
+		return spec.Float64Property(), nil
+	case "string":
+		return spec.StringProperty(), nil
 	case "bool":
-		return &spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: spec.StringOrArray{toJSONType(t)},
-			},
-		}, nil
+		return spec.BoolProperty(), nil
 	case "byte":
 		// TODO: Swagger 2.0 doesn't support binary data type
 		// map byte to string, but it should really be removed

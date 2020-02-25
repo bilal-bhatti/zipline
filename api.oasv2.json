@@ -239,7 +239,7 @@
           "200": {
             "description": "200 response",
             "schema": {
-              "$ref": "#/definitions/web.ThingResponseList"
+              "$ref": "#/definitions/web.ThingListResponse"
             }
           },
           "default": {
@@ -350,14 +350,18 @@
         }
       }
     },
-    "web.ThingResponseList": {
+    "web.ThingListResponse": {
+      "description": "List of things",
       "type": "object",
       "properties": {
         "things": {
-          "type": "object",
-          "properties": {
-            "output": {
-              "type": "string"
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
             }
           }
         }

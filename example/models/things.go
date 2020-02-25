@@ -2,10 +2,10 @@ package models
 
 // ThingRequest model
 type ThingRequest struct {
-	Input string `json:"input"`
+	Name string `json:"name"`
 }
 
 // ThingResponse model
 type ThingResponse struct {
-	Output string `json:"output"`
+	Name string `json:"name"`
 }

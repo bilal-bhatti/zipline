@@ -147,9 +147,9 @@ Get things by category and search query
 
 
 `responses`
-- code: `200`, type: `web.ThingResponseList`
-	- name: `things`, type: `object`
-		- name: `output`, type: `string`
+- code: `200`, type: `web.ThingListResponse`
+	- name: `things`, type: `[]array`
+		- name: `name`, type: `string`
 - `default`, type: `Error`
 	- name: `code`, type: `integer`
 	- name: `status`, type: `string`
