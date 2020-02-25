@@ -30,36 +30,9 @@ func (p provider) typeTokenFor(vt *typeToken) (*typeToken, bool) {
 }
 
 func (p provider) provideWithReturns(vt *typeToken, retNames []string) (*funcToken, error) {
-	trace("find provider for %s", vt.signature)
-
-	var pkgsToScan []*packages.Package
-	var pkgSet = make(map[string]*packages.Package)
-
 	for _, pkg := range p.pkgs {
-		pkgSet[pkg.PkgPath] = pkg
-
-		// TODO: simplify this
-		// only scan packages that share the same root as binding package
-		path := strings.Split(pkg.PkgPath, "/")
-		if len(path) >= 2 {
-			trace("filtering imported packages by path %s", strings.Join(path[:2], "/"))
-		}
-		for _, ipkg := range pkg.Imports {
-			if len(path) > 2 && strings.HasPrefix(ipkg.PkgPath, strings.Join(path[:2], "/")) {
-				pkgSet[ipkg.PkgPath] = ipkg
-			}
-		}
-	}
-
-	for _, p := range pkgSet {
-		pkgsToScan = append(pkgsToScan, p)
-	}
-
-	for _, pkg := range pkgsToScan {
 		info := pkg.TypesInfo
-		if info == nil || info.Defs == nil {
-			continue
-		}
+		trace("scanning %s for type %s", pkg.PkgPath, vt.signature)
 
 		for _, v := range info.Defs {
 			pf, ok := v.(*types.Func)

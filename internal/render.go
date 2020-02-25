@@ -20,6 +20,7 @@ type renderer struct {
 	imps      []string
 	preamble  *buffer
 	body      *buffer
+	names     map[string]int
 }
 
 func (r *renderer) imp(imp string) {
@@ -35,6 +36,7 @@ func newRenderer(templates map[string]*template, provider *provider) *renderer {
 		imps:      make([]string, 0),
 		preamble:  newBuffer(),
 		body:      newBuffer(),
+		names:     make(map[string]int),
 	}
 
 	return r
@@ -177,6 +179,9 @@ func (r *renderer) renderFunctionTemplate(pkg *packages.Package, t *template, b 
 		buf.ws("}\n")
 		buf.ws("}\n\n")
 	}
+
+	// reset names map
+	r.names = make(map[string]int)
 
 	return buf, nil
 }
@@ -347,7 +352,6 @@ func (r *renderer) rename(old string, new *typeToken, body []ast.Stmt) *buffer {
 			if nt.Name == old {
 				nt.Name = new.name
 			}
-		// TODO: else rename if var name clash
 		case *ast.CallExpr:
 			for i := 0; i < len(nt.Args); i++ {
 				arg := nt.Args[i]

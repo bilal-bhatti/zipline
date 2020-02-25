@@ -48,17 +48,39 @@ func load(ps []string) ([]*packages.Package, error) {
 		return nil, errors.New(erm)
 	}
 
-	//
-	// for _, pkg := range pkgs {
-	// 	d, err := parser.ParseDir(fset, "./example", nil, parser.ParseComments)
-	// 	if err != nil {
-	// 		return nil, errors.Wrap(err, "unable to parse package: "+pkg.PkgPath)
-	// 	}
-	// 	log.Println("parsed directory", d)
-	// }
-	// log.Println("fset", fset)
+	// load imported package with same root path as well
+	// if already not loaded
+	var pkgSet = make(map[string]*packages.Package)
+	var importSet = make(map[string]*packages.Package)
+	for _, pkg := range pkgs {
+		pkgSet[pkg.PkgPath] = pkg
+	}
 
-	return pkgs, nil
+	for _, pkg := range pkgs {
+		path := strings.Split(pkg.PkgPath, "/")
+		for _, ipkg := range pkg.Imports {
+			// already loaded ?
+			if _, ok := pkgSet[ipkg.PkgPath]; ok {
+				// skip it
+				continue
+			}
+			if len(path) > 2 && strings.HasPrefix(ipkg.PkgPath, strings.Join(path[:2], "/")) {
+				importSet[ipkg.PkgPath] = ipkg
+			}
+		}
+	}
+
+	var importList []string
+	for key, _ := range importSet {
+		importList = append(importList, key)
+	}
+
+	ipkgs, err := packages.Load(cfg, importList...)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(pkgs, ipkgs...), nil
 }
 
 func qualifiedIdentObject(info *types.Info, expr ast.Expr) types.Object {

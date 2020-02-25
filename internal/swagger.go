@@ -407,7 +407,7 @@ func skema(t string) (*spec.Schema, error) {
 		// TODO: Swagger 2.0 doesn't support binary data type
 		// map byte to string, but it should really be removed
 		// fail at this point? maybe a strict mode vs lax mode?
-		fmt.Println("Swagger 2.0 doesn't support byte type, generated spec will not be valid")
+		log.Println("Swagger 2.0 doesn't support byte type, generated spec will not be valid")
 		return &spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: spec.StringOrArray{t},
