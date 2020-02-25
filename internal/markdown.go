@@ -110,7 +110,7 @@ func (s swagger) markdown() error {
 
 					if r.ResponseProps.Schema.Items != nil {
 						buf.ws("- code: `%d`, type: `[]%s`\n", code, ref)
-						obj(1, *def.Items.Schema, buf)
+						obj(1, def, buf)
 					} else {
 						buf.ws("- code: `%d`, type: `%s`\n", code, ref)
 						obj(1, def, buf)
@@ -175,11 +175,6 @@ func (s swagger) markdown() error {
 }
 
 func obj(lvl int, s spec.Schema, buf *buffer) {
-	// if s.Items != nil {
-	// 	buf.ws("%s- items\n", strings.Repeat("\t", lvl))
-	// 	obj(lvl+1, *s.Items.Schema, buf)
-	// }
-
 	// sort keys so we can have predictable output
 	keys := make([]string, len(s.Properties))
 	i := 0

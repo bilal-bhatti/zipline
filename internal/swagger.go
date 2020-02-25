@@ -191,7 +191,7 @@ func (s swagger) generate(packets []*packet) error {
 				s.swag.Definitions[ret.shortSignature()] = *sk
 
 				var schema *spec.Schema
-				if sk.Items != nil {
+				if ret.isSlice {
 					schema, err = skema("array")
 					if err != nil {
 						return err
@@ -352,18 +352,11 @@ func field(name string, t types.Type) (*spec.Schema, error) {
 	case *types.Named:
 		return field(name, tt.Underlying())
 	case *types.Slice:
-		arr, err := skema("array")
-		if err != nil {
-			return nil, err
-		}
 		sk, err := field(name, tt.Elem())
 		if err != nil {
 			return nil, err
 		}
-		arr.Items = &spec.SchemaOrArray{
-			Schema: sk,
-		}
-		return arr, nil
+		return sk, nil
 	case *types.Basic:
 		return skema(tt.String())
 	case *types.Map:

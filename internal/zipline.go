@@ -74,7 +74,7 @@ func (z *Zipline) Start(pkgPaths []string) error {
 		}
 
 		od := strings.TrimPrefix(packet.pkg.PkgPath, root)
-		trace("****** calculating output package location ******")
+		trace("- calculating output package location -")
 		trace("cwd: %s", cwd)
 		trace("package path: %s", packet.pkg.PkgPath)
 		trace("source root: %s", root)
@@ -385,7 +385,9 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) *handler
 	for i := 0; i < sig.Results().Len(); i++ {
 		r := sig.Results().At(i)
 		if _, ok := r.Type().(*types.Slice); ok {
-			log.Println("return type should not be a slice:", r.Type().String())
+			// TODO: improve this, return error
+			log.Println("return type should not be a slice:")
+			log.Println(" - ", obj.String())
 		}
 		tt := newTypeToken(pkg.Name, r.Type().String(), r.Name())
 		tt.varType = r

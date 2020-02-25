@@ -6,15 +6,16 @@
     "application/json"
   ],
   "schemes": [
-    "http"
+    "http",
+    "https"
   ],
   "swagger": "2.0",
   "info": {
-    "description": "OpenAPI Version 2 Specification",
-    "title": "OpenAPI Version 2 Specification",
+    "description": "Example OpenAPI Version 2 Specification",
+    "title": "Example OpenAPI Version 2 Specification",
     "version": "1.0.0"
   },
-  "host": "api.host.com",
+  "host": "api.example.com",
   "basePath": "/api",
   "paths": {
     "/contacts": {
@@ -238,10 +239,7 @@
           "200": {
             "description": "200 response",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/web.ThingResponse"
-              }
+              "$ref": "#/definitions/web.ThingResponseList"
             }
           },
           "default": {
@@ -352,13 +350,15 @@
         }
       }
     },
-    "web.ThingResponse": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "output": {
-            "type": "string"
+    "web.ThingResponseList": {
+      "type": "object",
+      "properties": {
+        "things": {
+          "type": "object",
+          "properties": {
+            "output": {
+              "type": "string"
+            }
           }
         }
       }

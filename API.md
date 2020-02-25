@@ -2,9 +2,9 @@
 
 ```
 Version:     1.0.0
-Title:       OpenAPI Version 2 Specification
-Description: OpenAPI Version 2 Specification
-Host:        api.host.com
+Title:       Example OpenAPI Version 2 Specification
+Description: Example OpenAPI Version 2 Specification
+Host:        api.example.com
 BasePath:    /api
 Consumes:    [application/json]
 Produces:    [application/json]
@@ -147,8 +147,9 @@ Get things by category and search query
 
 
 `responses`
-- code: `200`, type: `[]web.ThingResponse`
-	- name: `output`, type: `string`
+- code: `200`, type: `web.ThingResponseList`
+	- name: `things`, type: `object`
+		- name: `output`, type: `string`
 - `default`, type: `Error`
 	- name: `code`, type: `integer`
 	- name: `status`, type: `string`
