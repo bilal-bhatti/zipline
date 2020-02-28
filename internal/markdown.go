@@ -29,7 +29,7 @@ func (s swagger) markdown() error {
 	md := func(m, path string, op *spec.Operation) {
 		buf.ws("<details>\n")
 		buf.ws("<summary>%s: %s</summary>\n", path, m)
-		buf.ws("%s\n\n", op.Summary)
+		buf.ws("\n\n```\n%s\n```\n\n", op.Summary)
 
 		params := func(op *spec.Operation) ([]spec.Parameter, []spec.Parameter, []spec.Parameter) {
 			path, query, body := []spec.Parameter{}, []spec.Parameter{}, []spec.Parameter{}
