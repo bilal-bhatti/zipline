@@ -169,12 +169,12 @@ Echo returns body with 'i's replaced with 'o's
 ```
 Get things by date range
 
-from `format:"date-time,2006-01-02"` date should be in Go time format"
-@to `format:"date-time,2006-01-02"` date should be in Go time format"
+@from `format:"date-time,2006-01-02"` date should be in Go time format
+@to   `format:"date-time,2006-01-02"` date should be in Go time format
 ```
 
 `query parameters`
-- name: `from`, type: `string`, format: `date-time`
+- name: `from`, type: `string`, format: `date-time,2006-01-02`
 - name: `to`, type: `string`, format: `date-time,2006-01-02`
 
 

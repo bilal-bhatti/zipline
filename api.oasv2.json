@@ -220,12 +220,12 @@
     },
     "/things": {
       "get": {
-        "description": "Get things by date range\n\nfrom `format:\"date-time,2006-01-02\"` date should be in Go time format\"\n@to `format:\"date-time,2006-01-02\"` date should be in Go time format\"",
-        "summary": "Get things by date range\n\nfrom `format:\"date-time,2006-01-02\"` date should be in Go time format\"\n@to `format:\"date-time,2006-01-02\"` date should be in Go time format\"",
+        "description": "Get things by date range\n\n@from `format:\"date-time,2006-01-02\"` date should be in Go time format\n@to   `format:\"date-time,2006-01-02\"` date should be in Go time format",
+        "summary": "Get things by date range\n\n@from `format:\"date-time,2006-01-02\"` date should be in Go time format\n@to   `format:\"date-time,2006-01-02\"` date should be in Go time format",
         "parameters": [
           {
             "type": "string",
-            "format": "date-time",
+            "format": "date-time,2006-01-02",
             "name": "from",
             "in": "query",
             "required": true
