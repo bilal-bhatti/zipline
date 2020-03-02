@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/araddon/dateparse"
 	"github.com/bilal-bhatti/zipline/example/models"
 	"github.com/bilal-bhatti/zipline/example/services"
 	"github.com/go-chi/chi"
@@ -29,6 +30,7 @@ func NewRouter() *chi.Mux {
 	mux.Put("/contacts/{id}", ContactsServiceReplaceHandlerFunc())
 
 	mux.Get("/things/{category}", ThingsServiceGetByCategoryAndQueryHandlerFunc())
+	mux.Get("/things", ThingsServiceGetByDateRangeHandlerFunc())
 	mux.Delete("/things/{id}", ThingsServiceDeleteHandlerFunc())
 
 	mux.Post("/echo", EchoHandlerFunc())
@@ -338,6 +340,66 @@ func ThingsServiceGetByCategoryAndQueryHandlerFunc() http.HandlerFunc {
 
 		// execute application handler
 		response, err := handler.GetByCategoryAndQuery(ctx, category, q)
+		if err != nil {
+
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(w).Encode(response)
+		if err != nil {
+
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	}
+}
+
+// ThingsServiceGetByDateRangeHandlerFunc handles requests to:
+// path  : /things
+// method: get
+// Get things by date range
+//
+// from `format:"date-time,2006-01-02"` date should be in Go time format"
+// @to `format:"date-time,2006-01-02"` date should be in Go time format"
+func ThingsServiceGetByDateRangeHandlerFunc() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error // why not
+
+		startTime := time.Now()
+		defer func() {
+			duration := time.Now().Sub(startTime)
+			log.Printf("It took %s to process request\n", duration.String())
+		}()
+
+		// initialize application handler
+		handler, err := InitThingsService()
+		if err != nil {
+
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		// resolve parameter [ctx] through a provider
+		ctx := services.ProvideContext(r)
+
+		// resolve parameter [from] with [Query] template
+		from, err := dateparse.ParseStrict(r.URL.Query().Get("from"))
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+
+		// resolve parameter [to] with [Query] template
+		to, err := dateparse.ParseStrict(r.URL.Query().Get("to"))
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+
+		// execute application handler
+		response, err := handler.GetByDateRange(ctx, from, to)
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

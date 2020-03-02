@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"go/ast"
-	"go/token"
 	"go/types"
 	"io/ioutil"
 	"log"
@@ -369,7 +368,7 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) (*handle
 	id.WriteString(obj.Name())
 
 	pos := pkg.Fset.PositionFor(obj.Pos(), true)
-	comments, err := comments(pos)
+	comments, err := getComments(pos)
 	if err != nil {
 		// let's not fail on comments but log the error
 		log.Println("failed to extract comments", err.Error())
@@ -400,34 +399,4 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) (*handle
 	}
 
 	return hi, nil
-}
-
-func comments(pos token.Position) ([]string, error) {
-	fileBytes, err := ioutil.ReadFile(pos.Filename)
-	if err != nil {
-		return nil, err
-	}
-
-	lines := strings.Split(string(fileBytes), "\n")
-
-	comments := []string{}
-
-	// just in case
-	if pos.Line-2 <= 0 {
-		return comments, nil
-	}
-
-	// start from func declaration and go backwards
-	// stop when non comment line found
-	for i := pos.Line - 2; i >= 0; i-- {
-		line := strings.TrimSpace(lines[i])
-		if strings.HasPrefix(line, "//") {
-			comments = append(comments, strings.TrimSpace(strings.TrimPrefix(line, "//")))
-		} else {
-			break
-		}
-	}
-
-	reverse(comments)
-	return comments, nil
 }

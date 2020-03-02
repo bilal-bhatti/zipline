@@ -20,7 +20,7 @@ type (
 	}
 
 	handlerInfo struct {
-		comments []string
+		comments *comments
 		id       string
 		pkg      string
 		x        *typeToken

@@ -56,7 +56,11 @@ func (s swagger) markdown() error {
 				buf.ws("`path parameters`\n")
 				for _, p := range path {
 					if p.In == "path" {
-						buf.ws("- name: `%s`, type: `%s`\n", p.Name, p.Type)
+						buf.ws("- name: `%s`, type: `%s`", p.Name, p.Type)
+						if p.Format != "" {
+							buf.ws("format: `%s`", p.Format)
+						}
+						buf.ws("\n")
 					}
 				}
 				buf.ws("\n")
@@ -66,7 +70,11 @@ func (s swagger) markdown() error {
 				buf.ws("`query parameters`\n")
 				for _, p := range query {
 					if p.In == "query" {
-						buf.ws("- name: `%s`, type: `%s`\n", p.Name, p.Type)
+						buf.ws("- name: `%s`, type: `%s`", p.Name, p.Type)
+						if p.Format != "" {
+							buf.ws(", format: `%s`", p.Format)
+						}
+						buf.ws("\n")
 					}
 				}
 				buf.ws("\n")
@@ -193,7 +201,11 @@ func obj(lvl int, s spec.Schema, buf *buffer) {
 			buf.ws("%s- name: `%s`, type: `[]%s`\n", strings.Repeat("\t", lvl), key, v.Type[0])
 			obj(lvl+1, *v.Items.Schema, buf)
 		} else {
-			buf.ws("%s- name: `%s`, type: `%s`\n", strings.Repeat("\t", lvl), key, v.Type[0])
+			buf.ws("%s- name: `%s`, type: `%s`", strings.Repeat("\t", lvl), key, v.Type[0])
+			if v.Format != "" {
+				buf.ws(", format: `%s`", v.Format)
+			}
+			buf.ws("\n")
 		}
 	}
 }

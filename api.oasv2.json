@@ -218,6 +218,40 @@
         }
       }
     },
+    "/things": {
+      "get": {
+        "description": "Get things by date range\n\nfrom `format:\"date-time,2006-01-02\"` date should be in Go time format\"\n@to `format:\"date-time,2006-01-02\"` date should be in Go time format\"",
+        "summary": "Get things by date range\n\nfrom `format:\"date-time,2006-01-02\"` date should be in Go time format\"\n@to `format:\"date-time,2006-01-02\"` date should be in Go time format\"",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "date-time",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "date-time,2006-01-02",
+            "name": "to",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "schema": {
+              "$ref": "#/definitions/web.ThingListResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/things/{category}": {
       "get": {
         "description": "Get things by category and search query",
@@ -279,17 +313,17 @@
   },
   "definitions": {
     "Error": {
-      "description": "error object",
+      "description": "error response object",
       "type": "object",
       "properties": {
         "code": {
-          "type": "integer",
-          "format": "int32"
+          "type": "integer"
         },
         "status": {
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "models.ContactRequest": {
       "description": "Contact request model",
@@ -310,7 +344,8 @@
             "zipCode": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "firstName": {
           "type": "string"
@@ -321,7 +356,8 @@
         "lastName": {
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "models.ContactResponse": {
       "description": "Contact response model",
@@ -330,7 +366,8 @@
         "id": {
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "web.EchoRequest": {
       "description": "EchoRequest model",
@@ -339,7 +376,8 @@
         "input": {
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "web.EchoResponse": {
       "description": "EchoResponse model",
@@ -348,7 +386,8 @@
         "output": {
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "web.ThingListResponse": {
       "description": "List of things",
@@ -359,13 +398,23 @@
           "items": {
             "type": "object",
             "properties": {
+              "createDate": {
+                "type": "string",
+                "format": "date-time,2006-01-02"
+              },
               "name": {
                 "type": "string"
+              },
+              "updateDate": {
+                "type": "string",
+                "format": "date-time"
               }
-            }
+            },
+            "additionalProperties": false
           }
         }
-      }
+      },
+      "additionalProperties": false
     }
   }
 }

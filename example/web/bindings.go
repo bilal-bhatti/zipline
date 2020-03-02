@@ -12,6 +12,7 @@ import (
 
 	"github.com/bilal-bhatti/zipline/example/services"
 	"github.com/go-chi/chi"
+	"github.com/araddon/dateparse"
 )
 
 // NewRouter returns a router configured with endpoints and handlers.
@@ -27,6 +28,7 @@ func NewRouter() *chi.Mux {
 	mux.Put("/contacts/{id}", z.Put(new(services.ContactsService).Replace, z.Resolve, z.Path, z.Body))
 
 	mux.Get("/things/{category}", z.Get(ThingsService.GetByCategoryAndQuery, z.Resolve, z.Path, z.Query))
+	mux.Get("/things", z.Get(ThingsService.GetByDateRange, z.Resolve, z.Query, z.Query))
 	mux.Delete("/things/{id}", z.Delete(new(ThingsService).Delete, z.Path))
 
 	mux.Post("/echo", z.Post(Echo, z.Resolve, z.Body))
@@ -68,6 +70,14 @@ func (z ZiplineTemplate) Query(kind string, w http.ResponseWriter, r *http.Reque
 		z.DevNull(name)
 	case "int":
 		name, err := strconv.Atoi(r.URL.Query().Get("name"))
+		if err != nil {
+			// invalid request error
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		z.DevNull(name)
+	case "time.Time":
+		name, err := dateparse.ParseStrict(r.URL.Query().Get("name"))
 		if err != nil {
 			// invalid request error
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)

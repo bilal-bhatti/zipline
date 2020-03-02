@@ -48,8 +48,12 @@ func newSwagger(typeSpecs map[string]*typeSpecWithPkg) (*swagger, error) {
 	if err != nil {
 		return nil, err
 	}
-	ert.Description = "error object"
-	ert.Properties["code"] = *spec.Int32Property()
+	ert.Description = "error response object"
+	ert.Properties["code"] = spec.Schema{
+		SchemaProps: spec.SchemaProps{
+			Type: spec.StringOrArray{"integer"},
+		},
+	}
 	ert.Properties["status"] = *spec.StringProperty()
 	swag.Definitions["Error"] = *ert
 
@@ -86,6 +90,11 @@ func (s swagger) generate(packets []*packet) error {
 				},
 			}
 
+			if len(b.handler.comments.raw) > 0 {
+				op.Description = strings.Join(b.handler.comments.raw, "\n")
+				op.Summary = op.Description
+			}
+
 			for i := 0; i < len(b.handler.params); i++ {
 				param := b.handler.params[i]
 
@@ -98,6 +107,19 @@ func (s swagger) generate(packets []*packet) error {
 					continue
 				}
 
+				var fmtTagStr string
+				// default time.Time
+				if param.signature == "time.Time" {
+					fmtTagStr = "date-time"
+				}
+				tags, ok := b.handler.comments.tags[param.varName()]
+				if ok {
+					fmtTag, err := tags.Get("format")
+					if err == nil {
+						fmtTagStr = fmt.Sprintf("%s,%s", fmtTag.Name, strings.Join(fmtTag.Options, ","))
+					}
+				}
+
 				if template == "Path" {
 					op.AddParam(&spec.Parameter{
 						ParamProps: spec.ParamProps{
@@ -106,7 +128,8 @@ func (s swagger) generate(packets []*packet) error {
 							Required: true,
 						},
 						SimpleSchema: spec.SimpleSchema{
-							Type: toJSONType(param.signature),
+							Type:   toJSONType(param.signature),
+							Format: fmtTagStr,
 						},
 					})
 				} else if template == "Query" {
@@ -117,7 +140,8 @@ func (s swagger) generate(packets []*packet) error {
 							Required: false,
 						},
 						SimpleSchema: spec.SimpleSchema{
-							Type: toJSONType(param.signature),
+							Type:   toJSONType(param.signature),
+							Format: fmtTagStr,
 						},
 					})
 
@@ -130,13 +154,13 @@ func (s swagger) generate(packets []*packet) error {
 					ts := s.typeSpecs[param.signature]
 					if ts != nil {
 						pos := ts.pkg.Fset.PositionFor(ts.typeSpec.Pos(), true)
-						comms, err := comments(pos)
+						comms, err := getComments(pos)
 						if err != nil {
 							// let's not fail on comments but log the error
 							log.Println("failed to extract comments", err.Error())
 						}
 
-						skema.Description = strings.Join(comms, "\n")
+						skema.Description = strings.Join(comms.raw, "\n")
 					}
 
 					ref := spec.Schema{
@@ -173,13 +197,13 @@ func (s swagger) generate(packets []*packet) error {
 				ts := s.typeSpecs[ret.signature]
 				if ts != nil {
 					pos := ts.pkg.Fset.PositionFor(ts.typeSpec.Pos(), true)
-					comms, err := comments(pos)
+					comms, err := getComments(pos)
 					if err != nil {
 						// let's not fail on comments but log the error
 						log.Println("failed to extract comments", err.Error())
 					}
 
-					sk.Description = strings.Join(comms, "\n")
+					sk.Description = strings.Join(comms.raw, "\n")
 				}
 
 				ref := spec.Schema{
@@ -215,11 +239,6 @@ func (s swagger) generate(packets []*packet) error {
 						Description: "no content",
 					},
 				}
-			}
-
-			if len(b.handler.comments) > 0 {
-				op.Description = strings.Join(b.handler.comments, "\n")
-				op.Summary = op.Description
 			}
 
 			switch strings.ToUpper(b.template) {
@@ -311,10 +330,15 @@ func field(name string, t types.Type) (*spec.Schema, error) {
 
 		for i := 0; i < tt.NumFields(); i++ {
 			f := tt.Field(i)
+			if !f.Exported() {
+				continue
+			}
 
-			var tn string
-			if tt.Tag(i) != "" {
-				tags, err := structtag.Parse(tt.Tag(i))
+			var jsonName string
+			var tag = tt.Tag(i)
+			var tags *structtag.Tags
+			if tag != "" {
+				tags, err = structtag.Parse(tag)
 				if err != nil {
 					return nil, err
 				}
@@ -323,23 +347,35 @@ func field(name string, t types.Type) (*spec.Schema, error) {
 				if err != nil {
 					return nil, err
 				}
-				tn = jsonTag.Name
+				jsonName = jsonTag.Name
 			}
 
 			// TODO: handle recursive refs
 			// what to do when Account struct has an Account field?
-			if f.Name() != name && tn != "-" {
-				fs, err := field(f.Name(), f.Type())
+			if f.Name() != name && jsonName != "-" {
+				var fs *spec.Schema
+				if f.Type().String() == "time.Time" {
+					fs = spec.StringProperty()
+					timeFmt, err := tags.Get("format")
+					if err == nil {
+						fs.Format = timeFmt.Value()
+					} else {
+						fs.Format = "date-time"
+					}
+				} else {
+					fs, err = field(f.Name(), f.Type())
+				}
+
 				if err != nil {
 					return nil, err
 				}
-				if f.Embedded() && tn == "" {
+				if f.Embedded() && jsonName == "" {
 					for k, v := range fs.Properties {
 						skema.Properties[k] = v
 					}
 				} else {
-					var named = tn
-					if tn == "" {
+					var named = jsonName
+					if jsonName == "" {
 						named = f.Name()
 					}
 
@@ -374,8 +410,9 @@ func skema(t string) (*spec.Schema, error) {
 	case "object":
 		return &spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Type:       spec.StringOrArray{"object"},
-				Properties: make(map[string]spec.Schema),
+				Type:                 spec.StringOrArray{"object"},
+				Properties:           make(map[string]spec.Schema),
+				AdditionalProperties: &spec.SchemaOrBool{Allows: false},
 			},
 		}, nil
 	case "int", "uint":
@@ -417,19 +454,20 @@ func skema(t string) (*spec.Schema, error) {
 
 func toJSONType(t string) string {
 	var typeMap = map[string]string{
-		"int":     "integer",
-		"int8":    "integer",
-		"int16":   "integer",
-		"int32":   "integer",
-		"int64":   "integer",
-		"uint":    "integer",
-		"uint8":   "integer",
-		"uint16":  "integer",
-		"uint32":  "integer",
-		"uint64":  "integer",
-		"float32": "number",
-		"float64": "number",
-		"bool":    "boolean",
+		"int":       "integer",
+		"int8":      "integer",
+		"int16":     "integer",
+		"int32":     "integer",
+		"int64":     "integer",
+		"uint":      "integer",
+		"uint8":     "integer",
+		"uint16":    "integer",
+		"uint32":    "integer",
+		"uint64":    "integer",
+		"float32":   "number",
+		"float64":   "number",
+		"bool":      "boolean",
+		"time.Time": "string",
 	}
 
 	jt := typeMap[t]

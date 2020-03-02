@@ -160,6 +160,33 @@ Echo returns body with 'i's replaced with 'o's
 </details>
 
 <details>
+<summary>/things: get</summary>
+
+
+```
+Get things by date range
+
+from `format:"date-time,2006-01-02"` date should be in Go time format"
+@to `format:"date-time,2006-01-02"` date should be in Go time format"
+```
+
+`query parameters`
+- name: `from`, type: `string`, format: `date-time`
+- name: `to`, type: `string`, format: `date-time,2006-01-02`
+
+
+`responses`
+- code: `200`, type: `web.ThingListResponse`
+	- name: `things`, type: `[]array`
+		- name: `createDate`, type: `string`, format: `date-time,2006-01-02`
+		- name: `name`, type: `string`
+		- name: `updateDate`, type: `string`, format: `date-time`
+- `default`, type: `Error`
+	- name: `code`, type: `integer`
+	- name: `status`, type: `string`
+</details>
+
+<details>
 <summary>/things/{category}: get</summary>
 
 
@@ -177,7 +204,9 @@ Get things by category and search query
 `responses`
 - code: `200`, type: `web.ThingListResponse`
 	- name: `things`, type: `[]array`
+		- name: `createDate`, type: `string`, format: `date-time,2006-01-02`
 		- name: `name`, type: `string`
+		- name: `updateDate`, type: `string`, format: `date-time`
 - `default`, type: `Error`
 	- name: `code`, type: `integer`
 	- name: `status`, type: `string`

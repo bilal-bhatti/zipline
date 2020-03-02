@@ -122,7 +122,7 @@ func (r *renderer) renderFunctionTemplate(pkg *packages.Package, t *template, b 
 		buf.ws("// %s%s handles requests to:\n", b.id(), t.funcSuffix())
 		buf.ws("// path  : %s\n", b.path)
 		buf.ws("// method: %s\n", strings.ToLower(b.template))
-		for _, c := range b.handler.comments {
+		for _, c := range b.handler.comments.raw {
 			buf.ws("// %s\n", c)
 		}
 		buf.ws("func %s%s() %s {\n", b.id(), t.funcSuffix(), t.returnType())
