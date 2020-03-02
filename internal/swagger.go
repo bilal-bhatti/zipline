@@ -382,7 +382,8 @@ func field(name string, t types.Type) (*spec.Schema, error) {
 	case *types.Map:
 		return &spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Type: spec.StringOrArray{"object"},
+				Type:                 spec.StringOrArray{"object"},
+				AdditionalProperties: &spec.SchemaOrBool{Allows: true},
 			},
 		}, nil
 	default:
