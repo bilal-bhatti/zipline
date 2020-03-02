@@ -25,6 +25,7 @@ Create a new contact request entity.
 		- name: `state`, type: `string`
 		- name: `street`, type: `string`
 		- name: `zipCode`, type: `string`
+	- name: `eMail`, type: `string`, format: `email`
 	- name: `firstName`, type: `string`
 	- name: `id`, type: `string`
 	- name: `lastName`, type: `string`
@@ -75,6 +76,7 @@ Update a contact entity with provided data.
 		- name: `state`, type: `string`
 		- name: `street`, type: `string`
 		- name: `zipCode`, type: `string`
+	- name: `eMail`, type: `string`, format: `email`
 	- name: `firstName`, type: `string`
 	- name: `id`, type: `string`
 	- name: `lastName`, type: `string`
@@ -105,6 +107,7 @@ Replace a contact entity completely.
 		- name: `state`, type: `string`
 		- name: `street`, type: `string`
 		- name: `zipCode`, type: `string`
+	- name: `eMail`, type: `string`, format: `email`
 	- name: `firstName`, type: `string`
 	- name: `id`, type: `string`
 	- name: `lastName`, type: `string`
@@ -178,8 +181,21 @@ from `format:"date-time,2006-01-02"` date should be in Go time format"
 `responses`
 - code: `200`, type: `web.ThingListResponse`
 	- name: `things`, type: `[]array`
+		- name: `bool`, type: `boolean`
 		- name: `createDate`, type: `string`, format: `date-time,2006-01-02`
+		- name: `float32`, type: `number`, format: `float`
+		- name: `float64`, type: `number`, format: `double`
+		- name: `int`, type: `integer`
+		- name: `int16`, type: `integer`, format: `int16`
+		- name: `int32`, type: `integer`, format: `int32`
+		- name: `int64`, type: `integer`, format: `int64`
+		- name: `int8`, type: `integer`, format: `int8`
 		- name: `name`, type: `string`
+		- name: `uint`, type: `integer`
+		- name: `uint16`, type: `integer`, format: `int16`
+		- name: `uint32`, type: `integer`, format: `int32`
+		- name: `uint64`, type: `integer`, format: `int64`
+		- name: `uint8`, type: `integer`, format: `int8`
 		- name: `updateDate`, type: `string`, format: `date-time`
 - `default`, type: `Error`
 	- name: `code`, type: `integer`
@@ -204,8 +220,21 @@ Get things by category and search query
 `responses`
 - code: `200`, type: `web.ThingListResponse`
 	- name: `things`, type: `[]array`
+		- name: `bool`, type: `boolean`
 		- name: `createDate`, type: `string`, format: `date-time,2006-01-02`
+		- name: `float32`, type: `number`, format: `float`
+		- name: `float64`, type: `number`, format: `double`
+		- name: `int`, type: `integer`
+		- name: `int16`, type: `integer`, format: `int16`
+		- name: `int32`, type: `integer`, format: `int32`
+		- name: `int64`, type: `integer`, format: `int64`
+		- name: `int8`, type: `integer`, format: `int8`
 		- name: `name`, type: `string`
+		- name: `uint`, type: `integer`
+		- name: `uint16`, type: `integer`, format: `int16`
+		- name: `uint32`, type: `integer`, format: `int32`
+		- name: `uint64`, type: `integer`, format: `int64`
+		- name: `uint8`, type: `integer`, format: `int8`
 		- name: `updateDate`, type: `string`, format: `date-time`
 - `default`, type: `Error`
 	- name: `code`, type: `integer`

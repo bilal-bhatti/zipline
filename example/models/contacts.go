@@ -16,6 +16,7 @@ type (
 	ContactRequest struct {
 		ID string `json:"id"`
 		Name
+		EMail   string   `json:"eMail" format:"email"`
 		Address *Address `json:"address"`
 	}
 

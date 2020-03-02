@@ -35,7 +35,7 @@
         ],
         "responses": {
           "200": {
-            "description": "200 response",
+            "description": "200 success response",
             "schema": {
               "$ref": "#/definitions/models.ContactResponse"
             }
@@ -63,7 +63,7 @@
         ],
         "responses": {
           "200": {
-            "description": "200 response",
+            "description": "200 success response",
             "schema": {
               "$ref": "#/definitions/models.ContactResponse"
             }
@@ -98,7 +98,7 @@
         ],
         "responses": {
           "200": {
-            "description": "200 response",
+            "description": "200 success response",
             "schema": {
               "$ref": "#/definitions/models.ContactResponse"
             }
@@ -133,7 +133,7 @@
         ],
         "responses": {
           "200": {
-            "description": "200 response",
+            "description": "200 success response",
             "schema": {
               "$ref": "#/definitions/models.ContactResponse"
             }
@@ -173,7 +173,7 @@
         ],
         "responses": {
           "200": {
-            "description": "200 response",
+            "description": "200 success response",
             "schema": {
               "$ref": "#/definitions/models.ContactResponse"
             }
@@ -204,7 +204,7 @@
         ],
         "responses": {
           "200": {
-            "description": "200 response",
+            "description": "200 success response",
             "schema": {
               "$ref": "#/definitions/web.EchoResponse"
             }
@@ -227,18 +227,20 @@
             "type": "string",
             "format": "date-time",
             "name": "from",
-            "in": "query"
+            "in": "query",
+            "required": true
           },
           {
             "type": "string",
             "format": "date-time,2006-01-02",
             "name": "to",
-            "in": "query"
+            "in": "query",
+            "required": true
           }
         ],
         "responses": {
           "200": {
-            "description": "200 response",
+            "description": "200 success response",
             "schema": {
               "$ref": "#/definitions/web.ThingListResponse"
             }
@@ -266,12 +268,13 @@
           {
             "type": "string",
             "name": "q",
-            "in": "query"
+            "in": "query",
+            "required": true
           }
         ],
         "responses": {
           "200": {
-            "description": "200 response",
+            "description": "200 success response",
             "schema": {
               "$ref": "#/definitions/web.ThingListResponse"
             }
@@ -347,6 +350,10 @@
           },
           "additionalProperties": false
         },
+        "eMail": {
+          "type": "string",
+          "format": "email"
+        },
         "firstName": {
           "type": "string"
         },
@@ -398,12 +405,61 @@
           "items": {
             "type": "object",
             "properties": {
+              "bool": {
+                "type": "boolean"
+              },
               "createDate": {
                 "type": "string",
                 "format": "date-time,2006-01-02"
               },
+              "float32": {
+                "type": "number",
+                "format": "float"
+              },
+              "float64": {
+                "type": "number",
+                "format": "double"
+              },
+              "int": {
+                "type": "integer"
+              },
+              "int16": {
+                "type": "integer",
+                "format": "int16"
+              },
+              "int32": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "int64": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "int8": {
+                "type": "integer",
+                "format": "int8"
+              },
               "name": {
                 "type": "string"
+              },
+              "uint": {
+                "type": "integer"
+              },
+              "uint16": {
+                "type": "integer",
+                "format": "int16"
+              },
+              "uint32": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "uint64": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "uint8": {
+                "type": "integer",
+                "format": "int8"
               },
               "updateDate": {
                 "type": "string",

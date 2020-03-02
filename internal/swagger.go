@@ -107,44 +107,25 @@ func (s swagger) generate(packets []*packet) error {
 					continue
 				}
 
-				var fmtTagStr string
-				// default time.Time
-				if param.signature == "time.Time" {
-					fmtTagStr = "date-time"
-				}
-				tags, ok := b.handler.comments.tags[param.varName()]
-				if ok {
-					fmtTag, err := tags.Get("format")
-					if err == nil {
-						fmtTagStr = fmt.Sprintf("%s,%s", fmtTag.Name, strings.Join(fmtTag.Options, ","))
+				if template == "Path" || template == "Query" {
+					simpleSchema := paramSimpleSchema(param.signature)
+					tags, ok := b.handler.comments.tags[param.varName()]
+					if ok {
+						fmtTag, err := tags.Get("format")
+						if err == nil {
+							fmtTagStr := fmt.Sprintf("%s,%s", fmtTag.Name, strings.Join(fmtTag.Options, ","))
+							simpleSchema.Format = fmtTagStr
+						}
 					}
-				}
 
-				if template == "Path" {
 					op.AddParam(&spec.Parameter{
 						ParamProps: spec.ParamProps{
 							Name:     param.varName(),
-							In:       "path",
+							In:       strings.ToLower(template),
 							Required: true,
 						},
-						SimpleSchema: spec.SimpleSchema{
-							Type:   toJSONType(param.signature),
-							Format: fmtTagStr,
-						},
+						SimpleSchema: simpleSchema,
 					})
-				} else if template == "Query" {
-					op.AddParam(&spec.Parameter{
-						ParamProps: spec.ParamProps{
-							Name:     param.varName(),
-							In:       "query",
-							Required: false,
-						},
-						SimpleSchema: spec.SimpleSchema{
-							Type:   toJSONType(param.signature),
-							Format: fmtTagStr,
-						},
-					})
-
 				} else {
 					skema, err := field("--", param.varType.Type())
 					if err != nil {
@@ -227,7 +208,7 @@ func (s swagger) generate(packets []*packet) error {
 
 				op.Responses.ResponsesProps.StatusCodeResponses[200] = spec.Response{
 					ResponseProps: spec.ResponseProps{
-						Description: "200 response",
+						Description: "200 success response",
 						Schema:      schema,
 					},
 				}
@@ -334,6 +315,8 @@ func field(name string, t types.Type) (*spec.Schema, error) {
 				continue
 			}
 
+			fieldTypeToken := newTypeToken("", f.Type().String(), f.Name())
+
 			var jsonName string
 			var tag = tt.Tag(i)
 			var tags *structtag.Tags
@@ -354,21 +337,23 @@ func field(name string, t types.Type) (*spec.Schema, error) {
 			// what to do when Account struct has an Account field?
 			if f.Name() != name && jsonName != "-" {
 				var fs *spec.Schema
-				if f.Type().String() == "time.Time" {
-					fs = spec.StringProperty()
+
+				if fieldTypeToken.signature == "time.Time" {
+					fs = spec.DateTimeProperty()
+				} else {
+					fs, err = field(f.Name(), f.Type())
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				if tags != nil {
 					timeFmt, err := tags.Get("format")
 					if err == nil {
 						fs.Format = timeFmt.Value()
-					} else {
-						fs.Format = "date-time"
 					}
-				} else {
-					fs, err = field(f.Name(), f.Type())
 				}
 
-				if err != nil {
-					return nil, err
-				}
 				if f.Embedded() && jsonName == "" {
 					for k, v := range fs.Properties {
 						skema.Properties[k] = v
@@ -418,7 +403,7 @@ func skema(t string) (*spec.Schema, error) {
 	case "int", "uint":
 		return &spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Type: spec.StringOrArray{toJSONType(t)},
+				Type: spec.StringOrArray{"integer"},
 			},
 		}, nil
 	case "int8", "uint8":
@@ -437,6 +422,8 @@ func skema(t string) (*spec.Schema, error) {
 		return spec.StringProperty(), nil
 	case "bool":
 		return spec.BoolProperty(), nil
+	case "time.Time":
+		return spec.DateTimeProperty(), nil
 	case "byte":
 		// TODO: Swagger 2.0 doesn't support binary data type
 		// map byte to string, but it should really be removed
@@ -444,7 +431,7 @@ func skema(t string) (*spec.Schema, error) {
 		log.Println("Swagger 2.0 doesn't support byte type, generated spec will not be valid")
 		return &spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Type: spec.StringOrArray{t},
+				Type: spec.StringOrArray{"byte"},
 			},
 		}, nil
 	default:
@@ -452,27 +439,16 @@ func skema(t string) (*spec.Schema, error) {
 	}
 }
 
-func toJSONType(t string) string {
-	var typeMap = map[string]string{
-		"int":       "integer",
-		"int8":      "integer",
-		"int16":     "integer",
-		"int32":     "integer",
-		"int64":     "integer",
-		"uint":      "integer",
-		"uint8":     "integer",
-		"uint16":    "integer",
-		"uint32":    "integer",
-		"uint64":    "integer",
-		"float32":   "number",
-		"float64":   "number",
-		"bool":      "boolean",
-		"time.Time": "string",
+func paramSimpleSchema(t string) spec.SimpleSchema {
+	typeSchema, err := skema(t)
+	if err != nil {
+		return spec.SimpleSchema{
+			Type: "string",
+		}
 	}
 
-	jt := typeMap[t]
-	if jt == "" {
-		return t
+	return spec.SimpleSchema{
+		Type:   typeSchema.Type[0],
+		Format: typeSchema.Format,
 	}
-	return jt
 }
