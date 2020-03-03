@@ -34,7 +34,7 @@ func (cs ThingsService) GetByCategoryAndQuery(ctx context.Context, category stri
 //
 // @from `format:"date-time,2006-01-02"` date should be in Go time format
 // @to   `format:"date-time,2006-01-02"` date should be in Go time format
-func (cs ThingsService) GetByDateRange(ctx context.Context, from, to time.Time) (ThingListResponse, error) {
+func (cs ThingsService) GetByDateRange(ctx context.Context, from, to *time.Time) (ThingListResponse, error) {
 	log.Println("Getting by category and query", from, to)
 	return ThingListResponse{}, nil
 }

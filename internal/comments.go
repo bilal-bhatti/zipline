@@ -59,7 +59,7 @@ func getComments(pos token.Position) (*comments, error) {
 }
 
 // parse tags, with the same syntax as standard Go tags.
-// `json:"blah,x,y,z"` ignore otherwise
+// `json:"blah,x,y,z" foo:"bar"` ignore otherwise
 func parseTagIfAny(str string) (result string) {
 	const sep string = "`"
 	start := strings.Index(str, sep)

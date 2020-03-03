@@ -325,7 +325,16 @@ func (r *renderer) renderParamTemplate(pkg *packages.Package, t *template, b *bi
 		return errors.New(fmt.Sprintf("template %s doesn't support type %s", t.funcDecl.Name, p.signature))
 	}
 
-	tbuf := r.rename("name", p, tmplBody)
+	var format string
+	tags, ok := b.handler.comments.tags[p.varName()]
+	if ok {
+		tag, err := tags.Get("format")
+		if err == nil {
+			format = fmt.Sprintf("%s,%s", tag.Name, strings.Join(tag.Options, ","))
+		}
+	}
+
+	tbuf := r.rename("name", format, p, tmplBody)
 	buf.add(tbuf)
 
 	return nil
@@ -336,17 +345,20 @@ func (r *renderer) renderBodyTemplate(pkg *packages.Package, t *template, b *bin
 }
 
 func (r *renderer) renderGenericTemplate(pkg *packages.Package, t *template, b *binding, p *typeToken, buf *buffer) error {
-	tbuf := r.rename("name", p, t.funcDecl.Body.List)
+	tbuf := r.rename("name", "", p, t.funcDecl.Body.List)
 	buf.add(tbuf)
 	return nil
 }
 
-func (r *renderer) rename(old string, new *typeToken, body []ast.Stmt) *buffer {
+func (r *renderer) rename(old, format string, new *typeToken, body []ast.Stmt) *buffer {
 	renamer := func(n ast.Node) bool {
 		switch nt := n.(type) {
 		case *ast.BasicLit:
 			if nt.Value == fmt.Sprintf("\"%s\"", old) {
 				nt.Value = fmt.Sprintf("\"%s\"", new.name)
+			}
+			if format != "" && nt.Value == fmt.Sprintf("\"format\"") {
+				nt.Value = fmt.Sprintf("\"%s\"", format)
 			}
 		case *ast.Ident:
 			if nt.Name == old {

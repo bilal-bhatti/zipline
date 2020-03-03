@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/araddon/dateparse"
 	"github.com/bilal-bhatti/zipline/example/models"
 	"github.com/bilal-bhatti/zipline/example/services"
 	"github.com/go-chi/chi"
@@ -385,14 +384,14 @@ func ThingsServiceGetByDateRangeHandlerFunc() http.HandlerFunc {
 		ctx := services.ProvideContext(r)
 
 		// resolve parameter [from] with [Query] template
-		from, err := dateparse.ParseStrict(r.URL.Query().Get("from"))
+		from, err := ParseTime(r.URL.Query().Get("from"), "date-time,2006-01-02")
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 
 		// resolve parameter [to] with [Query] template
-		to, err := dateparse.ParseStrict(r.URL.Query().Get("to"))
+		to, err := ParseTime(r.URL.Query().Get("to"), "date-time,2006-01-02")
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return

@@ -12,7 +12,6 @@ import (
 
 	"github.com/bilal-bhatti/zipline/example/services"
 	"github.com/go-chi/chi"
-	"github.com/araddon/dateparse"
 )
 
 // NewRouter returns a router configured with endpoints and handlers.
@@ -77,7 +76,7 @@ func (z ZiplineTemplate) Query(kind string, w http.ResponseWriter, r *http.Reque
 		}
 		z.DevNull(name)
 	case "time.Time":
-		name, err := dateparse.ParseStrict(r.URL.Query().Get("name"))
+		name, err := ParseTime(r.URL.Query().Get("name"), "format")
 		if err != nil {
 			// invalid request error
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
