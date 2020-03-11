@@ -11,10 +11,10 @@ type DoodadsService struct {
 	env *connectors.Env
 }
 
-func NewDoodadsService(env *connectors.Env) *DoodadsService {
+func NewDoodadsService(env *connectors.Env) (*DoodadsService, error) {
 	return &DoodadsService{
 		env: env,
-	}
+	}, nil
 }
 
 // Create a new doodad entity.
