@@ -39,6 +39,24 @@ Create a new contact request entity.
 </details>
 
 <details>
+<summary>/contacts: delete</summary>
+
+
+```
+DeleteBulk contact by id
+```
+
+`query parameters`
+- name: `ids`, type: `string`
+
+
+`responses`
+- `default`, type: `Error`
+	- name: `code`, type: `integer`
+	- name: `status`, type: `string`
+</details>
+
+<details>
 <summary>/contacts/{id}: get</summary>
 
 

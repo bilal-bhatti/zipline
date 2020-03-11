@@ -47,6 +47,29 @@
             }
           }
         }
+      },
+      "delete": {
+        "description": "DeleteBulk contact by id",
+        "summary": "DeleteBulk contact by id",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "ids",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "no content"
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
       }
     },
     "/contacts/{id}": {

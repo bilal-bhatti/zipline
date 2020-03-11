@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/ast"
+	"go/printer"
 	"go/types"
 	"io/ioutil"
 	"log"
@@ -243,16 +244,21 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 
 	path := strings.Trim(call.Args[0].(*ast.BasicLit).Value, "\"")
 
+	zipline, ok := call.Args[1].(*ast.CallExpr)
+	if !ok {
+		return nil, errors.New("invalid expression")
+	}
+
 	binding := &binding{
 		template:       sel.Sel.Name,
 		path:           path,
 		paramTemplates: []string{},
 	}
 
-	zipline, ok := call.Args[1].(*ast.CallExpr)
-	if !ok {
-		return nil, errors.New("invalid expression")
-	}
+	// capture zipline spec for error reporting
+	zsb := newBuffer()
+	printer.Fprint(zsb.buf, pkg.Fset, zipline)
+	binding.spec = string(zsb.buf.Bytes())
 
 	switch handler := zipline.Args[0].(type) {
 	case *ast.SelectorExpr:
@@ -375,10 +381,11 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) (*handle
 	}
 
 	hi := &handlerInfo{
-		comments: comments,
-		id:       string(id.Bytes()),
-		sel:      handler.String(),
-		pkg:      obj.Pkg().Path(),
+		comments:  comments,
+		id:        string(id.Bytes()),
+		sel:       handler.String(),
+		pkg:       obj.Pkg().Path(),
+		signature: sig,
 	}
 
 	for i := 0; i < sig.Params().Len(); i++ {

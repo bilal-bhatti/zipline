@@ -27,6 +27,7 @@ func NewRouter() *chi.Mux {
 	mux.Get("/contacts/{month}-{day}-{year}", ContactsServiceGetByDateHandlerFunc())
 	mux.Post("/contacts/{id}", ContactsServiceUpdateHandlerFunc())
 	mux.Put("/contacts/{id}", ContactsServiceReplaceHandlerFunc())
+	mux.Delete("/contacts", ContactsServiceDeleteBulkHandlerFunc())
 
 	mux.Get("/things/{category}", ThingsServiceGetByCategoryAndQueryHandlerFunc())
 	mux.Get("/things", ThingsServiceGetByDateRangeHandlerFunc())
@@ -303,6 +304,45 @@ func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	}
+}
+
+// ContactsServiceDeleteBulkHandlerFunc handles requests to:
+// path  : /contacts
+// method: delete
+// DeleteBulk contact by id
+func ContactsServiceDeleteBulkHandlerFunc() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error // why not
+
+		startTime := time.Now()
+		defer func() {
+			duration := time.Now().Sub(startTime)
+			log.Printf("It took %s to process request\n", duration.String())
+		}()
+
+		// initialize application handler
+		handler, err := services.InitContactsService()
+		if err != nil {
+
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		// resolve parameter [ctx] through a provider
+		ctx := services.ProvideContext(r)
+
+		// resolve parameter [ids] with [Query] template
+		ids := r.URL.Query()["ids"]
+
+		// execute application handler
+		err = handler.DeleteBulk(ctx, ids)
+		if err != nil {
+
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 

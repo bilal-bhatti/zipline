@@ -41,3 +41,8 @@ func (cs ContactsService) GetOne(ctx context.Context, id int) (*models.ContactRe
 func (cs ContactsService) GetByDate(ctx context.Context, month, day, year string) (*models.ContactResponse, error) {
 	return &models.ContactResponse{ID: "id"}, nil
 }
+
+// DeleteBulk contact by id
+func (cs ContactsService) DeleteBulk(ctx context.Context, ids []string) error {
+	return nil
+}

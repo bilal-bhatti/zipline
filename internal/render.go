@@ -274,17 +274,23 @@ func (r *renderer) deps(pkg *packages.Package, b *binding, buf *buffer) ([]strin
 				buf.ws("\n")
 				continue
 			}
+
+			if tn == ZiplineTemplateResolve {
+				ft, err := r.provider.provideWithReturns(p, []string{p.name})
+				if err != nil {
+					return nil, newParameterProviderError("failed to resolve handler parameters", b, p)
+				}
+
+				buf.ws("\n// resolve parameter [%s] through a provider\n", p.varName())
+				buf.ws(ft.call(pkg.PkgPath) + "\n")
+
+				params = append(params, p.varName())
+				continue
+			}
 		}
 
-		if ft, err := r.provider.provideWithReturns(p, []string{p.name}); err == nil {
-			buf.ws("\n// resolve parameter [%s] through a provider\n", p.varName())
-			buf.ws(ft.call(pkg.PkgPath) + "\n")
-
-			params = append(params, p.varName())
-			continue
-		}
-
-		return nil, errors.New("unable to resolve type " + p.signature)
+		// faild to find a way to satisfy parameter
+		return nil, newParameterError("failed to resolve handler parameters", b, p)
 	}
 
 	return params, nil
@@ -314,7 +320,7 @@ func (r *renderer) renderParamTemplate(pkg *packages.Package, t *template, b *bi
 				continue
 			}
 
-			if blit.Value == fmt.Sprintf("\"%s\"", p.signature) {
+			if blit.Value == fmt.Sprintf("\"%s\"", p.fullSignature()) {
 				tmplBody = caseStmt.Body
 				break
 			}
@@ -322,7 +328,7 @@ func (r *renderer) renderParamTemplate(pkg *packages.Package, t *template, b *bi
 	}
 
 	if tmplBody == nil {
-		return errors.New(fmt.Sprintf("template %s doesn't support type %s", t.funcDecl.Name, p.signature))
+		return newParameterTemplateError("failed to locate request parameters", t, b, p)
 	}
 
 	var format string

@@ -139,3 +139,17 @@ func (tt typeToken) shortSignature() string {
 
 	return b.String()
 }
+
+func (tt typeToken) fullSignature() string {
+	var b bytes.Buffer
+
+	if tt.isSlice {
+		b.WriteString("[]")
+	}
+	if tt.isPtr {
+		b.WriteString("*")
+	}
+	b.WriteString(tt.signature)
+
+	return b.String()
+}

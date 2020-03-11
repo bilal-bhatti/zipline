@@ -25,6 +25,7 @@ func NewRouter() *chi.Mux {
 	mux.Get("/contacts/{month}-{day}-{year}", z.Get(services.ContactsService.GetByDate, z.Resolve, z.Path, z.Path, z.Path))
 	mux.Post("/contacts/{id}", z.Post(services.ContactsService.Update, z.Resolve, z.Path, z.Body))
 	mux.Put("/contacts/{id}", z.Put(new(services.ContactsService).Replace, z.Resolve, z.Path, z.Body))
+	mux.Delete("/contacts", z.Delete(services.ContactsService.DeleteBulk, z.Resolve, z.Query))
 
 	mux.Get("/things/{category}", z.Get(ThingsService.GetByCategoryAndQuery, z.Resolve, z.Path, z.Query))
 	mux.Get("/things", z.Get(ThingsService.GetByDateRange, z.Resolve, z.Query, z.Query))
@@ -67,6 +68,9 @@ func (z ZiplineTemplate) Query(kind string, w http.ResponseWriter, r *http.Reque
 	case "string":
 		name := r.URL.Query().Get("name")
 		z.DevNull(name)
+	case "[]string":
+		name := r.URL.Query()["name"]
+		z.DevNull(name)
 	case "int":
 		name, err := strconv.Atoi(r.URL.Query().Get("name"))
 		if err != nil {
@@ -75,7 +79,7 @@ func (z ZiplineTemplate) Query(kind string, w http.ResponseWriter, r *http.Reque
 			return
 		}
 		z.DevNull(name)
-	case "time.Time":
+	case "*time.Time":
 		name, err := ParseTime(r.URL.Query().Get("name"), "format")
 		if err != nil {
 			// invalid request error
