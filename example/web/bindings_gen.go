@@ -11,21 +11,22 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/bilal-bhatti/zipline/example/connectors"
 	"github.com/bilal-bhatti/zipline/example/models"
 	"github.com/bilal-bhatti/zipline/example/services"
 	"github.com/go-chi/chi"
 )
 
 // NewRouter returns a router configured with endpoints and handlers.
-func NewRouter() *chi.Mux {
+func NewRouter(env *connectors.Env) *chi.Mux {
 	mux := chi.NewRouter()
 	mux.Use(services.Authentication)
 
-	mux.Post("/contacts", ContactsServiceCreateHandlerFunc())
+	mux.Post("/contacts", ContactsServiceCreateHandlerFunc(env))
 
 	mux.Get("/contacts/{id}", ContactsServiceGetOneHandlerFunc())
 	mux.Get("/contacts/{month}-{day}-{year}", ContactsServiceGetByDateHandlerFunc())
-	mux.Post("/contacts/{id}", ContactsServiceUpdateHandlerFunc())
+	mux.Post("/contacts/{id}", ContactsServiceUpdateHandlerFunc(env))
 	mux.Put("/contacts/{id}", ContactsServiceReplaceHandlerFunc())
 	mux.Delete("/contacts", ContactsServiceDeleteBulkHandlerFunc())
 
@@ -33,7 +34,9 @@ func NewRouter() *chi.Mux {
 	mux.Get("/things", ThingsServiceGetByDateRangeHandlerFunc())
 	mux.Delete("/things/{id}", ThingsServiceDeleteHandlerFunc())
 
-	mux.Post("/echo", EchoHandlerFunc())
+	mux.Post("/echo", EchoHandlerFunc(env))
+
+	mux.Post("/doodads", DoodadsServiceCreateHandlerFunc(env))
 
 	return mux
 }
@@ -42,7 +45,7 @@ func NewRouter() *chi.Mux {
 // path  : /contacts
 // method: post
 // Create a new contact request entity.
-func ContactsServiceCreateHandlerFunc() http.HandlerFunc {
+func ContactsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
@@ -51,6 +54,7 @@ func ContactsServiceCreateHandlerFunc() http.HandlerFunc {
 			duration := time.Now().Sub(startTime)
 			log.Printf("It took %s to process request\n", duration.String())
 		}()
+		log.Println("environment", env)
 
 		// initialize application handler
 		handler, err := services.InitContactsService()
@@ -195,7 +199,7 @@ func ContactsServiceGetByDateHandlerFunc() http.HandlerFunc {
 // path  : /contacts/{id}
 // method: post
 // Update a contact entity with provided data.
-func ContactsServiceUpdateHandlerFunc() http.HandlerFunc {
+func ContactsServiceUpdateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
@@ -204,6 +208,7 @@ func ContactsServiceUpdateHandlerFunc() http.HandlerFunc {
 			duration := time.Now().Sub(startTime)
 			log.Printf("It took %s to process request\n", duration.String())
 		}()
+		log.Println("environment", env)
 
 		// initialize application handler
 		handler, err := services.InitContactsService()
@@ -499,7 +504,7 @@ func ThingsServiceDeleteHandlerFunc() http.HandlerFunc {
 // path  : /echo
 // method: post
 // Echo returns body with 'i's replaced with 'o's
-func EchoHandlerFunc() http.HandlerFunc {
+func EchoHandlerFunc(env *connectors.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
@@ -508,6 +513,7 @@ func EchoHandlerFunc() http.HandlerFunc {
 			duration := time.Now().Sub(startTime)
 			log.Printf("It took %s to process request\n", duration.String())
 		}()
+		log.Println("environment", env)
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -527,6 +533,58 @@ func EchoHandlerFunc() http.HandlerFunc {
 
 		// execute application handler
 		response, err := Echo(ctx, echoRequest)
+		if err != nil {
+
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(w).Encode(response)
+		if err != nil {
+
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	}
+}
+
+// DoodadsServiceCreateHandlerFunc handles requests to:
+// path  : /doodads
+// method: post
+// Create a new doodad entity.
+func DoodadsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error // why not
+
+		startTime := time.Now()
+		defer func() {
+			duration := time.Now().Sub(startTime)
+			log.Printf("It took %s to process request\n", duration.String())
+		}()
+		log.Println("environment", env)
+
+		// initialize application handler
+		handler, err := services.NewDoodadsService(env)
+		if err != nil {
+
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		// resolve parameter [ctx] through a provider
+		ctx := services.ProvideContext(r)
+
+		// resolve parameter [contactRequest] with [Body] template
+		contactRequest := &models.ThingRequest{}
+		err = json.NewDecoder(r.Body).Decode(contactRequest)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+
+		// execute application handler
+		response, err := handler.Create(ctx, contactRequest)
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

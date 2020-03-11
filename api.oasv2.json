@@ -210,6 +210,37 @@
         }
       }
     },
+    "/doodads": {
+      "post": {
+        "description": "Create a new doodad entity.",
+        "summary": "Create a new doodad entity.",
+        "parameters": [
+          {
+            "description": "ThingRequest model",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.ThingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 success response",
+            "schema": {
+              "$ref": "#/definitions/models.ThingResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/echo": {
       "post": {
         "description": "Echo returns body with 'i's replaced with 'o's",
@@ -395,6 +426,83 @@
       "properties": {
         "id": {
           "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "models.ThingRequest": {
+      "description": "ThingRequest model",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "models.ThingResponse": {
+      "description": "ThingResponse model",
+      "type": "object",
+      "properties": {
+        "bool": {
+          "type": "boolean"
+        },
+        "createDate": {
+          "type": "string",
+          "format": "date-time,2006-01-02"
+        },
+        "float32": {
+          "type": "number",
+          "format": "float"
+        },
+        "float64": {
+          "type": "number",
+          "format": "double"
+        },
+        "int": {
+          "type": "integer"
+        },
+        "int16": {
+          "type": "integer",
+          "format": "int16"
+        },
+        "int32": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "int64": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "int8": {
+          "type": "integer",
+          "format": "int8"
+        },
+        "name": {
+          "type": "string"
+        },
+        "uint": {
+          "type": "integer"
+        },
+        "uint16": {
+          "type": "integer",
+          "format": "int16"
+        },
+        "uint32": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "uint64": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "uint8": {
+          "type": "integer",
+          "format": "int8"
+        },
+        "updateDate": {
+          "type": "string",
+          "format": "date-time"
         }
       },
       "additionalProperties": false

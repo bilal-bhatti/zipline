@@ -39,6 +39,15 @@ func newErrorForSliceVar(msg string, obj types.Object) error {
 	}
 }
 
+func newHandlerNotResolvedError(msg string, b *binding, rets []string) error {
+	lines := []string{msg}
+
+	return ziplineError{
+		msg:  strings.Join(lines, "\n\t"),
+		hint: fmt.Sprintf("hint: ensure you have a provider function that returns %d value", len(rets)),
+	}
+}
+
 func newParameterError(msg string, b *binding, p *typeToken) error {
 	lines := []string{msg}
 	lines = append(lines, fmt.Sprintf("missing template for parameter (%s %s)", p.varName(), p.signature))

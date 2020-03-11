@@ -10,20 +10,21 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/bilal-bhatti/zipline/example/connectors"
 	"github.com/bilal-bhatti/zipline/example/services"
 	"github.com/go-chi/chi"
 )
 
 // NewRouter returns a router configured with endpoints and handlers.
-func NewRouter() *chi.Mux {
+func NewRouter(env *connectors.Env) *chi.Mux {
 	mux := chi.NewRouter()
 	mux.Use(services.Authentication)
 
-	mux.Post("/contacts", z.Post(services.ContactsService.Create, z.Resolve, z.Body))
+	mux.Post("/contacts", z.Post(services.ContactsService.Create, env, z.Resolve, z.Body))
 
 	mux.Get("/contacts/{id}", z.Get(services.ContactsService.GetOne, z.Resolve, z.Path))
 	mux.Get("/contacts/{month}-{day}-{year}", z.Get(services.ContactsService.GetByDate, z.Resolve, z.Path, z.Path, z.Path))
-	mux.Post("/contacts/{id}", z.Post(services.ContactsService.Update, z.Resolve, z.Path, z.Body))
+	mux.Post("/contacts/{id}", z.Post(services.ContactsService.Update, env, z.Resolve, z.Path, z.Body))
 	mux.Put("/contacts/{id}", z.Put(new(services.ContactsService).Replace, z.Resolve, z.Path, z.Body))
 	mux.Delete("/contacts", z.Delete(services.ContactsService.DeleteBulk, z.Resolve, z.Query))
 
@@ -31,7 +32,9 @@ func NewRouter() *chi.Mux {
 	mux.Get("/things", z.Get(ThingsService.GetByDateRange, z.Resolve, z.Query, z.Query))
 	mux.Delete("/things/{id}", z.Delete(new(ThingsService).Delete, z.Path))
 
-	mux.Post("/echo", z.Post(Echo, z.Resolve, z.Body))
+	mux.Post("/echo", z.Post(Echo, env, z.Resolve, z.Body))
+
+	mux.Post("/doodads", z.Post(services.DoodadsService.Create, env, z.Resolve, z.Body))
 
 	// mux.Post("/ping", zipline.Post(services.Ping))
 
@@ -101,7 +104,7 @@ func (z ZiplineTemplate) Body(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (z ZiplineTemplate) Post(i interface{}, p ...interface{}) http.HandlerFunc {
+func (z ZiplineTemplate) Post(i interface{}, env *connectors.Env, p ...interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
@@ -110,6 +113,8 @@ func (z ZiplineTemplate) Post(i interface{}, p ...interface{}) http.HandlerFunc 
 			duration := time.Now().Sub(startTime)
 			log.Printf("It took %s to process request\n", duration.String())
 		}()
+
+		log.Println("environment", env)
 
 		handler, err := z.Resolve()
 		if err != nil {

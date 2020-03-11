@@ -8,6 +8,7 @@ import (
 	"go/printer"
 	"go/token"
 	"io"
+	"log"
 	"strings"
 
 	"github.com/go-toolsmith/astcopy"
@@ -20,7 +21,6 @@ type renderer struct {
 	imps      []string
 	preamble  *buffer
 	body      *buffer
-	names     map[string]int
 }
 
 func (r *renderer) imp(imp string) {
@@ -36,13 +36,16 @@ func newRenderer(templates map[string]*template, provider *provider) *renderer {
 		imps:      make([]string, 0),
 		preamble:  newBuffer(),
 		body:      newBuffer(),
-		names:     make(map[string]int),
 	}
 
 	return r
 }
 
 func (r *renderer) render(pkg *packages.Package, info *binding) error {
+	for _, bp := range info.boundParams {
+		r.provider.known[bp.signature] = bp
+	}
+
 	template := r.templates[info.template]
 	if template != nil {
 		bites, err := r.renderFunctionTemplate(pkg, template, info)
@@ -125,7 +128,8 @@ func (r *renderer) renderFunctionTemplate(pkg *packages.Package, t *template, b 
 		for _, c := range b.handler.comments.raw {
 			buf.ws("// %s\n", c)
 		}
-		buf.ws("func %s%s() %s {\n", b.id(), t.funcSuffix(), t.returnType())
+
+		buf.ws("func %s%s(%s) %s {\n", b.id(), t.funcSuffix(), b.boundParamsList(), t.returnType())
 		buf.ws("return ")
 		printer.Fprint(buf.buf, pkg.Fset, funclit.Type)
 		buf.ws(" {\n")
@@ -180,9 +184,6 @@ func (r *renderer) renderFunctionTemplate(pkg *packages.Package, t *template, b 
 		buf.ws("}\n\n")
 	}
 
-	// reset names map
-	r.names = make(map[string]int)
-
 	return buf, nil
 }
 
@@ -197,7 +198,8 @@ func (r *renderer) resolve(pkg *packages.Package, b *binding, assn *ast.AssignSt
 
 		xp, err := r.provider.provideWithReturns(b.handler.x, rets)
 		if err != nil {
-			return err
+			log.Println("rets", rets)
+			return newHandlerNotResolvedError(err.Error(), b, rets)
 		}
 		buf.ws("\n// initialize application handler\n")
 		buf.ws(xp.call(pkg.PkgPath) + "\n")
@@ -504,10 +506,19 @@ func (r *renderer) newStructValue(expr *ast.AssignStmt) bool {
 	return true
 }
 
-func join(tokens []*typeToken) string {
+// func join(tokens []*typeToken) string {
+// 	s := []string{}
+// 	for _, token := range tokens {
+// 		s = append(s, token.param())
+// 	}
+
+// 	return strings.Join(s, ",")
+// }
+
+func join(tokens []*typeToken, f func(token *typeToken) string) string {
 	s := []string{}
 	for _, token := range tokens {
-		s = append(s, token.param())
+		s = append(s, f(token))
 	}
 
 	return strings.Join(s, ",")

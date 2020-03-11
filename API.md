@@ -161,6 +161,41 @@ Get contacts list by date
 </details>
 
 <details>
+<summary>/doodads: post</summary>
+
+
+```
+Create a new doodad entity.
+```
+
+`body parameter`
+- name: `body`, type: `models.ThingRequest`
+	- name: `name`, type: `string`
+
+`responses`
+- code: `200`, type: `models.ThingResponse`
+	- name: `bool`, type: `boolean`
+	- name: `createDate`, type: `string`, format: `date-time,2006-01-02`
+	- name: `float32`, type: `number`, format: `float`
+	- name: `float64`, type: `number`, format: `double`
+	- name: `int`, type: `integer`
+	- name: `int16`, type: `integer`, format: `int16`
+	- name: `int32`, type: `integer`, format: `int32`
+	- name: `int64`, type: `integer`, format: `int64`
+	- name: `int8`, type: `integer`, format: `int8`
+	- name: `name`, type: `string`
+	- name: `uint`, type: `integer`
+	- name: `uint16`, type: `integer`, format: `int16`
+	- name: `uint32`, type: `integer`, format: `int32`
+	- name: `uint64`, type: `integer`, format: `int64`
+	- name: `uint8`, type: `integer`, format: `int8`
+	- name: `updateDate`, type: `string`, format: `date-time`
+- `default`, type: `Error`
+	- name: `code`, type: `integer`
+	- name: `status`, type: `string`
+</details>
+
+<details>
 <summary>/echo: post</summary>
 
 

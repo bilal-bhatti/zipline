@@ -49,6 +49,7 @@ func (s scanner) scan() (map[string]*typeSpecWithPkg, map[string]*template, []*p
 						continue
 					}
 
+					// receiver is ZiplineTemplate, and no additional?
 					if funcD.Recv != nil && len(funcD.Recv.List) == 1 {
 						// match ZiplineTemplate as receiver
 						field := funcD.Recv.List[0]

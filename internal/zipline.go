@@ -228,6 +228,15 @@ func newCallExpression(binding *binding, arg ast.Expr) *ast.CallExpr {
 			Name: binding.id() + "HandlerFunc", // TODO: use the template return type
 		},
 	}
+
+	if len(binding.boundParams) > 0 {
+		args := make([]ast.Expr, len(binding.boundParams))
+		for i, t := range binding.boundParams {
+			args[i] = ast.NewIdent(t.varName())
+		}
+		ce.Args = args
+	}
+
 	return ce
 }
 
@@ -281,6 +290,13 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 	// parse additional parameters, if any
 	for i := 1; i < len(zipline.Args); i++ {
 		arg := zipline.Args[i]
+
+		if ident, ok := arg.(*ast.Ident); ok && ident.Obj.Kind == ast.Var {
+			// this is a var being passed down through the template
+			xo := qualifiedIdentObject(pkg.TypesInfo, ident)
+			binding.boundParams = append(binding.boundParams, newTypeToken("", xo.Type().String(), ident.Name))
+			continue
+		}
 
 		expr, ok := arg.(*ast.SelectorExpr)
 		if !ok {
