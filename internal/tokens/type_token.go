@@ -95,25 +95,25 @@ func (tt TypeToken) DeclSignature(importingPkg string) string {
 func (tt TypeToken) SimpleSignature(importingPkg string) string {
 	var b bytes.Buffer
 
-	vn := tt.Signature
+	ss := tt.Signature
 
 	// remove package prefix if same package
 	// github.com/bilal-bhatti/zipline/example/web.EchoRequest
 	// github.com/bilal-bhatti/zipline/example/web
 	// EchoRequest
-	vn = strings.TrimPrefix(vn, importingPkg)
-	vn = strings.TrimPrefix(vn, ".")
+	ss = strings.TrimPrefix(ss, importingPkg)
+	ss = strings.TrimPrefix(ss, ".")
 
 	// if not same package, lob off up to the last /
 	// github.com/bilal-bhatti/zipline/example/models.ThingResponse
 	// github.com/bilal-bhatti/zipline/example/web
 	// models.ThingResponse
-	idx := strings.LastIndex(vn, "/")
+	idx := strings.LastIndex(ss, "/")
 	if idx > 0 {
-		vn = strings.Trim(vn[idx:len(vn)], "/")
+		ss = strings.Trim(ss[idx:len(ss)], "/")
 	}
 
-	b.WriteString(vn)
+	b.WriteString(ss)
 
 	return b.String()
 }

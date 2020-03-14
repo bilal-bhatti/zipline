@@ -86,9 +86,8 @@ func (p provider) provideWithReturns(vt *tokens.TypeToken, retNames []string) (*
 
 					for j := 0; j < sig.Results().Len(); j++ {
 						ret := sig.Results().At(j)
-						var token *tokens.TypeToken
-						token = tokens.NewTypeToken(ret.Type().String(), retNames[j])
-						p.known[token.Signature] = token
+						token := tokens.NewTypeToken(ret.Type().String(), retNames[j])
+						p.memorizeTypeToken(token)
 						rets = append(rets, token)
 					}
 
