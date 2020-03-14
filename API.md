@@ -196,16 +196,16 @@ Create a new doodad entity.
 </details>
 
 <details>
-<summary>/echo: post</summary>
+<summary>/echo/{input}: get</summary>
 
 
 ```
 Echo returns body with 'i's replaced with 'o's
 ```
 
-`body parameter`
-- name: `body`, type: `EchoRequest`
-	- name: `input`, type: `string`
+`path parameters`
+- name: `input`, type: `string`
+
 
 `responses`
 - code: `200`, type: `EchoResponse`

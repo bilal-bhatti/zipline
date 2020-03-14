@@ -33,11 +33,11 @@ func NewRouter(env *connectors.Env) *chi.Mux {
 	mux.Get("/things", z.Get(ThingsService.GetByDateRange, z.Resolve, z.Query, z.Query))
 	mux.Delete("/things/{id}", z.Delete(new(ThingsService).Delete, z.Path))
 
-	mux.Post("/echo", z.Post(Echo, env, z.Resolve, z.Body))
+	mux.Get("/echo/{input}", z.Get(Echo, env, z.Resolve, z.Path))
 
 	mux.Post("/doodads", z.Post(services.DoodadsService.Create, env, z.Resolve, z.Resolve, z.Body))
 
-	mux.Post("/ping", z.Post(services.Ping, z.Resolve, z.Body))
+	mux.Post("/ping", z.Post(services.Ping, env, z.Resolve, z.Resolve, z.Body))
 
 	return mux
 }

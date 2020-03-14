@@ -241,19 +241,16 @@
         }
       }
     },
-    "/echo": {
-      "post": {
+    "/echo/{input}": {
+      "get": {
         "description": "Echo returns body with 'i's replaced with 'o's",
         "summary": "Echo returns body with 'i's replaced with 'o's",
         "parameters": [
           {
-            "description": "EchoRequest model",
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/EchoRequest"
-            }
+            "type": "string",
+            "name": "input",
+            "in": "path",
+            "required": true
           }
         ],
         "responses": {
@@ -428,16 +425,6 @@
     }
   },
   "definitions": {
-    "EchoRequest": {
-      "description": "EchoRequest model",
-      "type": "object",
-      "properties": {
-        "input": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
     "EchoResponse": {
       "description": "EchoResponse model",
       "type": "object",

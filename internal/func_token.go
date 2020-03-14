@@ -12,20 +12,20 @@ type funcToken struct {
 	rets      []*tokens.TypeToken
 }
 
-// func (ft funcToken) pkg() string {
-// 	idx := strings.LastIndex(ft.signature, ".")
+func (ft funcToken) pkg() string {
+	idx := strings.LastIndex(ft.signature, ".")
 
-// 	var pn string
-// 	if idx > 0 {
-// 		pn = strings.Trim(ft.signature[:idx], ".")
-// 	}
+	var pn string
+	if idx > 0 {
+		pn = strings.Trim(ft.signature[:idx], ".")
+	}
 
-// 	if pn == ft.signature {
-// 		return ""
-// 	}
+	if pn == ft.signature {
+		return ""
+	}
 
-// 	return pn
-// }
+	return pn
+}
 
 func (ft funcToken) call(cpkgpath string) string {
 	b := newBuffer()

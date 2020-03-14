@@ -68,6 +68,7 @@ func (tt TypeToken) VarName() string {
 
 func (tt TypeToken) NewInstance(importingPkg string) string {
 	var b bytes.Buffer
+	// if requested type is a pointer, let's declare it as such
 	if tt.IsPtr {
 		b.WriteString("&")
 	}

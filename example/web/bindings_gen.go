@@ -35,11 +35,11 @@ func NewRouter(env *connectors.Env) *chi.Mux {
 	mux.Get("/things", ThingsServiceGetByDateRangeHandlerFunc())
 	mux.Delete("/things/{id}", ThingsServiceDeleteHandlerFunc())
 
-	mux.Post("/echo", EchoHandlerFunc(env))
+	mux.Get("/echo/{input}", EchoHandlerFunc(env))
 
 	mux.Post("/doodads", DoodadsServiceCreateHandlerFunc(env))
 
-	mux.Post("/ping", PingHandlerFunc())
+	mux.Post("/ping", PingHandlerFunc(env))
 
 	return mux
 }
@@ -79,7 +79,6 @@ func ContactsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 
 		// execute application handler
 		response, err := handler.Create(ctx, contactRequest)
-
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -130,7 +129,6 @@ func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 
 		// execute application handler
 		response, err := handler.GetOne(ctx, id)
-
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -183,7 +181,6 @@ func ContactsServiceGetByDateHandlerFunc() http.HandlerFunc {
 
 		// execute application handler
 		response, err := handler.GetByDate(ctx, month, day, year)
-
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -242,7 +239,6 @@ func ContactsServiceUpdateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 
 		// execute application handler
 		response, err := handler.Update(ctx, id, contactRequest)
-
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -301,7 +297,6 @@ func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
 
 		// execute application handler
 		response, err := handler.Replace(ctx, id, contactRequest)
-
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -348,7 +343,6 @@ func ContactsServiceDeleteBulkHandlerFunc() http.HandlerFunc {
 
 		// execute application handler
 		err = handler.DeleteBulk(ctx, ids)
-
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -393,7 +387,6 @@ func ThingsServiceCreateHandlerFunc() http.HandlerFunc {
 
 		// execute application handler
 		response, err := handler.Create(ctxn, req)
-
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -443,7 +436,6 @@ func ThingsServiceGetByCategoryAndQueryHandlerFunc() http.HandlerFunc {
 
 		// execute application handler
 		response, err := handler.GetByCategoryAndQuery(ctx, category, q)
-
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -504,7 +496,6 @@ func ThingsServiceGetByDateRangeHandlerFunc() http.HandlerFunc {
 
 		// execute application handler
 		response, err := handler.GetByDateRange(ctx, from, to)
-
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -552,7 +543,6 @@ func ThingsServiceDeleteHandlerFunc() http.HandlerFunc {
 
 		// execute application handler
 		err = handler.Delete(id)
-
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -563,8 +553,8 @@ func ThingsServiceDeleteHandlerFunc() http.HandlerFunc {
 }
 
 // EchoHandlerFunc handles requests to:
-// path  : /echo
-// method: post
+// path  : /echo/{input}
+// method: get
 // Echo returns body with 'i's replaced with 'o's
 func EchoHandlerFunc(env *connectors.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -584,17 +574,11 @@ func EchoHandlerFunc(env *connectors.Env) http.HandlerFunc {
 		// resolve parameter [ctx] through a provider
 		ctx := services.ProvideContext(r)
 
-		// resolve parameter [echoRequest] with [Body] template
-		echoRequest := EchoRequest{}
-		err = json.NewDecoder(r.Body).Decode(&echoRequest)
-		if err != nil {
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-			return
-		}
+		// resolve parameter [input] with [Path] template
+		input := chi.URLParam(r, "input")
 
 		// execute application handler
-		response, err := Echo(ctx, echoRequest)
-
+		response, err := Echo(ctx, input)
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -646,7 +630,6 @@ func DoodadsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 
 		// execute application handler
 		response, err := handler.Create(ctx, r, thing)
-
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -667,7 +650,7 @@ func DoodadsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 // path  : /ping
 // method: post
 // Ping returns body with 'i's replaced with 'o's
-func PingHandlerFunc() http.HandlerFunc {
+func PingHandlerFunc(env *connectors.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
@@ -694,8 +677,7 @@ func PingHandlerFunc() http.HandlerFunc {
 		}
 
 		// execute application handler
-		response, err := services.Ping(ctx, pingRequest)
-
+		response, err := services.Ping(ctx, env, pingRequest)
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
