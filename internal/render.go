@@ -228,10 +228,16 @@ func (r *renderer) expand(pkg *packages.Package, b *binding, assn *ast.AssignStm
 			return errors.New("dependencies not satisfied")
 		}
 
-		buf.ws("%s.", funk.VarName())
+		buf.ws("%s.%s", funk.VarName(), b.handler.sel)
+	} else {
+		// resolve package name for plain function handler
+		ft := tokens.NewTypeToken(fmt.Sprintf("%s.%s", b.handler.pkg, b.handler.sel), b.handler.sel)
+
+		buf.ws("%s", ft.SimpleSignature(pkg.PkgPath))
 	}
 
-	buf.ws("%s(%s)\n", b.handler.sel, strings.Join(params, ","))
+	// call handler with params
+	buf.ws("(%s)\n", strings.Join(params, ","))
 
 	return nil
 }

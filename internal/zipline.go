@@ -398,10 +398,10 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) (*handle
 	}
 
 	hi := &handlerInfo{
-		comments: comments,
-		id:       string(id.Bytes()),
-		sel:      handler.String(),
-		// pkg:       obj.Pkg().Path(),
+		comments:  comments,
+		id:        string(id.Bytes()),
+		sel:       handler.String(),
+		pkg:       obj.Pkg().Path(),
 		signature: sig,
 	}
 

@@ -29,11 +29,11 @@ type (
 		signature *types.Signature
 		comments  *comments
 		id        string
-		// pkg       string
-		x       *tokens.TypeToken
-		sel     string
-		params  []*tokens.TypeToken
-		returns []*tokens.TypeToken
+		pkg       string
+		x         *tokens.TypeToken
+		sel       string
+		params    []*tokens.TypeToken
+		returns   []*tokens.TypeToken
 	}
 )
 

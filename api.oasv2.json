@@ -272,6 +272,36 @@
         }
       }
     },
+    "/ping": {
+      "post": {
+        "description": "Ping returns body with 'i's replaced with 'o's",
+        "summary": "Ping returns body with 'i's replaced with 'o's",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/services.PingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 success response",
+            "schema": {
+              "$ref": "#/definitions/services.PingResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/things": {
       "get": {
         "description": "Get things by date range\n\n@from `format:\"date-time,2006-01-02\"` date should be in Go time format\n@to   `format:\"date-time,2006-01-02\"` date should be in Go time format",
@@ -628,6 +658,24 @@
         "updateDate": {
           "type": "string",
           "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "services.PingRequest": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "services.PingResponse": {
+      "type": "object",
+      "properties": {
+        "output": {
+          "type": "string"
         }
       },
       "additionalProperties": false

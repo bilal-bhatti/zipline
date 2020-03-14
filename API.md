@@ -216,6 +216,26 @@ Echo returns body with 'i's replaced with 'o's
 </details>
 
 <details>
+<summary>/ping: post</summary>
+
+
+```
+Ping returns body with 'i's replaced with 'o's
+```
+
+`body parameter`
+- name: `body`, type: `services.PingRequest`
+	- name: `input`, type: `string`
+
+`responses`
+- code: `200`, type: `services.PingResponse`
+	- name: `output`, type: `string`
+- `default`, type: `Error`
+	- name: `code`, type: `integer`
+	- name: `status`, type: `string`
+</details>
+
+<details>
 <summary>/things: get</summary>
 
 

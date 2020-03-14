@@ -37,7 +37,7 @@ func NewRouter(env *connectors.Env) *chi.Mux {
 
 	mux.Post("/doodads", z.Post(services.DoodadsService.Create, env, z.Resolve, z.Resolve, z.Body))
 
-	// mux.Post("/ping", zipline.Post(services.Ping))
+	mux.Post("/ping", z.Post(services.Ping, z.Resolve, z.Body))
 
 	return mux
 }
