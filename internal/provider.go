@@ -6,17 +6,18 @@ import (
 	"go/types"
 	"strings"
 
+	"github.com/bilal-bhatti/zipline/internal/tokens"
 	"golang.org/x/tools/go/packages"
 )
 
 type provider struct {
 	pkgs  []*packages.Package
-	known map[string]*typeToken
+	known map[string]*tokens.TypeToken
 	tmpl  types.Object
 }
 
 func newProvider(pkgs []*packages.Package) *provider {
-	known := make(map[string]*typeToken)
+	known := make(map[string]*tokens.TypeToken)
 
 	return &provider{
 		pkgs:  pkgs,
@@ -24,15 +25,25 @@ func newProvider(pkgs []*packages.Package) *provider {
 	}
 }
 
-func (p provider) typeTokenFor(vt *typeToken) (*typeToken, bool) {
-	v, ok := p.known[vt.signature]
+func (p *provider) memorize(id *ast.Ident) {
+	obj := p.qualifiedIdentObject(id)
+	tt := tokens.NewTypeToken(obj.Type().String(), obj.Name())
+	p.known[tt.Signature] = tt
+}
+
+func (p *provider) memorizeTypeToken(t *tokens.TypeToken) {
+	p.known[t.Signature] = t
+}
+
+func (p provider) typeTokenFor(vt *tokens.TypeToken) (*tokens.TypeToken, bool) {
+	v, ok := p.known[vt.Signature]
 	return v, ok
 }
 
-func (p provider) provideWithReturns(vt *typeToken, retNames []string) (*funcToken, error) {
+func (p provider) provideWithReturns(vt *tokens.TypeToken, retNames []string) (*funcToken, error) {
 	for _, pkg := range p.pkgs {
 		info := pkg.TypesInfo
-		trace("scanning %s for type %s", pkg.PkgPath, vt.signature)
+		trace("scanning %s for type %s", pkg.PkgPath, vt.Signature)
 
 		for _, v := range info.Defs {
 			pf, ok := v.(*types.Func)
@@ -50,7 +61,7 @@ func (p provider) provideWithReturns(vt *typeToken, retNames []string) (*funcTok
 				continue
 			}
 
-			args := []*typeToken{}
+			args := []*tokens.TypeToken{}
 
 			for i := 0; i < sig.Params().Len(); i++ {
 				param := sig.Params().At(i)
@@ -69,19 +80,19 @@ func (p provider) provideWithReturns(vt *typeToken, retNames []string) (*funcTok
 
 			for i := 0; i < sig.Results().Len(); i++ {
 				result := sig.Results().At(i)
-				if vt.sameType(result.Type().String()) {
+				if vt.SameType(result.Type(), false) {
 
-					rets := []*typeToken{}
+					rets := []*tokens.TypeToken{}
 
 					for j := 0; j < sig.Results().Len(); j++ {
 						ret := sig.Results().At(j)
-						var token *typeToken
-						token = newTypeToken("", ret.Type().String(), retNames[j])
-						p.known[token.signature] = token
+						var token *tokens.TypeToken
+						token = tokens.NewTypeToken(ret.Type().String(), retNames[j])
+						p.known[token.Signature] = token
 						rets = append(rets, token)
 					}
 
-					trace("found a match for %s with %s : %s", vt.signature, pf.Name(), sig.String())
+					trace("found a match for %s with %s : %s", vt.Signature, pf.Name(), sig.String())
 					return &funcToken{
 							signature: pf.FullName(),
 							args:      args,
@@ -93,7 +104,7 @@ func (p provider) provideWithReturns(vt *typeToken, retNames []string) (*funcTok
 		}
 	}
 
-	return nil, errors.New("no provider function found for " + vt.signature)
+	return nil, errors.New("no provider function found for " + vt.Signature)
 }
 
 func (p provider) qualifiedIdentObject(expr ast.Expr) types.Object {

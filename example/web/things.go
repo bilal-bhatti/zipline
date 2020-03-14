@@ -19,6 +19,11 @@ type (
 	}
 )
 
+// Create thing
+func (cs ThingsService) Create(ctxn context.Context, req models.ThingRequest) (*models.ThingResponse, error) {
+	return &models.ThingResponse{}, nil
+}
+
 // Delete thing by id
 func (cs *ThingsService) Delete(id int) error {
 	return nil

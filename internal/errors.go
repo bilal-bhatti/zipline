@@ -7,6 +7,9 @@ import (
 	"go/token"
 	"go/types"
 	"strings"
+
+	"github.com/bilal-bhatti/zipline/internal/tokens"
+	"golang.org/x/tools/go/packages"
 )
 
 type ziplineError struct {
@@ -48,9 +51,9 @@ func newHandlerNotResolvedError(msg string, b *binding, rets []string) error {
 	}
 }
 
-func newParameterError(msg string, b *binding, p *typeToken) error {
+func newParameterError(msg string, pkg *packages.Package, b *binding, p *tokens.TypeToken) error {
 	lines := []string{msg}
-	lines = append(lines, fmt.Sprintf("missing template for parameter (%s %s)", p.varName(), p.signature))
+	lines = append(lines, fmt.Sprintf("missing template for parameter (%s %s)", p.VarName(), p.DeclSignature(pkg.PkgPath)))
 	lines = append(lines, fmt.Sprintf("for function %s: %s", b.handler.sel, b.handler.signature.String()))
 
 	if b.handler.signature.Recv() != nil {
@@ -64,9 +67,9 @@ func newParameterError(msg string, b *binding, p *typeToken) error {
 	}
 }
 
-func newParameterProviderError(msg string, b *binding, p *typeToken) error {
+func newParameterProviderError(msg string, pkg *packages.Package, b *binding, p *tokens.TypeToken) error {
 	lines := []string{msg}
-	lines = append(lines, fmt.Sprintf("no provider function for parameter (%s %s)", p.varName(), p.signature))
+	lines = append(lines, fmt.Sprintf("no provider function for parameter (%s %s)", p.VarName(), p.DeclSignature(pkg.PkgPath)))
 	lines = append(lines, fmt.Sprintf("for function %s: %s", b.handler.sel, b.handler.signature.String()))
 
 	if b.handler.signature.Recv() != nil {
@@ -80,9 +83,9 @@ func newParameterProviderError(msg string, b *binding, p *typeToken) error {
 	}
 }
 
-func newParameterTemplateError(msg string, t *template, b *binding, p *typeToken) error {
+func newParameterTemplateError(msg string, pkg *packages.Package, t *template, b *binding, p *tokens.TypeToken) error {
 	lines := []string{msg}
-	lines = append(lines, fmt.Sprintf("template %s doesn't support type %s", t.funcDecl.Name, p.fullSignature()))
+	lines = append(lines, fmt.Sprintf("template %s doesn't support type %s", t.funcDecl.Name, p.DeclSignature(pkg.PkgPath)))
 	lines = append(lines, fmt.Sprintf("for function %s: %s", b.handler.sel, b.handler.signature.String()))
 
 	if b.handler.signature.Recv() != nil {
@@ -92,6 +95,6 @@ func newParameterTemplateError(msg string, t *template, b *binding, p *typeToken
 
 	return ziplineError{
 		msg:  strings.Join(lines, "\n\t"),
-		hint: fmt.Sprintf("hint: update %s template to handle type %s", t.funcDecl.Name.String(), p.fullSignature()),
+		hint: fmt.Sprintf("hint: update %s template to handle type %s", t.funcDecl.Name.String(), p.DeclSignature(pkg.PkgPath)),
 	}
 }

@@ -28,13 +28,14 @@ func NewRouter(env *connectors.Env) *chi.Mux {
 	mux.Put("/contacts/{id}", z.Put(new(services.ContactsService).Replace, z.Resolve, z.Path, z.Body))
 	mux.Delete("/contacts", z.Delete(services.ContactsService.DeleteBulk, z.Resolve, z.Query))
 
+	mux.Post("/things", z.Post(ThingsService.Create, z.Resolve, z.Body))
 	mux.Get("/things/{category}", z.Get(ThingsService.GetByCategoryAndQuery, z.Resolve, z.Path, z.Query))
 	mux.Get("/things", z.Get(ThingsService.GetByDateRange, z.Resolve, z.Query, z.Query))
 	mux.Delete("/things/{id}", z.Delete(new(ThingsService).Delete, z.Path))
 
 	mux.Post("/echo", z.Post(Echo, env, z.Resolve, z.Body))
 
-	mux.Post("/doodads", z.Post(services.DoodadsService.Create, env, z.Resolve, z.Body))
+	mux.Post("/doodads", z.Post(services.DoodadsService.Create, env, z.Resolve, z.Resolve, z.Body))
 
 	// mux.Post("/ping", zipline.Post(services.Ping))
 
@@ -104,7 +105,7 @@ func (z ZiplineTemplate) Body(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (z ZiplineTemplate) Post(i interface{}, env *connectors.Env, p ...interface{}) http.HandlerFunc {
+func (z ZiplineTemplate) Post(i interface{}, p ...interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
 
@@ -113,8 +114,6 @@ func (z ZiplineTemplate) Post(i interface{}, env *connectors.Env, p ...interface
 			duration := time.Now().Sub(startTime)
 			log.Printf("It took %s to process request\n", duration.String())
 		}()
-
-		log.Println("environment", env)
 
 		handler, err := z.Resolve()
 		if err != nil {

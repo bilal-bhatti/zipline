@@ -2,12 +2,14 @@ package internal
 
 import (
 	"strings"
+
+	"github.com/bilal-bhatti/zipline/internal/tokens"
 )
 
 type funcToken struct {
 	signature string
-	args      []*typeToken
-	rets      []*typeToken
+	args      []*tokens.TypeToken
+	rets      []*tokens.TypeToken
 }
 
 func (ft funcToken) pkg() string {
@@ -43,12 +45,12 @@ func (ft funcToken) call(cpkgpath string) string {
 
 	args := []string{}
 	for _, arg := range ft.args {
-		args = append(args, arg.varName())
+		args = append(args, arg.VarName())
 	}
 
 	rets := []string{}
 	for _, ret := range ft.rets {
-		rets = append(rets, ret.varName())
+		rets = append(rets, ret.VarName())
 	}
 
 	b.ws("%s := %s(%s)", strings.Join(rets, ","), fn, strings.Join(args, ","))

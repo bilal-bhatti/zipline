@@ -204,11 +204,11 @@ Echo returns body with 'i's replaced with 'o's
 ```
 
 `body parameter`
-- name: `body`, type: `web.EchoRequest`
+- name: `body`, type: `EchoRequest`
 	- name: `input`, type: `string`
 
 `responses`
-- code: `200`, type: `web.EchoResponse`
+- code: `200`, type: `EchoResponse`
 	- name: `output`, type: `string`
 - `default`, type: `Error`
 	- name: `code`, type: `integer`
@@ -232,7 +232,7 @@ Get things by date range
 
 
 `responses`
-- code: `200`, type: `web.ThingListResponse`
+- code: `200`, type: `ThingListResponse`
 	- name: `things`, type: `[]array`
 		- name: `bool`, type: `boolean`
 		- name: `createDate`, type: `string`, format: `date-time,2006-01-02`
@@ -256,6 +256,41 @@ Get things by date range
 </details>
 
 <details>
+<summary>/things: post</summary>
+
+
+```
+Create thing
+```
+
+`body parameter`
+- name: `body`, type: `models.ThingRequest`
+	- name: `name`, type: `string`
+
+`responses`
+- code: `200`, type: `models.ThingResponse`
+	- name: `bool`, type: `boolean`
+	- name: `createDate`, type: `string`, format: `date-time,2006-01-02`
+	- name: `float32`, type: `number`, format: `float`
+	- name: `float64`, type: `number`, format: `double`
+	- name: `int`, type: `integer`
+	- name: `int16`, type: `integer`, format: `int16`
+	- name: `int32`, type: `integer`, format: `int32`
+	- name: `int64`, type: `integer`, format: `int64`
+	- name: `int8`, type: `integer`, format: `int8`
+	- name: `name`, type: `string`
+	- name: `uint`, type: `integer`
+	- name: `uint16`, type: `integer`, format: `int16`
+	- name: `uint32`, type: `integer`, format: `int32`
+	- name: `uint64`, type: `integer`, format: `int64`
+	- name: `uint8`, type: `integer`, format: `int8`
+	- name: `updateDate`, type: `string`, format: `date-time`
+- `default`, type: `Error`
+	- name: `code`, type: `integer`
+	- name: `status`, type: `string`
+</details>
+
+<details>
 <summary>/things/{category}: get</summary>
 
 
@@ -271,7 +306,7 @@ Get things by category and search query
 
 
 `responses`
-- code: `200`, type: `web.ThingListResponse`
+- code: `200`, type: `ThingListResponse`
 	- name: `things`, type: `[]array`
 		- name: `bool`, type: `boolean`
 		- name: `createDate`, type: `string`, format: `date-time,2006-01-02`

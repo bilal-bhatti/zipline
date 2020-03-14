@@ -3,7 +3,6 @@ module github.com/bilal-bhatti/zipline
 go 1.13
 
 require (
-	github.com/araddon/dateparse v0.0.0-20190622164848-0fb0a474d195
 	github.com/fatih/structtag v1.2.0
 	github.com/go-chi/chi v4.0.3+incompatible
 	github.com/go-openapi/spec v0.19.6

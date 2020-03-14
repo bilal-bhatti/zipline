@@ -6,6 +6,7 @@ import (
 	"go/types"
 	"strings"
 
+	"github.com/bilal-bhatti/zipline/internal/tokens"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -21,18 +22,18 @@ type (
 		template, path string
 		handler        *handlerInfo
 		paramTemplates []string
-		boundParams    []*typeToken
+		boundParams    []*tokens.TypeToken
 	}
 
 	handlerInfo struct {
 		signature *types.Signature
 		comments  *comments
 		id        string
-		pkg       string
-		x         *typeToken
-		sel       string
-		params    []*typeToken
-		returns   []*typeToken
+		// pkg       string
+		x       *tokens.TypeToken
+		sel     string
+		params  []*tokens.TypeToken
+		returns []*tokens.TypeToken
 	}
 )
 
@@ -40,10 +41,10 @@ func (b binding) id() string {
 	return b.handler.id
 }
 
-func (b binding) boundParamsList() string {
+func (b binding) boundParamsList(importingPkg string) string {
 	params := []string{}
 	for _, p := range b.boundParams {
-		params = append(params, fmt.Sprintf("%s %s", p.varName(), p.param()))
+		params = append(params, fmt.Sprintf("%s %s", p.VarName(), p.DeclSignature(importingPkg)))
 	}
 
 	return strings.Join(params, ",")

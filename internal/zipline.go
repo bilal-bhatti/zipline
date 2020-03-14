@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/bilal-bhatti/zipline/internal/tokens"
 	"github.com/pkg/errors"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/imports"
@@ -232,7 +233,7 @@ func newCallExpression(binding *binding, arg ast.Expr) *ast.CallExpr {
 	if len(binding.boundParams) > 0 {
 		args := make([]ast.Expr, len(binding.boundParams))
 		for i, t := range binding.boundParams {
-			args[i] = ast.NewIdent(t.varName())
+			args[i] = ast.NewIdent(t.VarName())
 		}
 		ce.Args = args
 	}
@@ -294,7 +295,7 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 		if ident, ok := arg.(*ast.Ident); ok && ident.Obj.Kind == ast.Var {
 			// this is a var being passed down through the template
 			xo := qualifiedIdentObject(pkg.TypesInfo, ident)
-			binding.boundParams = append(binding.boundParams, newTypeToken("", xo.Type().String(), ident.Name))
+			binding.boundParams = append(binding.boundParams, tokens.NewTypeToken(xo.Type().String(), ident.Name))
 			continue
 		}
 
@@ -328,7 +329,7 @@ func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.Selector
 		obj := qualifiedIdentObject(pkg.TypesInfo, xt)
 		if obj != nil {
 			if _, ok := obj.Type().(*types.Basic); !ok {
-				handlerInfo.x = newTypeToken("", obj.Type().String(), "")
+				handlerInfo.x = tokens.NewTypeToken(obj.Type().String(), "")
 			}
 		}
 	case *ast.SelectorExpr:
@@ -337,7 +338,7 @@ func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.Selector
 		// xt.Sel = type
 		obj := qualifiedIdentObject(pkg.TypesInfo, xt.Sel)
 		if obj != nil {
-			handlerInfo.x = newTypeToken("", obj.Type().String(), "")
+			handlerInfo.x = tokens.NewTypeToken(obj.Type().String(), "")
 		}
 	case *ast.CallExpr:
 		// if it's a a new call
@@ -348,14 +349,14 @@ func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.Selector
 					// different package
 					obj := qualifiedIdentObject(pkg.TypesInfo, newExpType.Sel)
 					if obj != nil {
-						handlerInfo.x = newTypeToken("", obj.Type().String(), "")
+						handlerInfo.x = tokens.NewTypeToken(obj.Type().String(), "")
 					}
 				case *ast.Ident:
 					// same package
 					obj := qualifiedIdentObject(pkg.TypesInfo, newExpType)
 					if obj != nil {
 						if _, ok := obj.Type().(*types.Basic); !ok {
-							handlerInfo.x = newTypeToken("", obj.Type().String(), "")
+							handlerInfo.x = tokens.NewTypeToken(obj.Type().String(), "")
 						}
 					}
 				}
@@ -397,17 +398,17 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) (*handle
 	}
 
 	hi := &handlerInfo{
-		comments:  comments,
-		id:        string(id.Bytes()),
-		sel:       handler.String(),
-		pkg:       obj.Pkg().Path(),
+		comments: comments,
+		id:       string(id.Bytes()),
+		sel:      handler.String(),
+		// pkg:       obj.Pkg().Path(),
 		signature: sig,
 	}
 
 	for i := 0; i < sig.Params().Len(); i++ {
 		p := sig.Params().At(i)
-		tt := newTypeToken(pkg.Name, p.Type().String(), p.Name())
-		tt.varType = p
+		tt := tokens.NewTypeToken(p.Type().String(), p.Name())
+		tt.VarType = p
 		hi.params = append(hi.params, tt)
 	}
 
@@ -416,8 +417,8 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) (*handle
 		if _, ok := r.Type().(*types.Slice); ok {
 			return nil, newErrorForSliceVar("return type should not be a slice", obj)
 		}
-		tt := newTypeToken(pkg.Name, r.Type().String(), r.Name())
-		tt.varType = r
+		tt := tokens.NewTypeToken(r.Type().String(), r.Name())
+		tt.VarType = r
 		hi.returns = append(hi.returns, tt)
 	}
 

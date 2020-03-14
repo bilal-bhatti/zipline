@@ -30,6 +30,7 @@ func NewRouter(env *connectors.Env) *chi.Mux {
 	mux.Put("/contacts/{id}", ContactsServiceReplaceHandlerFunc())
 	mux.Delete("/contacts", ContactsServiceDeleteBulkHandlerFunc())
 
+	mux.Post("/things", ThingsServiceCreateHandlerFunc())
 	mux.Get("/things/{category}", ThingsServiceGetByCategoryAndQueryHandlerFunc())
 	mux.Get("/things", ThingsServiceGetByDateRangeHandlerFunc())
 	mux.Delete("/things/{id}", ThingsServiceDeleteHandlerFunc())
@@ -54,7 +55,6 @@ func ContactsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 			duration := time.Now().Sub(startTime)
 			log.Printf("It took %s to process request\n", duration.String())
 		}()
-		log.Println("environment", env)
 
 		// initialize application handler
 		handler, err := services.InitContactsService()
@@ -208,7 +208,6 @@ func ContactsServiceUpdateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 			duration := time.Now().Sub(startTime)
 			log.Printf("It took %s to process request\n", duration.String())
 		}()
-		log.Println("environment", env)
 
 		// initialize application handler
 		handler, err := services.InitContactsService()
@@ -348,6 +347,57 @@ func ContactsServiceDeleteBulkHandlerFunc() http.HandlerFunc {
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+// ThingsServiceCreateHandlerFunc handles requests to:
+// path  : /things
+// method: post
+// Create thing
+func ThingsServiceCreateHandlerFunc() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error // why not
+
+		startTime := time.Now()
+		defer func() {
+			duration := time.Now().Sub(startTime)
+			log.Printf("It took %s to process request\n", duration.String())
+		}()
+
+		// initialize application handler
+		handler, err := InitThingsService()
+		if err != nil {
+
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		// resolve parameter [ctxn] through a provider
+		ctxn := services.ProvideContext(r)
+
+		// resolve parameter [req] with [Body] template
+		req := models.ThingRequest{}
+		err = json.NewDecoder(r.Body).Decode(&req)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+
+		// execute application handler
+		response, err := handler.Create(ctxn, req)
+		if err != nil {
+
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(w).Encode(response)
+		if err != nil {
+
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	}
 }
 
@@ -513,7 +563,6 @@ func EchoHandlerFunc(env *connectors.Env) http.HandlerFunc {
 			duration := time.Now().Sub(startTime)
 			log.Printf("It took %s to process request\n", duration.String())
 		}()
-		log.Println("environment", env)
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -562,7 +611,6 @@ func DoodadsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 			duration := time.Now().Sub(startTime)
 			log.Printf("It took %s to process request\n", duration.String())
 		}()
-		log.Println("environment", env)
 
 		// initialize application handler
 		handler, err := services.NewDoodadsService(env)
@@ -575,16 +623,16 @@ func DoodadsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 		// resolve parameter [ctx] through a provider
 		ctx := services.ProvideContext(r)
 
-		// resolve parameter [contactRequest] with [Body] template
-		contactRequest := &models.ThingRequest{}
-		err = json.NewDecoder(r.Body).Decode(contactRequest)
+		// resolve parameter [thing] with [Body] template
+		thing := &models.ThingRequest{}
+		err = json.NewDecoder(r.Body).Decode(thing)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 
 		// execute application handler
-		response, err := handler.Create(ctx, contactRequest)
+		response, err := handler.Create(ctx, r, thing)
 		if err != nil {
 
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

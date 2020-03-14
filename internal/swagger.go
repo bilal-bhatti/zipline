@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/bilal-bhatti/zipline/internal/tokens"
 	"github.com/fatih/structtag"
 	"github.com/go-openapi/spec"
 	"github.com/pkg/errors"
@@ -108,8 +109,8 @@ func (s swagger) generate(packets []*packet) error {
 				}
 
 				if template == "Path" || template == "Query" {
-					simpleSchema := paramSimpleSchema(param.signature)
-					tags, ok := b.handler.comments.tags[param.varName()]
+					simpleSchema := paramSimpleSchema(param.Signature)
+					tags, ok := b.handler.comments.tags[param.VarName()]
 					if ok {
 						fmtTag, err := tags.Get("format")
 						if err == nil {
@@ -120,19 +121,19 @@ func (s swagger) generate(packets []*packet) error {
 
 					op.AddParam(&spec.Parameter{
 						ParamProps: spec.ParamProps{
-							Name:     param.varName(),
+							Name:     param.VarName(),
 							In:       strings.ToLower(template),
 							Required: true,
 						},
 						SimpleSchema: simpleSchema,
 					})
 				} else {
-					skema, err := field("--", param.varType.Type())
+					skema, err := field("--", param.VarType.Type())
 					if err != nil {
 						return err
 					}
 
-					ts := s.typeSpecs[param.signature]
+					ts := s.typeSpecs[param.Signature]
 					if ts != nil {
 						pos := ts.pkg.Fset.PositionFor(ts.typeSpec.Pos(), true)
 						comms, err := getComments(pos)
@@ -146,11 +147,11 @@ func (s swagger) generate(packets []*packet) error {
 
 					ref := spec.Schema{
 						SchemaProps: spec.SchemaProps{
-							Ref: spec.MustCreateRef("#/definitions/" + param.shortSignature()),
+							Ref: spec.MustCreateRef("#/definitions/" + param.SimpleSignature(packet.pkg.PkgPath)),
 						},
 					}
 
-					s.swag.Definitions[param.shortSignature()] = *skema
+					s.swag.Definitions[param.SimpleSignature(packet.pkg.PkgPath)] = *skema
 
 					op.AddParam(&spec.Parameter{
 						ParamProps: spec.ParamProps{
@@ -165,17 +166,17 @@ func (s swagger) generate(packets []*packet) error {
 			}
 
 			for _, ret := range b.handler.returns {
-				if ret.varType.Type().String() == "error" {
+				if ret.VarType.Type().String() == "error" {
 					op.Responses.ResponsesProps.Default = erresp
 					continue
 				}
 
-				sk, err := field("--", ret.varType.Type())
+				sk, err := field("--", ret.VarType.Type())
 				if err != nil {
 					return err
 				}
 
-				ts := s.typeSpecs[ret.signature]
+				ts := s.typeSpecs[ret.Signature]
 				if ts != nil {
 					pos := ts.pkg.Fset.PositionFor(ts.typeSpec.Pos(), true)
 					comms, err := getComments(pos)
@@ -189,14 +190,14 @@ func (s swagger) generate(packets []*packet) error {
 
 				ref := spec.Schema{
 					SchemaProps: spec.SchemaProps{
-						Ref: spec.MustCreateRef("#/definitions/" + ret.shortSignature()),
+						Ref: spec.MustCreateRef("#/definitions/" + ret.SimpleSignature(packet.pkg.PkgPath)),
 					},
 				}
 
-				s.swag.Definitions[ret.shortSignature()] = *sk
+				s.swag.Definitions[ret.SimpleSignature(packet.pkg.PkgPath)] = *sk
 
 				var schema *spec.Schema
-				if ret.isSlice {
+				if ret.IsSlice {
 					schema, err = skema("array")
 					if err != nil {
 						return err
@@ -214,7 +215,7 @@ func (s swagger) generate(packets []*packet) error {
 				}
 			}
 
-			if len(b.handler.returns) == 1 && b.handler.returns[0].varType.Type().String() == "error" {
+			if len(b.handler.returns) == 1 && b.handler.returns[0].VarType.Type().String() == "error" {
 				op.Responses.ResponsesProps.StatusCodeResponses[204] = spec.Response{
 					ResponseProps: spec.ResponseProps{
 						Description: "no content",
@@ -315,7 +316,7 @@ func field(name string, t types.Type) (*spec.Schema, error) {
 				continue
 			}
 
-			fieldTypeToken := newTypeToken("", f.Type().String(), f.Name())
+			fieldTypeToken := tokens.NewTypeToken(f.Type().String(), f.Name())
 
 			var jsonName string
 			var tag = tt.Tag(i)
@@ -338,7 +339,7 @@ func field(name string, t types.Type) (*spec.Schema, error) {
 			if f.Name() != name && jsonName != "-" {
 				var fs *spec.Schema
 
-				if fieldTypeToken.signature == "time.Time" {
+				if fieldTypeToken.Signature == "time.Time" {
 					fs = spec.DateTimeProperty()
 				} else {
 					fs, err = field(f.Name(), f.Type())

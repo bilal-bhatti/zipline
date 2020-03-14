@@ -8,9 +8,9 @@ import (
 	"go/printer"
 	"go/token"
 	"io"
-	"log"
 	"strings"
 
+	"github.com/bilal-bhatti/zipline/internal/tokens"
 	"github.com/go-toolsmith/astcopy"
 	"golang.org/x/tools/go/packages"
 )
@@ -43,7 +43,7 @@ func newRenderer(templates map[string]*template, provider *provider) *renderer {
 
 func (r *renderer) render(pkg *packages.Package, info *binding) error {
 	for _, bp := range info.boundParams {
-		r.provider.known[bp.signature] = bp
+		r.provider.memorizeTypeToken(bp)
 	}
 
 	template := r.templates[info.template]
@@ -116,9 +116,7 @@ func (r *renderer) renderFunctionTemplate(pkg *packages.Package, t *template, b 
 		// parse funclit type to extract type tokens
 		for _, param := range funclit.Type.Params.List {
 			for _, pn := range param.Names {
-				obj := r.provider.qualifiedIdentObject(pn)
-				tt := newTypeToken("", obj.Type().String(), obj.Name())
-				r.provider.known[tt.signature] = tt
+				r.provider.memorize(pn)
 			}
 		}
 
@@ -129,7 +127,7 @@ func (r *renderer) renderFunctionTemplate(pkg *packages.Package, t *template, b 
 			buf.ws("// %s\n", c)
 		}
 
-		buf.ws("func %s%s(%s) %s {\n", b.id(), t.funcSuffix(), b.boundParamsList(), t.returnType())
+		buf.ws("func %s%s(%s) %s {\n", b.id(), t.funcSuffix(), b.boundParamsList(pkg.PkgPath), t.returnType())
 		buf.ws("return ")
 		printer.Fprint(buf.buf, pkg.Fset, funclit.Type)
 		buf.ws(" {\n")
@@ -167,11 +165,8 @@ func (r *renderer) renderFunctionTemplate(pkg *packages.Package, t *template, b 
 			// assignment statement, let's record any var assignments
 			for _, lhs := range assnStmt.Lhs {
 				if id, ok := lhs.(*ast.Ident); ok {
-					obj := r.provider.qualifiedIdentObject(id)
-
 					// this will keep the later declarations
-					tt := newTypeToken("", obj.Type().String(), obj.Name())
-					r.provider.known[tt.signature] = tt
+					r.provider.memorize(id)
 				}
 			}
 
@@ -198,7 +193,6 @@ func (r *renderer) resolve(pkg *packages.Package, b *binding, assn *ast.AssignSt
 
 		xp, err := r.provider.provideWithReturns(b.handler.x, rets)
 		if err != nil {
-			log.Println("rets", rets)
 			return newHandlerNotResolvedError(err.Error(), b, rets)
 		}
 		buf.ws("\n// initialize application handler\n")
@@ -234,7 +228,7 @@ func (r *renderer) expand(pkg *packages.Package, b *binding, assn *ast.AssignStm
 			return errors.New("dependencies not satisfied")
 		}
 
-		buf.ws("%s.", funk.varName())
+		buf.ws("%s.", funk.VarName())
 	}
 
 	buf.ws("%s(%s)\n", b.handler.sel, strings.Join(params, ","))
@@ -251,9 +245,9 @@ func (r *renderer) deps(pkg *packages.Package, b *binding, buf *buffer) ([]strin
 		if len(b.paramTemplates) > i {
 			tn := b.paramTemplates[i]
 			template := r.templates[tn]
-			trace("using template %s for type %s\n", tn, p.signature)
+			trace("using template %s for type %s\n", tn, p.Signature)
 			if template != nil {
-				buf.ws("\n// resolve parameter [%s] with [%s] template\n", p.varName(), tn)
+				buf.ws("\n// resolve parameter [%s] with [%s] template\n", p.VarName(), tn)
 				switch tn {
 				case "Query", "Path":
 					err := r.renderParamTemplate(pkg, template, b, p, buf)
@@ -272,33 +266,39 @@ func (r *renderer) deps(pkg *packages.Package, b *binding, buf *buffer) ([]strin
 					}
 				}
 
-				params = append(params, p.varName())
+				params = append(params, p.VarName())
 				buf.ws("\n")
 				continue
 			}
 
 			if tn == ZiplineTemplateResolve {
-				ft, err := r.provider.provideWithReturns(p, []string{p.name})
+				ft, err := r.provider.provideWithReturns(p, []string{p.VarName()})
 				if err != nil {
-					return nil, newParameterProviderError("failed to resolve handler parameters", b, p)
+					// check if type is already known
+					if token, ok := r.provider.known[p.Signature]; ok {
+						params = append(params, token.TypeTokenAs(p).VarName())
+
+						continue
+					}
+					return nil, newParameterProviderError("failed to resolve handler parameters", pkg, b, p)
 				}
 
-				buf.ws("\n// resolve parameter [%s] through a provider\n", p.varName())
+				buf.ws("\n// resolve parameter [%s] through a provider\n", p.VarName())
 				buf.ws(ft.call(pkg.PkgPath) + "\n")
 
-				params = append(params, p.varName())
+				params = append(params, p.VarName())
 				continue
 			}
 		}
 
 		// faild to find a way to satisfy parameter
-		return nil, newParameterError("failed to resolve handler parameters", b, p)
+		return nil, newParameterError("failed to resolve handler parameters", pkg, b, p)
 	}
 
 	return params, nil
 }
 
-func (r *renderer) renderParamTemplate(pkg *packages.Package, t *template, b *binding, p *typeToken, buf *buffer) error {
+func (r *renderer) renderParamTemplate(pkg *packages.Package, t *template, b *binding, p *tokens.TypeToken, buf *buffer) error {
 	var tmplBody []ast.Stmt
 
 	if len(t.funcDecl.Body.List) != 1 {
@@ -322,7 +322,7 @@ func (r *renderer) renderParamTemplate(pkg *packages.Package, t *template, b *bi
 				continue
 			}
 
-			if blit.Value == fmt.Sprintf("\"%s\"", p.fullSignature()) {
+			if blit.Value == fmt.Sprintf("\"%s\"", p.FullSignature) {
 				tmplBody = caseStmt.Body
 				break
 			}
@@ -330,11 +330,11 @@ func (r *renderer) renderParamTemplate(pkg *packages.Package, t *template, b *bi
 	}
 
 	if tmplBody == nil {
-		return newParameterTemplateError("failed to locate request parameters", t, b, p)
+		return newParameterTemplateError("failed to locate request parameters", pkg, t, b, p)
 	}
 
 	var format string
-	tags, ok := b.handler.comments.tags[p.varName()]
+	tags, ok := b.handler.comments.tags[p.VarName()]
 	if ok {
 		tag, err := tags.Get("format")
 		if err == nil {
@@ -342,35 +342,35 @@ func (r *renderer) renderParamTemplate(pkg *packages.Package, t *template, b *bi
 		}
 	}
 
-	tbuf := r.rename("name", format, p, tmplBody)
+	tbuf := r.rename("name", format, pkg, b, p, tmplBody)
 	buf.add(tbuf)
 
 	return nil
 }
 
-func (r *renderer) renderBodyTemplate(pkg *packages.Package, t *template, b *binding, p *typeToken, buf *buffer) error {
+func (r *renderer) renderBodyTemplate(pkg *packages.Package, t *template, b *binding, p *tokens.TypeToken, buf *buffer) error {
 	return r.renderGenericTemplate(pkg, t, b, p, buf)
 }
 
-func (r *renderer) renderGenericTemplate(pkg *packages.Package, t *template, b *binding, p *typeToken, buf *buffer) error {
-	tbuf := r.rename("name", "", p, t.funcDecl.Body.List)
+func (r *renderer) renderGenericTemplate(pkg *packages.Package, t *template, b *binding, p *tokens.TypeToken, buf *buffer) error {
+	tbuf := r.rename("name", "", pkg, b, p, t.funcDecl.Body.List)
 	buf.add(tbuf)
 	return nil
 }
 
-func (r *renderer) rename(old, format string, new *typeToken, body []ast.Stmt) *buffer {
+func (r *renderer) rename(old, format string, pkg *packages.Package, b *binding, new *tokens.TypeToken, body []ast.Stmt) *buffer {
 	renamer := func(n ast.Node) bool {
 		switch nt := n.(type) {
 		case *ast.BasicLit:
 			if nt.Value == fmt.Sprintf("\"%s\"", old) {
-				nt.Value = fmt.Sprintf("\"%s\"", new.name)
+				nt.Value = fmt.Sprintf("\"%s\"", new.Name)
 			}
 			if format != "" && nt.Value == fmt.Sprintf("\"format\"") {
 				nt.Value = fmt.Sprintf("\"%s\"", format)
 			}
 		case *ast.Ident:
 			if nt.Name == old {
-				nt.Name = new.name
+				nt.Name = new.Name
 			}
 		case *ast.CallExpr:
 			for i := 0; i < len(nt.Args); i++ {
@@ -386,10 +386,10 @@ func (r *renderer) rename(old, format string, new *typeToken, body []ast.Stmt) *
 				}
 
 				if id.Name == old {
-					if new.isPtr {
+					if new.IsPtr {
 						// param was declared as a pointer
 						// replace unary expression with ident
-						nt.Args[i] = ast.NewIdent(new.name)
+						nt.Args[i] = ast.NewIdent(new.Name)
 					}
 				}
 			}
@@ -424,14 +424,14 @@ func (r *renderer) rename(old, format string, new *typeToken, body []ast.Stmt) *
 			if id, ok := vs.Type.(*ast.Ident); ok {
 				v, ok := r.provider.known[id.Name]
 				// omit if known var with same name
-				if ok && v.name == vs.Names[0].String() {
+				if ok && v.Name == vs.Names[0].String() {
 					continue
 				}
 			}
 		case *ast.AssignStmt:
 			if r.newStructValue(st) {
 				// get new object
-				buf.ws("%s := %s\n", new.varName(), new.inst())
+				buf.ws("%s := %s\n", new.VarName(), new.NewInstance(pkg.PkgPath))
 				continue
 			}
 			ast.Inspect(sc, renamer)
@@ -515,7 +515,7 @@ func (r *renderer) newStructValue(expr *ast.AssignStmt) bool {
 // 	return strings.Join(s, ",")
 // }
 
-func join(tokens []*typeToken, f func(token *typeToken) string) string {
+func join(tokens []*tokens.TypeToken, f func(token *tokens.TypeToken) string) string {
 	s := []string{}
 	for _, token := range tokens {
 		s = append(s, f(token))

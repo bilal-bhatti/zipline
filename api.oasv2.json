@@ -252,7 +252,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/web.EchoRequest"
+              "$ref": "#/definitions/EchoRequest"
             }
           }
         ],
@@ -260,7 +260,7 @@
           "200": {
             "description": "200 success response",
             "schema": {
-              "$ref": "#/definitions/web.EchoResponse"
+              "$ref": "#/definitions/EchoResponse"
             }
           },
           "default": {
@@ -296,7 +296,36 @@
           "200": {
             "description": "200 success response",
             "schema": {
-              "$ref": "#/definitions/web.ThingListResponse"
+              "$ref": "#/definitions/ThingListResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Create thing",
+        "summary": "Create thing",
+        "parameters": [
+          {
+            "description": "ThingRequest model",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.ThingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 success response",
+            "schema": {
+              "$ref": "#/definitions/models.ThingResponse"
             }
           },
           "default": {
@@ -330,7 +359,7 @@
           "200": {
             "description": "200 success response",
             "schema": {
-              "$ref": "#/definitions/web.ThingListResponse"
+              "$ref": "#/definitions/ThingListResponse"
             }
           },
           "default": {
@@ -369,6 +398,26 @@
     }
   },
   "definitions": {
+    "EchoRequest": {
+      "description": "EchoRequest model",
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EchoResponse": {
+      "description": "EchoResponse model",
+      "type": "object",
+      "properties": {
+        "output": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "Error": {
       "description": "error response object",
       "type": "object",
@@ -378,6 +427,82 @@
         },
         "status": {
           "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ThingListResponse": {
+      "description": "List of things",
+      "type": "object",
+      "properties": {
+        "things": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "bool": {
+                "type": "boolean"
+              },
+              "createDate": {
+                "type": "string",
+                "format": "date-time,2006-01-02"
+              },
+              "float32": {
+                "type": "number",
+                "format": "float"
+              },
+              "float64": {
+                "type": "number",
+                "format": "double"
+              },
+              "int": {
+                "type": "integer"
+              },
+              "int16": {
+                "type": "integer",
+                "format": "int16"
+              },
+              "int32": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "int64": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "int8": {
+                "type": "integer",
+                "format": "int8"
+              },
+              "name": {
+                "type": "string"
+              },
+              "uint": {
+                "type": "integer"
+              },
+              "uint16": {
+                "type": "integer",
+                "format": "int16"
+              },
+              "uint32": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "uint64": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "uint8": {
+                "type": "integer",
+                "format": "int8"
+              },
+              "updateDate": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false
@@ -503,102 +628,6 @@
         "updateDate": {
           "type": "string",
           "format": "date-time"
-        }
-      },
-      "additionalProperties": false
-    },
-    "web.EchoRequest": {
-      "description": "EchoRequest model",
-      "type": "object",
-      "properties": {
-        "input": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "web.EchoResponse": {
-      "description": "EchoResponse model",
-      "type": "object",
-      "properties": {
-        "output": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "web.ThingListResponse": {
-      "description": "List of things",
-      "type": "object",
-      "properties": {
-        "things": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "bool": {
-                "type": "boolean"
-              },
-              "createDate": {
-                "type": "string",
-                "format": "date-time,2006-01-02"
-              },
-              "float32": {
-                "type": "number",
-                "format": "float"
-              },
-              "float64": {
-                "type": "number",
-                "format": "double"
-              },
-              "int": {
-                "type": "integer"
-              },
-              "int16": {
-                "type": "integer",
-                "format": "int16"
-              },
-              "int32": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "int64": {
-                "type": "integer",
-                "format": "int64"
-              },
-              "int8": {
-                "type": "integer",
-                "format": "int8"
-              },
-              "name": {
-                "type": "string"
-              },
-              "uint": {
-                "type": "integer"
-              },
-              "uint16": {
-                "type": "integer",
-                "format": "int16"
-              },
-              "uint32": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "uint64": {
-                "type": "integer",
-                "format": "int64"
-              },
-              "uint8": {
-                "type": "integer",
-                "format": "int8"
-              },
-              "updateDate": {
-                "type": "string",
-                "format": "date-time"
-              }
-            },
-            "additionalProperties": false
-          }
         }
       },
       "additionalProperties": false
