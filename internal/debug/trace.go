@@ -1,4 +1,4 @@
-package internal
+package debug
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"runtime"
 )
 
-const tr = false
+var Debug = false
 
 func init() {
 	// og.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -16,8 +16,8 @@ func init() {
 	log.SetOutput(os.Stderr)
 }
 
-func trace(msg string, p ...interface{}) {
-	if !tr {
+func Trace(msg string, p ...interface{}) {
+	if !Debug {
 		return
 	}
 

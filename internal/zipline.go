@@ -3,6 +3,7 @@ package internal
 import (
 	"bytes"
 	"fmt"
+	"github.com/bilal-bhatti/zipline/internal/debug"
 	"go/ast"
 	"go/printer"
 	"go/types"
@@ -77,11 +78,11 @@ func (z *Zipline) Start(pkgPaths []string) error {
 		}
 
 		od := strings.TrimPrefix(packet.pkg.PkgPath, root)
-		trace("- calculating output package location -")
-		trace("cwd: %s", cwd)
-		trace("package path: %s", packet.pkg.PkgPath)
-		trace("source root: %s", root)
-		trace("output dir: %s", od)
+		debug.Trace("* calculating output package location *")
+		debug.Trace("cwd: %s", cwd)
+		debug.Trace("package path: %s", packet.pkg.PkgPath)
+		debug.Trace("source root: %s", root)
+		debug.Trace("output dir: %s", od)
 
 		out := path.Join(cwd, od, "bindings_gen.go")
 

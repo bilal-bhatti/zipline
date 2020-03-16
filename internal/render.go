@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"github.com/bilal-bhatti/zipline/internal/debug"
 	"github.com/bilal-bhatti/zipline/internal/util"
 	"go/ast"
 	"go/format"
@@ -257,7 +258,7 @@ func (r *renderer) deps(pkg *packages.Package, b *binding, buf *util.Buffer) err
 		if len(b.paramTemplates) > i {
 			tn := b.paramTemplates[i]
 			template := r.templates[tn]
-			trace("using template %s for type %s\n", tn, p.Signature)
+			debug.Trace("using template %s for type %s\n", tn, p.Signature)
 			if template != nil {
 				buf.Sprintf("\n// resolve parameter [%s] with [%s] template\n", p.VarName(), tn)
 				switch tn {

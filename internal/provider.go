@@ -2,6 +2,7 @@ package internal
 
 import (
 	"errors"
+	"github.com/bilal-bhatti/zipline/internal/debug"
 	"go/ast"
 	"go/types"
 
@@ -42,7 +43,7 @@ func (p provider) typeTokenFor(vt *tokens.TypeToken) (*tokens.TypeToken, bool) {
 func (p provider) provideWithReturns(vt *tokens.TypeToken, retNames []string) (*tokens.FuncToken, error) {
 	for _, pkg := range p.pkgs {
 		info := pkg.TypesInfo
-		trace("scanning %s for type %s", pkg.PkgPath, vt.Signature)
+		debug.Trace("scanning %s for type %s", pkg.PkgPath, vt.Signature)
 
 		for _, v := range info.Defs {
 			pf, ok := v.(*types.Func)
@@ -90,7 +91,7 @@ func (p provider) provideWithReturns(vt *tokens.TypeToken, retNames []string) (*
 						rets = append(rets, token)
 					}
 
-					trace("found a match for %s with %s : %s", vt.Signature, pf.Name(), sig.String())
+					debug.Trace("found a match for %s with %s : %s", vt.Signature, pf.Name(), sig.String())
 					return &tokens.FuncToken{
 							Signature: pf.FullName(),
 							Args:      args,

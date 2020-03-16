@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/bilal-bhatti/zipline/internal/debug"
 	"log"
 	"os"
 
@@ -35,12 +36,15 @@ func main() {
 }
 
 type defaultCmd struct {
+	debug bool
 }
 
 func (*defaultCmd) Name() string { return "gen" }
+
 func (*defaultCmd) Synopsis() string {
 	return "Generate handler functions and Open API specs from Go code."
 }
+
 func (*defaultCmd) Usage() string {
 	return `gen [packages]:
 	Generates bindings_gen.go for given packages.
@@ -48,11 +52,15 @@ func (*defaultCmd) Usage() string {
 	example: "zipline gen ./..."
   `
 }
+
 func (p *defaultCmd) SetFlags(f *flag.FlagSet) {
+	f.BoolVar(&p.debug, "d", false, "run with trace logging enabled")
 }
 
 func (p *defaultCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	zipline := internal.NewZipline()
+
+	debug.Debug = p.debug
 
 	err := zipline.Start(packages(f))
 
