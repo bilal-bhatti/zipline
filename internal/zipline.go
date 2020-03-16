@@ -13,6 +13,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/bilal-bhatti/zipline/internal/util"
+
 	"github.com/bilal-bhatti/zipline/internal/tokens"
 	"github.com/pkg/errors"
 	"golang.org/x/tools/go/packages"
@@ -121,8 +123,8 @@ func (z *Zipline) Start(pkgPaths []string) error {
 		log.Printf("wrote bindings to .%s\n", strings.TrimPrefix(out, cwd))
 
 		// reset code buffers
-		z.renderer.body.buf.Reset()
-		z.renderer.preamble.buf.Reset()
+		z.renderer.body.Reset()
+		z.renderer.preamble.Reset()
 	}
 
 	swagger, err := newSwagger(z.typeSpecs)
@@ -266,9 +268,9 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 	}
 
 	// capture zipline spec for error reporting
-	zsb := newBuffer()
-	printer.Fprint(zsb.buf, pkg.Fset, zipline)
-	binding.spec = string(zsb.buf.Bytes())
+	zsb := util.NewBuffer()
+	printer.Fprint(zsb, pkg.Fset, zipline)
+	binding.spec = string(zsb.Bytes())
 
 	switch handler := zipline.Args[0].(type) {
 	case *ast.SelectorExpr:
@@ -363,9 +365,9 @@ func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.Selector
 			}
 		}
 	default:
-		msg := newBuffer()
-		printNode(msg, handler)
-		return nil, errors.New(fmt.Sprintf("invalid zipline template parameter %s", msg.buf.String()))
+		msg := util.NewBuffer()
+		printer.Fprint(msg, pkg.Fset, handler)
+		return nil, errors.New(fmt.Sprintf("invalid zipline template parameter %s", msg.String()))
 	}
 
 	return handlerInfo, nil

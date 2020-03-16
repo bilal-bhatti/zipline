@@ -1,4 +1,4 @@
-package internal
+package tokens
 
 import (
 	"testing"
@@ -18,12 +18,12 @@ var functests = []struct {
 
 func TestFuncTokenParse(t *testing.T) {
 	for _, functest := range functests {
-		vt := funcToken{
-			signature: functest.sig,
-			rets:      []*typeToken{newTypeToken("", "context.Context", "context")},
+		vt := FuncToken{
+			Signature: functest.sig,
+			Rets:      []*TypeToken{NewTypeToken("", "context.Context", "context")},
 		}
 
-		assert.Equal(t, functest.pkg, vt.pkg(), "Package should be same")
+		assert.Equal(t, functest.pkg, vt.Pkg(), "Package should be same")
 		// assert.Equal(t, functest.call, vt.call(), "Call as pointer should be same")
 	}
 }

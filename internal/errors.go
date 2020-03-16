@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"github.com/bilal-bhatti/zipline/internal/util"
 	"go/ast"
 	"go/printer"
 	"go/token"
@@ -22,23 +23,23 @@ func (e ziplineError) Error() string {
 
 func newErrorForStmt(msg string, stmt ast.Stmt) error {
 	fset := token.NewFileSet()
-	buf := newBuffer()
-	printer.Fprint(buf.buf, fset, stmt)
+	buf := util.NewBuffer()
+	printer.Fprint(buf, fset, stmt)
 
 	return ziplineError{
 		msg:  msg,
-		hint: buf.buf.String(),
+		hint: buf.String(),
 	}
 }
 
 func newErrorForSliceVar(msg string, obj types.Object) error {
 	fset := token.NewFileSet()
-	buf := newBuffer()
-	printer.Fprint(buf.buf, fset, obj.String())
+	buf := util.NewBuffer()
+	printer.Fprint(buf, fset, obj.String())
 
 	return ziplineError{
 		msg:  msg,
-		hint: buf.buf.String(),
+		hint: buf.String(),
 	}
 }
 

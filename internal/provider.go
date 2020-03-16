@@ -4,7 +4,6 @@ import (
 	"errors"
 	"go/ast"
 	"go/types"
-	"strings"
 
 	"github.com/bilal-bhatti/zipline/internal/tokens"
 	"golang.org/x/tools/go/packages"
@@ -40,7 +39,7 @@ func (p provider) typeTokenFor(vt *tokens.TypeToken) (*tokens.TypeToken, bool) {
 	return v, ok
 }
 
-func (p provider) provideWithReturns(vt *tokens.TypeToken, retNames []string) (*funcToken, error) {
+func (p provider) provideWithReturns(vt *tokens.TypeToken, retNames []string) (*tokens.FuncToken, error) {
 	for _, pkg := range p.pkgs {
 		info := pkg.TypesInfo
 		trace("scanning %s for type %s", pkg.PkgPath, vt.Signature)
@@ -64,8 +63,8 @@ func (p provider) provideWithReturns(vt *tokens.TypeToken, retNames []string) (*
 			args := []*tokens.TypeToken{}
 
 			for i := 0; i < sig.Params().Len(); i++ {
-				param := sig.Params().At(i)
-				if arg, ok := p.known[strings.TrimPrefix(param.Type().String(), "*")]; !ok {
+				param := tokens.NewTypeToken(sig.Params().At(i).Type().String(), "")
+				if arg, ok := p.typeTokenFor(param); !ok {
 					args = args[:0]
 					continue
 				} else {
@@ -92,10 +91,10 @@ func (p provider) provideWithReturns(vt *tokens.TypeToken, retNames []string) (*
 					}
 
 					trace("found a match for %s with %s : %s", vt.Signature, pf.Name(), sig.String())
-					return &funcToken{
-							signature: pf.FullName(),
-							args:      args,
-							rets:      rets,
+					return &tokens.FuncToken{
+							Signature: pf.FullName(),
+							Args:      args,
+							Rets:      rets,
 						},
 						nil
 				}

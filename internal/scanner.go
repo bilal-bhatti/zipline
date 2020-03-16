@@ -56,7 +56,7 @@ func (s scanner) scan() (map[string]*typeSpecWithPkg, map[string]*template, []*p
 						if zid, ok := field.Type.(*ast.Ident); ok {
 							if zid.String() == ZiplineTemplate {
 								// TODO: func must contain a single return statement,
-								// returning a func literal, add this check
+								// returning a func literal, WriteBuffer this check
 								templates[funcD.Name.String()] = newTemplate(funcD)
 
 								// this is a ZiplineTemplate method, used as a template

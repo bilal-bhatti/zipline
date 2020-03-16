@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"github.com/bilal-bhatti/zipline/internal/util"
 	"io/ioutil"
 	"log"
 	"sort"
@@ -12,24 +13,24 @@ import (
 )
 
 func (s swagger) markdown() error {
-	buf := newBuffer()
+	buf := util.NewBuffer()
 
-	buf.ws("# API Summary\n\n")
+	buf.Sprintf("# API Summary\n\n")
 
-	buf.ws("```\n")
-	buf.ws("Version:     %s\n", s.swag.SwaggerProps.Info.Version)
-	buf.ws("Title:       %s\n", s.swag.SwaggerProps.Info.Title)
-	buf.ws("Description: %s\n", s.swag.SwaggerProps.Info.Description)
-	buf.ws("Host:        %s\n", s.swag.Host)
-	buf.ws("BasePath:    %s\n", s.swag.BasePath)
-	buf.ws("Consumes:    %s\n", s.swag.Consumes)
-	buf.ws("Produces:    %s\n", s.swag.Produces)
-	buf.ws("```\n\n")
+	buf.Sprintf("```\n")
+	buf.Sprintf("Version:     %s\n", s.swag.SwaggerProps.Info.Version)
+	buf.Sprintf("Title:       %s\n", s.swag.SwaggerProps.Info.Title)
+	buf.Sprintf("Description: %s\n", s.swag.SwaggerProps.Info.Description)
+	buf.Sprintf("Host:        %s\n", s.swag.Host)
+	buf.Sprintf("BasePath:    %s\n", s.swag.BasePath)
+	buf.Sprintf("Consumes:    %s\n", s.swag.Consumes)
+	buf.Sprintf("Produces:    %s\n", s.swag.Produces)
+	buf.Sprintf("```\n\n")
 
 	md := func(m, path string, op *spec.Operation) {
-		buf.ws("<details>\n")
-		buf.ws("<summary>%s: %s</summary>\n", path, m)
-		buf.ws("\n\n```\n%s\n```\n\n", op.Summary)
+		buf.Sprintf("<details>\n")
+		buf.Sprintf("<summary>%s: %s</summary>\n", path, m)
+		buf.Sprintf("\n\n```\n%s\n```\n\n", op.Summary)
 
 		params := func(op *spec.Operation) ([]spec.Parameter, []spec.Parameter, []spec.Parameter) {
 			path, query, body := []spec.Parameter{}, []spec.Parameter{}, []spec.Parameter{}
@@ -53,51 +54,51 @@ func (s swagger) markdown() error {
 			path, query, body := params(op)
 
 			if len(path) > 0 {
-				buf.ws("`path parameters`\n")
+				buf.Sprintf("`path parameters`\n")
 				for _, p := range path {
 					if p.In == "path" {
-						buf.ws("- name: `%s`, type: `%s`", p.Name, p.Type)
+						buf.Sprintf("- name: `%s`, type: `%s`", p.Name, p.Type)
 						if p.Format != "" {
-							buf.ws("format: `%s`", p.Format)
+							buf.Sprintf("format: `%s`", p.Format)
 						}
-						buf.ws("\n")
+						buf.Sprintf("\n")
 					}
 				}
-				buf.ws("\n")
+				buf.Sprintf("\n")
 			}
 
 			if len(query) > 0 {
-				buf.ws("`query parameters`\n")
+				buf.Sprintf("`query parameters`\n")
 				for _, p := range query {
 					if p.In == "query" {
-						buf.ws("- name: `%s`, type: `%s`", p.Name, p.Type)
+						buf.Sprintf("- name: `%s`, type: `%s`", p.Name, p.Type)
 						if p.Format != "" {
-							buf.ws(", format: `%s`", p.Format)
+							buf.Sprintf(", format: `%s`", p.Format)
 						}
-						buf.ws("\n")
+						buf.Sprintf("\n")
 					}
 				}
-				buf.ws("\n")
+				buf.Sprintf("\n")
 			}
 
 			if len(body) > 0 {
-				buf.ws("`body parameter`\n")
+				buf.Sprintf("`body parameter`\n")
 
 				for _, p := range body {
 					if p.In == "body" {
 						if p.Schema != nil {
 							path := strings.Split(p.Schema.Ref.GetPointer().String(), "/")[2]
 							def := s.swag.Definitions[path]
-							buf.ws("- name: `%s`, type: `%s`\n", p.Name, path)
+							buf.Sprintf("- name: `%s`, type: `%s`\n", p.Name, path)
 							obj(1, def, buf)
 						}
 					}
 				}
 			}
 		}
-		buf.ws("\n")
+		buf.Sprintf("\n")
 
-		buf.ws("`responses`\n")
+		buf.Sprintf("`responses`\n")
 		if op.Responses != nil {
 			for code, r := range op.Responses.StatusCodeResponses {
 				if r.ResponseProps.Schema != nil {
@@ -117,10 +118,10 @@ func (s swagger) markdown() error {
 					def := s.swag.Definitions[ref]
 
 					if r.ResponseProps.Schema.Items != nil {
-						buf.ws("- code: `%d`, type: `[]%s`\n", code, ref)
+						buf.Sprintf("- code: `%d`, type: `[]%s`\n", code, ref)
 						obj(1, def, buf)
 					} else {
-						buf.ws("- code: `%d`, type: `%s`\n", code, ref)
+						buf.Sprintf("- code: `%d`, type: `%s`\n", code, ref)
 						obj(1, def, buf)
 					}
 				}
@@ -136,11 +137,11 @@ func (s swagger) markdown() error {
 				}
 
 				def := s.swag.Definitions[ref]
-				buf.ws("- `default`, type: `%s`\n", ref)
+				buf.Sprintf("- `default`, type: `%s`\n", ref)
 				obj(1, def, buf)
 			}
 		}
-		buf.ws("</details>\n\n")
+		buf.Sprintf("</details>\n\n")
 	}
 
 	// sort keys so we can have predictable output
@@ -172,7 +173,7 @@ func (s swagger) markdown() error {
 		}
 	}
 
-	err := ioutil.WriteFile(Markdown, buf.buf.Bytes(), 0644)
+	err := ioutil.WriteFile(Markdown, buf.Bytes(), 0644)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("failed to write file %s", Markdown))
 	}
@@ -182,7 +183,7 @@ func (s swagger) markdown() error {
 	return nil
 }
 
-func obj(lvl int, s spec.Schema, buf *buffer) {
+func obj(lvl int, s spec.Schema, buf *util.Buffer) {
 	// sort keys so we can have predictable output
 	keys := make([]string, len(s.Properties))
 	i := 0
@@ -195,17 +196,17 @@ func obj(lvl int, s spec.Schema, buf *buffer) {
 	for _, key := range keys {
 		v := s.Properties[key]
 		if v.Type.Contains("object") {
-			buf.ws("%s- name: `%s`, type: `%s`\n", strings.Repeat("\t", lvl), key, v.Type[0])
+			buf.Sprintf("%s- name: `%s`, type: `%s`\n", strings.Repeat("\t", lvl), key, v.Type[0])
 			obj(lvl+1, v, buf)
 		} else if v.Type.Contains("array") {
-			buf.ws("%s- name: `%s`, type: `[]%s`\n", strings.Repeat("\t", lvl), key, v.Type[0])
+			buf.Sprintf("%s- name: `%s`, type: `[]%s`\n", strings.Repeat("\t", lvl), key, v.Type[0])
 			obj(lvl+1, *v.Items.Schema, buf)
 		} else {
-			buf.ws("%s- name: `%s`, type: `%s`", strings.Repeat("\t", lvl), key, v.Type[0])
+			buf.Sprintf("%s- name: `%s`, type: `%s`", strings.Repeat("\t", lvl), key, v.Type[0])
 			if v.Format != "" {
-				buf.ws(", format: `%s`", v.Format)
+				buf.Sprintf(", format: `%s`", v.Format)
 			}
-			buf.ws("\n")
+			buf.Sprintf("\n")
 		}
 	}
 }

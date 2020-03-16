@@ -36,14 +36,6 @@ func NewTypeToken(signature, name string) *TypeToken {
 	return tt
 }
 
-func (tt *TypeToken) TypeTokenAs(as *TypeToken) *TypeToken {
-	if tt.FullSignature == as.FullSignature {
-		return tt
-	}
-
-	return NewTypeToken(as.FullSignature, as.Name)
-}
-
 func (tt TypeToken) SameType(t types.Type, strict bool) bool {
 	if strict {
 		return tt.FullSignature == t.String()
@@ -78,6 +70,10 @@ func (tt TypeToken) NewInstance(importingPkg string) string {
 	b.WriteString("{}")
 
 	return b.String()
+}
+
+func (tt TypeToken) ArgDeclaration(importingPkg string) string {
+	return fmt.Sprintf("%s %s", tt.VarName(), tt.DeclSignature(importingPkg))
 }
 
 func (tt TypeToken) DeclSignature(importingPkg string) string {

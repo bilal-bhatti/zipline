@@ -1,10 +1,8 @@
 package internal
 
 import (
-	"fmt"
 	"go/ast"
 	"go/types"
-	"strings"
 
 	"github.com/bilal-bhatti/zipline/internal/tokens"
 	"golang.org/x/tools/go/packages"
@@ -39,13 +37,4 @@ type (
 
 func (b binding) id() string {
 	return b.handler.id
-}
-
-func (b binding) boundParamsList(importingPkg string) string {
-	params := []string{}
-	for _, p := range b.boundParams {
-		params = append(params, fmt.Sprintf("%s %s", p.VarName(), p.DeclSignature(importingPkg)))
-	}
-
-	return strings.Join(params, ",")
 }
