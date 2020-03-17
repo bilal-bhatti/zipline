@@ -22,6 +22,7 @@
       "post": {
         "description": "Create a new contact request entity.",
         "summary": "Create a new contact request entity.",
+        "operationId": "ContactsServiceCreate",
         "parameters": [
           {
             "description": "Contact request model",
@@ -51,6 +52,7 @@
       "delete": {
         "description": "DeleteBulk contact by id",
         "summary": "DeleteBulk contact by id",
+        "operationId": "ContactsServiceDeleteBulk",
         "parameters": [
           {
             "type": "string",
@@ -76,6 +78,7 @@
       "get": {
         "description": "GetOne contact by id",
         "summary": "GetOne contact by id",
+        "operationId": "ContactsServiceGetOne",
         "parameters": [
           {
             "type": "integer",
@@ -102,6 +105,7 @@
       "put": {
         "description": "Replace a contact entity completely.",
         "summary": "Replace a contact entity completely.",
+        "operationId": "ContactsServiceReplace",
         "parameters": [
           {
             "type": "integer",
@@ -137,6 +141,7 @@
       "post": {
         "description": "Update a contact entity with provided data.",
         "summary": "Update a contact entity with provided data.",
+        "operationId": "ContactsServiceUpdate",
         "parameters": [
           {
             "type": "integer",
@@ -174,6 +179,7 @@
       "get": {
         "description": "Get contacts list by date",
         "summary": "Get contacts list by date",
+        "operationId": "ContactsServiceGetByDate",
         "parameters": [
           {
             "type": "string",
@@ -214,6 +220,7 @@
       "post": {
         "description": "Create a new doodad entity.",
         "summary": "Create a new doodad entity.",
+        "operationId": "DoodadsServiceCreate",
         "parameters": [
           {
             "description": "ThingRequest model",
@@ -245,6 +252,7 @@
       "get": {
         "description": "Echo returns body with 'i's replaced with 'o's",
         "summary": "Echo returns body with 'i's replaced with 'o's",
+        "operationId": "Echo",
         "parameters": [
           {
             "type": "string",
@@ -273,6 +281,7 @@
       "post": {
         "description": "Ping returns body with 'i's replaced with 'o's",
         "summary": "Ping returns body with 'i's replaced with 'o's",
+        "operationId": "Ping",
         "parameters": [
           {
             "name": "body",
@@ -303,6 +312,7 @@
       "get": {
         "description": "Get things by date range\n\n@from `format:\"date-time,2006-01-02\"` date should be in Go time format\n@to   `format:\"date-time,2006-01-02\"` date should be in Go time format",
         "summary": "Get things by date range\n\n@from `format:\"date-time,2006-01-02\"` date should be in Go time format\n@to   `format:\"date-time,2006-01-02\"` date should be in Go time format",
+        "operationId": "ThingsServiceGetByDateRange",
         "parameters": [
           {
             "type": "string",
@@ -337,6 +347,7 @@
       "post": {
         "description": "Create thing",
         "summary": "Create thing",
+        "operationId": "ThingsServiceCreate",
         "parameters": [
           {
             "description": "ThingRequest model",
@@ -368,6 +379,7 @@
       "get": {
         "description": "Get things by category and search query",
         "summary": "Get things by category and search query",
+        "operationId": "ThingsServiceGetByCategoryAndQuery",
         "parameters": [
           {
             "type": "string",
@@ -402,6 +414,7 @@
       "delete": {
         "description": "Delete thing by id",
         "summary": "Delete thing by id",
+        "operationId": "ThingsServiceDelete",
         "parameters": [
           {
             "type": "integer",
