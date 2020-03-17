@@ -24,7 +24,7 @@ func (t template) returnType() string {
 		}
 		return retType + rt.Sel.String()
 	}
-	return "http.HandlerFunck"
+	return "http.HandlerFunck" // TODO: fix
 }
 
 func (t template) funcSuffix() string {
@@ -33,5 +33,5 @@ func (t template) funcSuffix() string {
 	case *ast.SelectorExpr:
 		return rt.Sel.String()
 	}
-	return "HandlerFunck"
+	return "HandlerFunck" // TODO: fix
 }

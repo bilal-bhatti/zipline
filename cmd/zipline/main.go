@@ -4,9 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/bilal-bhatti/zipline/internal/debug"
 	"log"
 	"os"
+
+	"github.com/bilal-bhatti/zipline/internal/debug"
 
 	"github.com/bilal-bhatti/zipline/internal"
 	"github.com/google/subcommands"
@@ -50,6 +51,7 @@ func (*defaultCmd) Usage() string {
 	Generates bindings_gen.go for given packages.
 	If no packages provided, defaults to ".".
 	example: "zipline gen ./..."
+	example: "zipline gen -d ./..."
   `
 }
 
