@@ -13,6 +13,7 @@ import (
 
 	"github.com/bilal-bhatti/zipline/example/connectors"
 	"github.com/bilal-bhatti/zipline/example/models"
+	"github.com/bilal-bhatti/zipline/example/render"
 	"github.com/bilal-bhatti/zipline/example/services"
 	"github.com/go-chi/chi"
 )
@@ -61,8 +62,7 @@ func ContactsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 		// initialize application handler
 		handler, err := services.InitContactsService()
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
@@ -73,25 +73,17 @@ func ContactsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 		contactRequest := &models.ContactRequest{}
 		err = json.NewDecoder(r.Body).Decode(contactRequest)
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			render.Error(w, render.NewBadRequestError("failed to parse request body"))
 			return
 		}
 
 		// execute application handler
 		response, err := handler.Create(ctx, contactRequest)
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
-		err = json.NewEncoder(w).Encode(response)
-		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		render.Response(w, response)
 	}
 }
 
@@ -112,8 +104,7 @@ func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 		// initialize application handler
 		handler, err := services.InitContactsService()
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
@@ -123,25 +114,17 @@ func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 		// resolve parameter [id] with [Path] template
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			render.Error(w, render.NewBadRequestError("failed to parse parameter"))
 			return
 		}
 
 		// execute application handler
 		response, err := handler.GetOne(ctx, id)
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
-		err = json.NewEncoder(w).Encode(response)
-		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		render.Response(w, response)
 	}
 }
 
@@ -162,8 +145,7 @@ func ContactsServiceGetByDateHandlerFunc() http.HandlerFunc {
 		// initialize application handler
 		handler, err := services.InitContactsService()
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
@@ -182,18 +164,10 @@ func ContactsServiceGetByDateHandlerFunc() http.HandlerFunc {
 		// execute application handler
 		response, err := handler.GetByDate(ctx, month, day, year)
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
-		err = json.NewEncoder(w).Encode(response)
-		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		render.Response(w, response)
 	}
 }
 
@@ -214,8 +188,7 @@ func ContactsServiceUpdateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 		// initialize application handler
 		handler, err := services.InitContactsService()
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
@@ -225,7 +198,7 @@ func ContactsServiceUpdateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 		// resolve parameter [id] with [Path] template
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			render.Error(w, render.NewBadRequestError("failed to parse parameter"))
 			return
 		}
 
@@ -233,25 +206,17 @@ func ContactsServiceUpdateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 		contactRequest := models.ContactRequest{}
 		err = json.NewDecoder(r.Body).Decode(&contactRequest)
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			render.Error(w, render.NewBadRequestError("failed to parse request body"))
 			return
 		}
 
 		// execute application handler
 		response, err := handler.Update(ctx, id, contactRequest)
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
-		err = json.NewEncoder(w).Encode(response)
-		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		render.Response(w, response)
 	}
 }
 
@@ -272,8 +237,7 @@ func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
 		// initialize application handler
 		handler, err := services.InitContactsService()
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
@@ -283,7 +247,7 @@ func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
 		// resolve parameter [id] with [Path] template
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			render.Error(w, render.NewBadRequestError("failed to parse parameter"))
 			return
 		}
 
@@ -291,25 +255,17 @@ func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
 		contactRequest := models.ContactRequest{}
 		err = json.NewDecoder(r.Body).Decode(&contactRequest)
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			render.Error(w, render.NewBadRequestError("failed to parse request body"))
 			return
 		}
 
 		// execute application handler
 		response, err := handler.Replace(ctx, id, contactRequest)
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
-		err = json.NewEncoder(w).Encode(response)
-		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		render.Response(w, response)
 	}
 }
 
@@ -330,8 +286,7 @@ func ContactsServiceDeleteBulkHandlerFunc() http.HandlerFunc {
 		// initialize application handler
 		handler, err := services.InitContactsService()
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
@@ -344,8 +299,7 @@ func ContactsServiceDeleteBulkHandlerFunc() http.HandlerFunc {
 		// execute application handler
 		err = handler.DeleteBulk(ctx, ids)
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)
@@ -369,8 +323,7 @@ func ThingsServiceCreateHandlerFunc() http.HandlerFunc {
 		// initialize application handler
 		handler, err := InitThingsService()
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
@@ -381,25 +334,17 @@ func ThingsServiceCreateHandlerFunc() http.HandlerFunc {
 		req := models.ThingRequest{}
 		err = json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			render.Error(w, render.NewBadRequestError("failed to parse request body"))
 			return
 		}
 
 		// execute application handler
 		response, err := handler.Create(ctxn, req)
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
-		err = json.NewEncoder(w).Encode(response)
-		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		render.Response(w, response)
 	}
 }
 
@@ -420,8 +365,7 @@ func ThingsServiceGetByCategoryAndQueryHandlerFunc() http.HandlerFunc {
 		// initialize application handler
 		handler, err := InitThingsService()
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
@@ -437,18 +381,10 @@ func ThingsServiceGetByCategoryAndQueryHandlerFunc() http.HandlerFunc {
 		// execute application handler
 		response, err := handler.GetByCategoryAndQuery(ctx, category, q)
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
-		err = json.NewEncoder(w).Encode(response)
-		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		render.Response(w, response)
 	}
 }
 
@@ -472,8 +408,7 @@ func ThingsServiceGetByDateRangeHandlerFunc() http.HandlerFunc {
 		// initialize application handler
 		handler, err := InitThingsService()
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
@@ -483,32 +418,24 @@ func ThingsServiceGetByDateRangeHandlerFunc() http.HandlerFunc {
 		// resolve parameter [from] with [Query] template
 		from, err := ParseTime(r.URL.Query().Get("from"), "date-time,2006-01-02")
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			render.Error(w, render.NewBadRequestError("failed to parse parameter"))
 			return
 		}
 
 		// resolve parameter [to] with [Query] template
 		to, err := ParseTime(r.URL.Query().Get("to"), "date-time,2006-01-02")
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			render.Error(w, render.NewBadRequestError("failed to parse parameter"))
 			return
 		}
 
 		// execute application handler
 		response, err := handler.GetByDateRange(ctx, from, to)
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
-		err = json.NewEncoder(w).Encode(response)
-		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		render.Response(w, response)
 	}
 }
 
@@ -529,23 +456,21 @@ func ThingsServiceDeleteHandlerFunc() http.HandlerFunc {
 		// initialize application handler
 		handler, err := InitThingsService()
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
 		// resolve parameter [id] with [Path] template
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			render.Error(w, render.NewBadRequestError("failed to parse parameter"))
 			return
 		}
 
 		// execute application handler
 		err = handler.Delete(id)
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)
@@ -566,8 +491,7 @@ func EchoHandlerFunc(env *connectors.Env) http.HandlerFunc {
 			log.Printf("It took %s to process request\n", duration.String())
 		}()
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
@@ -580,18 +504,10 @@ func EchoHandlerFunc(env *connectors.Env) http.HandlerFunc {
 		// execute application handler
 		response, err := Echo(ctx, input)
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
-		err = json.NewEncoder(w).Encode(response)
-		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		render.Response(w, response)
 	}
 }
 
@@ -612,8 +528,7 @@ func DoodadsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 		// initialize application handler
 		handler, err := services.NewDoodadsService(env)
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
@@ -624,25 +539,17 @@ func DoodadsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 		thing := &models.ThingRequest{}
 		err = json.NewDecoder(r.Body).Decode(thing)
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			render.Error(w, render.NewBadRequestError("failed to parse request body"))
 			return
 		}
 
 		// execute application handler
 		response, err := handler.Create(ctx, r, thing)
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
-		err = json.NewEncoder(w).Encode(response)
-		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		render.Response(w, response)
 	}
 }
 
@@ -660,8 +567,7 @@ func PingHandlerFunc(env *connectors.Env) http.HandlerFunc {
 			log.Printf("It took %s to process request\n", duration.String())
 		}()
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
@@ -672,24 +578,16 @@ func PingHandlerFunc(env *connectors.Env) http.HandlerFunc {
 		pingRequest := services.PingRequest{}
 		err = json.NewDecoder(r.Body).Decode(&pingRequest)
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			render.Error(w, render.NewBadRequestError("failed to parse request body"))
 			return
 		}
 
 		// execute application handler
 		response, err := services.Ping(ctx, env, pingRequest)
 		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
-		err = json.NewEncoder(w).Encode(response)
-		if err != nil {
-
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		render.Response(w, response)
 	}
 }

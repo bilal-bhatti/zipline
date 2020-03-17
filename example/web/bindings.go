@@ -11,6 +11,7 @@ import (
 	"net/http"
 
 	"github.com/bilal-bhatti/zipline/example/connectors"
+	"github.com/bilal-bhatti/zipline/example/render"
 	"github.com/bilal-bhatti/zipline/example/services"
 	"github.com/go-chi/chi"
 )
@@ -59,8 +60,7 @@ func (z ZiplineTemplate) Path(kind string, w http.ResponseWriter, r *http.Reques
 	case "int":
 		name, err := strconv.Atoi(chi.URLParam(r, "name"))
 		if err != nil {
-			// invalid request error
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			render.Error(w, render.NewBadRequestError("failed to parse parameter"))
 			return
 		}
 		z.DevNull(name)
@@ -78,16 +78,14 @@ func (z ZiplineTemplate) Query(kind string, w http.ResponseWriter, r *http.Reque
 	case "int":
 		name, err := strconv.Atoi(r.URL.Query().Get("name"))
 		if err != nil {
-			// invalid request error
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			render.Error(w, render.NewBadRequestError("failed to parse parameter"))
 			return
 		}
 		z.DevNull(name)
 	case "*time.Time":
 		name, err := ParseTime(r.URL.Query().Get("name"), "format")
 		if err != nil {
-			// invalid request error
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			render.Error(w, render.NewBadRequestError("failed to parse parameter"))
 			return
 		}
 		z.DevNull(name)
@@ -99,8 +97,7 @@ func (z ZiplineTemplate) Body(w http.ResponseWriter, r *http.Request) {
 	name := &ZiplineTemplate{}
 	err = json.NewDecoder(r.Body).Decode(&name)
 	if err != nil {
-		// invalid request error
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		render.Error(w, render.NewBadRequestError("failed to parse request body"))
 		return
 	}
 }
@@ -117,27 +114,17 @@ func (z ZiplineTemplate) Post(i interface{}, p ...interface{}) http.HandlerFunc 
 
 		handler, err := z.Resolve()
 		if err != nil {
-			// write error response
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
 		response, err := handler.ReturnResponseAndError()
 		if err != nil {
-			// write error response
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
 
-		err = json.NewEncoder(w).Encode(response)
-		if err != nil {
-			// write error response
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		render.Response(w, response)
 	}
 }
 
@@ -153,27 +140,17 @@ func (z ZiplineTemplate) Get(i interface{}, p ...interface{}) http.HandlerFunc {
 
 		handler, err := z.Resolve()
 		if err != nil {
-			// write error response
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
 		response, err := handler.ReturnResponseAndError()
 		if err != nil {
-			// write error response
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
 
-		err = json.NewEncoder(w).Encode(response)
-		if err != nil {
-			// write error response
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		render.Response(w, response)
 	}
 }
 
@@ -189,16 +166,13 @@ func (z ZiplineTemplate) Delete(i interface{}, params ...interface{}) http.Handl
 
 		handler, err := z.Resolve()
 		if err != nil {
-			// write error response
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
 		err = handler.ReturnError()
-
 		if err != nil {
-			// write error response
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
 
@@ -218,26 +192,16 @@ func (z ZiplineTemplate) Put(i interface{}, p ...interface{}) http.HandlerFunc {
 
 		handler, err := z.Resolve()
 		if err != nil {
-			// write error response
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
 			return
 		}
 
 		response, err := handler.ReturnResponseAndError()
 		if err != nil {
-			// write error response
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			render.Error(w, render.NewInternalServerError("application handler failed"))
 			return
 		}
 
-		err = json.NewEncoder(w).Encode(response)
-		if err != nil {
-			// write error response
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		render.Response(w, response)
 	}
 }
