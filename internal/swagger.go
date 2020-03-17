@@ -83,6 +83,7 @@ func (s swagger) generate(packets []*packet) error {
 			op := &spec.Operation{
 				OperationProps: spec.OperationProps{
 					Description: "Route description",
+					ID:          b.id(),
 					Responses: &spec.Responses{
 						ResponsesProps: spec.ResponsesProps{
 							StatusCodeResponses: make(map[int]spec.Response),
