@@ -3,7 +3,6 @@ package internal
 import (
 	"bytes"
 	"fmt"
-	"github.com/bilal-bhatti/zipline/internal/debug"
 	"go/ast"
 	"go/printer"
 	"go/types"
@@ -13,6 +12,8 @@ import (
 	"path"
 	"reflect"
 	"strings"
+
+	"github.com/bilal-bhatti/zipline/internal/debug"
 
 	"github.com/bilal-bhatti/zipline/internal/util"
 
@@ -202,7 +203,7 @@ func (z *Zipline) prepare(packet *packet) error {
 					}
 
 					// rewrite ast to replace zipline spec
-					expType.Args[i] = newCallExpression(binding, expType.Args[i])
+					expType.Args[i] = z.newCallExpression(binding, expType.Args[i])
 					packet.bindings = append(packet.bindings, binding)
 				}
 			}
@@ -226,10 +227,12 @@ func (z *Zipline) processStatement(pkg *packages.Package, stmt *ast.ExprStmt) (*
 	return binding, nil
 }
 
-func newCallExpression(binding *binding, arg ast.Expr) *ast.CallExpr {
+func (z *Zipline) newCallExpression(binding *binding, arg ast.Expr) *ast.CallExpr {
+	template := z.templates[binding.template]
+
 	ce := &ast.CallExpr{
 		Fun: &ast.Ident{
-			Name: binding.id() + "HandlerFunc", // TODO: use the template return type
+			Name: binding.id() + template.funcSuffix(),
 		},
 	}
 
