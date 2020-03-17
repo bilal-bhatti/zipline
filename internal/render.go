@@ -3,14 +3,15 @@ package internal
 import (
 	"errors"
 	"fmt"
-	"github.com/bilal-bhatti/zipline/internal/debug"
-	"github.com/bilal-bhatti/zipline/internal/util"
 	"go/ast"
 	"go/format"
 	"go/printer"
 	"go/token"
 	"io"
 	"strings"
+
+	"github.com/bilal-bhatti/zipline/internal/debug"
+	"github.com/bilal-bhatti/zipline/internal/util"
 
 	"github.com/bilal-bhatti/zipline/internal/tokens"
 	"github.com/go-toolsmith/astcopy"
@@ -202,7 +203,7 @@ func (r *renderer) resolve(pkg *packages.Package, b *binding, assn *ast.AssignSt
 			return newHandlerNotResolvedError(err.Error(), b, rets)
 		}
 		buf.Sprintf("\n// initialize application handler\n")
-		buf.Sprintf(xp.Call(pkg.PkgPath) + "\n")
+		buf.Sprintf(xp.Call(pkg.PkgPath, assn.Tok) + "\n")
 		r.imp(xp.Pkg())
 	}
 
@@ -211,55 +212,63 @@ func (r *renderer) resolve(pkg *packages.Package, b *binding, assn *ast.AssignSt
 
 func (r *renderer) expand(pkg *packages.Package, b *binding, assn *ast.AssignStmt, buf *util.Buffer) error {
 	// resolve/print app handler dependencies and retain their var names
-	err := r.deps(pkg, b, buf)
+	err := r.parameters(pkg, b, buf)
 	if err != nil {
 		return err
 	}
 
-	rets := []string{}
-	// extract return names from the marker call
-	for _, lhs := range assn.Lhs {
-		rets = append(rets, lhs.(*ast.Ident).String())
+	if len(assn.Lhs) != len(b.handler.returns) {
+		return newCallError("application handler returns mismatch", pkg, b, assn)
+	}
+
+	rets := make([]*tokens.TypeToken, len(assn.Lhs))
+
+	// extract return names from the marker call and preserve names
+	for idx := range assn.Lhs {
+		lhs := assn.Lhs[idx]
+		ret := b.handler.returns[idx]
+
+		rets[idx] = tokens.NewTypeToken(ret.FullSignature, lhs.(*ast.Ident).String())
 	}
 
 	buf.Sprintf("// execute application handler\n")
 
-	buf.Sprintf(strings.Join(rets, ","))
-	buf.Sprintf(" %s ", assn.Tok.String())
+	// invoked app handler function
+	appFunc := tokens.FuncToken{
+		Rets: rets,
+		Args: b.handler.params,
+	}
 
 	if b.handler.x != nil {
 		// a struct method is the handler
-		funk, ok := r.provider.typeTokenFor(b.handler.x)
+		svcStruct, ok := r.provider.typeTokenFor(b.handler.x)
 		if !ok {
 			return errors.New("dependencies not satisfied")
 		}
 
-		buf.Sprintf("%s.%s", funk.VarName(), b.handler.sel)
+		// signature == handler.Something
+		appFunc.Signature = fmt.Sprintf("%s.%s", svcStruct.VarName(), b.handler.sel)
 	} else {
 		// resolve package name for plain function handler
-		ft := tokens.NewTypeToken(fmt.Sprintf("%s.%s", b.handler.pkg, b.handler.sel), b.handler.sel)
-
-		buf.Sprintf("%s", ft.SimpleSignature(pkg.PkgPath))
+		// signature == packagepath.Something
+		appFunc.Signature = fmt.Sprintf("%s.%s", b.handler.pkg, b.handler.sel)
 	}
 
 	// call handler with params
-	params := tokens.Join(b.handler.params, func(t *tokens.TypeToken) string {
-		return t.VarName()
-	})
-	buf.Sprintf("(%s)\n", params)
+	buf.Sprintf("%s\n", appFunc.Call(pkg.PkgPath, assn.Tok))
 
 	return nil
 }
 
-func (r *renderer) deps(pkg *packages.Package, b *binding, buf *util.Buffer) error {
+func (r *renderer) parameters(pkg *packages.Package, b *binding, buf *util.Buffer) error {
 	for i := 0; i < len(b.handler.params); i++ {
 		p := b.handler.params[i]
 
 		if len(b.paramTemplates) > i {
 			tn := b.paramTemplates[i]
 			template := r.templates[tn]
-			debug.Trace("using template %s for type %s\n", tn, p.Signature)
 			if template != nil {
+				debug.Trace("using template %s for (%s %s)\n", tn, p.VarName(), p.FullSignature)
 				buf.Sprintf("\n// resolve parameter [%s] with [%s] template\n", p.VarName(), tn)
 				switch tn {
 				case "Query", "Path":
@@ -284,17 +293,20 @@ func (r *renderer) deps(pkg *packages.Package, b *binding, buf *util.Buffer) err
 			}
 
 			if tn == ZiplineTemplateResolve {
+				debug.Trace("find a provider function for (%s %s)\n", p.VarName(), p.FullSignature)
 				ft, err := r.provider.provideWithReturns(p, []string{p.VarName()})
 				if err != nil {
 					// check if type is already known
 					if _, ok := r.provider.typeTokenFor(p); ok {
+						debug.Trace("known variable (%s %s)\n", p.VarName(), p.FullSignature)
+
 						continue
 					}
 					return newParameterProviderError("failed to resolve handler parameters", pkg, b, p)
 				}
 
 				buf.Sprintf("\n// resolve parameter [%s] through a provider\n", p.VarName())
-				buf.Sprintf(ft.Call(pkg.PkgPath) + "\n")
+				buf.Sprintf(ft.Call(pkg.PkgPath, token.DEFINE) + "\n")
 
 				continue
 			}
@@ -369,21 +381,21 @@ func (r *renderer) renderGenericTemplate(pkg *packages.Package, t *template, b *
 
 func (r *renderer) rename(old, format string, pkg *packages.Package, b *binding, new *tokens.TypeToken, body []ast.Stmt) *util.Buffer {
 	renamer := func(n ast.Node) bool {
-		switch nt := n.(type) {
+		switch n := n.(type) {
 		case *ast.BasicLit:
-			if nt.Value == fmt.Sprintf("\"%s\"", old) {
-				nt.Value = fmt.Sprintf("\"%s\"", new.Name)
+			if n.Value == fmt.Sprintf("\"%s\"", old) {
+				n.Value = fmt.Sprintf("\"%s\"", new.Name)
 			}
-			if format != "" && nt.Value == fmt.Sprintf("\"format\"") {
-				nt.Value = fmt.Sprintf("\"%s\"", format)
+			if format != "" && n.Value == fmt.Sprintf("\"format\"") {
+				n.Value = fmt.Sprintf("\"%s\"", format)
 			}
 		case *ast.Ident:
-			if nt.Name == old {
-				nt.Name = new.Name
+			if n.Name == old {
+				n.Name = new.Name
 			}
 		case *ast.CallExpr:
-			for i := 0; i < len(nt.Args); i++ {
-				arg := nt.Args[i]
+			for i := 0; i < len(n.Args); i++ {
+				arg := n.Args[i]
 				ue, ok := arg.(*ast.UnaryExpr)
 				if !ok {
 					return true
@@ -398,7 +410,7 @@ func (r *renderer) rename(old, format string, pkg *packages.Package, b *binding,
 					if new.IsPtr {
 						// param was declared as a pointer
 						// replace unary expression with ident
-						nt.Args[i] = ast.NewIdent(new.Name)
+						n.Args[i] = ast.NewIdent(new.Name)
 					}
 				}
 			}
@@ -410,12 +422,12 @@ func (r *renderer) rename(old, format string, pkg *packages.Package, b *binding,
 	buf := util.NewBuffer()
 
 	for _, stmt := range body {
-		sc := astcopy.Stmt(stmt)
+		stmtCopy := astcopy.Stmt(stmt)
 
-		switch st := stmt.(type) {
+		switch stmt := stmt.(type) {
 		case *ast.DeclStmt:
 			// omit printing var decls that are repeated
-			gd, ok := st.Decl.(*ast.GenDecl)
+			gd, ok := stmt.Decl.(*ast.GenDecl)
 			if !ok {
 				goto Include
 			}
@@ -437,27 +449,28 @@ func (r *renderer) rename(old, format string, pkg *packages.Package, b *binding,
 				v, ok := r.provider.known[id.Name]
 				// omit if known var with same name
 				if ok && v.Name == vs.Names[0].String() {
+					debug.Trace("omitting `var %s %s` from generated code, already declared", v.Name, id.String())
 					continue
 				}
 			}
 		case *ast.AssignStmt:
-			if r.newStructValue(st) {
+			if r.newStructValue(stmt) {
 				// get new object
-				buf.Sprintf("%s := %s\n", new.VarName(), new.NewInstance(pkg.PkgPath))
+				buf.Sprintf("%s %s %s\n", new.VarName(), stmt.Tok.String(), new.NewInstance(pkg.PkgPath))
 				continue
 			}
-			ast.Inspect(sc, renamer)
+			ast.Inspect(stmtCopy, renamer)
 		case *ast.ExprStmt:
 			// filter out zipline directive
-			if r.devNull(st) {
+			if r.devNull(stmt) {
 				continue
 			}
-			ast.Inspect(sc, renamer)
+			ast.Inspect(stmtCopy, renamer)
 		default:
-			ast.Inspect(sc, renamer)
+			ast.Inspect(stmtCopy, renamer)
 		}
 	Include:
-		printer.Fprint(buf, token.NewFileSet(), sc)
+		printer.Fprint(buf, token.NewFileSet(), stmtCopy)
 		buf.Sprintf("\n")
 	}
 

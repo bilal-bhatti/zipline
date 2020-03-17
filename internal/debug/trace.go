@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"strings"
 )
 
 var Debug = false
@@ -24,6 +25,7 @@ func Trace(msg string, p ...interface{}) {
 	pc, _, line, _ := runtime.Caller(1)
 
 	caller := fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), line)
+	caller = caller[strings.LastIndex(caller, ".")+1:]
 	if len(p) == 0 {
 		log.Println(caller + " - " + msg)
 	} else {

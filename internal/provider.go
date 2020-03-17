@@ -2,9 +2,10 @@ package internal
 
 import (
 	"errors"
-	"github.com/bilal-bhatti/zipline/internal/debug"
 	"go/ast"
 	"go/types"
+
+	"github.com/bilal-bhatti/zipline/internal/debug"
 
 	"github.com/bilal-bhatti/zipline/internal/tokens"
 	"golang.org/x/tools/go/packages"
@@ -41,9 +42,10 @@ func (p provider) typeTokenFor(vt *tokens.TypeToken) (*tokens.TypeToken, bool) {
 }
 
 func (p provider) provideWithReturns(vt *tokens.TypeToken, retNames []string) (*tokens.FuncToken, error) {
+	debug.Trace("scanning packages for %s", vt.FullSignature)
+
 	for _, pkg := range p.pkgs {
 		info := pkg.TypesInfo
-		debug.Trace("scanning %s for type %s", pkg.PkgPath, vt.Signature)
 
 		for _, v := range info.Defs {
 			pf, ok := v.(*types.Func)

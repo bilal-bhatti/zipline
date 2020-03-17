@@ -1,9 +1,10 @@
 package tokens
 
 import (
-	"bytes"
-	"fmt"
+	"go/token"
 	"strings"
+
+	"github.com/bilal-bhatti/zipline/internal/util"
 )
 
 type FuncToken struct {
@@ -27,8 +28,8 @@ func (ft FuncToken) Pkg() string {
 	return pn
 }
 
-func (ft FuncToken) Call(importingPkg string) string {
-	buf := &bytes.Buffer{}
+func (ft FuncToken) Call(importingPkg string, tok token.Token) string {
+	buf := util.NewBuffer()
 
 	var fn string
 
@@ -43,17 +44,16 @@ func (ft FuncToken) Call(importingPkg string) string {
 		fn = strings.Trim(ft.Signature[idx:len(ft.Signature)], "/")
 	}
 
-	args := []string{}
-	for _, arg := range ft.Args {
-		args = append(args, arg.VarName())
-	}
+	args := Join(ft.Args, func(t *TypeToken) string {
+		return t.VarName()
+	})
 
-	rets := []string{}
-	for _, ret := range ft.Rets {
-		rets = append(rets, ret.VarName())
-	}
+	rets := Join(ft.Rets, func(t *TypeToken) string {
+		return t.VarName()
+	})
 
-	buf.WriteString(fmt.Sprintf("%s := %s(%s)", strings.Join(rets, ","), fn, strings.Join(args, ",")))
+	// tok is ASSN or DEFINE token (= or :=)
+	buf.Sprintf("%s %s %s(%s)", rets, tok.String(), fn, args)
 
 	return buf.String()
 }
