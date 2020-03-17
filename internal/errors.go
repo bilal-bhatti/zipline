@@ -67,7 +67,7 @@ func newErrorForSliceVar(msg string, obj types.Object) error {
 	}
 }
 
-func newCallError(msg string, pkg *packages.Package, b *binding, assn *ast.AssignStmt) error {
+func newHandlerCallError(msg string, pkg *packages.Package, b *binding, assn *ast.AssignStmt) error {
 	lines := newDetails(msg)
 	lines.print("returns mismatch, expected %d, encountered %d", len(b.handler.returns), len(assn.Lhs))
 	lines.print("with binding: %s", b.spec)

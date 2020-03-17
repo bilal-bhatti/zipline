@@ -218,7 +218,7 @@ func (r *renderer) expand(pkg *packages.Package, b *binding, assn *ast.AssignStm
 	}
 
 	if len(assn.Lhs) != len(b.handler.returns) {
-		return newCallError("application handler returns mismatch", pkg, b, assn)
+		return newHandlerCallError("application handler returns mismatch", pkg, b, assn)
 	}
 
 	rets := make([]*tokens.TypeToken, len(assn.Lhs))
