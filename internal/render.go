@@ -231,7 +231,7 @@ func (r *renderer) expand(pkg *packages.Package, b *binding, assn *ast.AssignStm
 		rets[idx] = tokens.NewTypeToken(ret.FullSignature, lhs.(*ast.Ident).String())
 	}
 
-	buf.Sprintf("// execute application handler\n")
+	buf.Sprintf("\n// execute application handler\n")
 
 	// invoked app handler function
 	appFunc := tokens.FuncToken{

@@ -3,6 +3,8 @@
 package web
 
 import (
+	"io"
+	"io/ioutil"
 	"log"
 	"strconv"
 	"time"
@@ -14,6 +16,7 @@ import (
 	"github.com/bilal-bhatti/zipline/example/render"
 	"github.com/bilal-bhatti/zipline/example/services"
 	"github.com/go-chi/chi"
+	"github.com/pkg/errors"
 )
 
 // NewRouter returns a router configured with endpoints and handlers.
@@ -60,7 +63,7 @@ func (z ZiplineTemplate) Path(kind string, w http.ResponseWriter, r *http.Reques
 	case "int":
 		name, err := strconv.Atoi(chi.URLParam(r, "name"))
 		if err != nil {
-			render.Error(w, render.NewBadRequestError("failed to parse parameter"))
+			render.Error(w, render.WrapBadRequestError(err, "failed to parse parameter"))
 			return
 		}
 		z.DevNull(name)
@@ -78,14 +81,14 @@ func (z ZiplineTemplate) Query(kind string, w http.ResponseWriter, r *http.Reque
 	case "int":
 		name, err := strconv.Atoi(r.URL.Query().Get("name"))
 		if err != nil {
-			render.Error(w, render.NewBadRequestError("failed to parse parameter"))
+			render.Error(w, render.WrapBadRequestError(err, "failed to parse parameter"))
 			return
 		}
 		z.DevNull(name)
 	case "*time.Time":
 		name, err := ParseTime(r.URL.Query().Get("name"), "format")
 		if err != nil {
-			render.Error(w, render.NewBadRequestError("failed to parse parameter"))
+			render.Error(w, render.WrapBadRequestError(err, "failed to parse parameter"))
 			return
 		}
 		z.DevNull(name)
@@ -94,10 +97,13 @@ func (z ZiplineTemplate) Query(kind string, w http.ResponseWriter, r *http.Reque
 
 func (z ZiplineTemplate) Body(w http.ResponseWriter, r *http.Request) {
 	var err error
-	name := &ZiplineTemplate{}
+	defer io.Copy(ioutil.Discard, r.Body)
+
+	name := ZiplineTemplate{}
 	err = json.NewDecoder(r.Body).Decode(&name)
 	if err != nil {
-		render.Error(w, render.NewBadRequestError("failed to parse request body"))
+		//render.NewBadRequestError("")
+		render.Error(w, render.WrapBadRequestError(err, "failed to parse request body"))
 		return
 	}
 }
@@ -114,13 +120,13 @@ func (z ZiplineTemplate) Post(i interface{}, p ...interface{}) http.HandlerFunc 
 
 		handler, err := z.Resolve()
 		if err != nil {
-			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
+			render.Error(w, errors.Wrap(err, "failed to resolve application handler"))
 			return
 		}
 
 		response, err := handler.ReturnResponseAndError()
 		if err != nil {
-			render.Error(w, render.NewInternalServerError("application handler failed"))
+			render.Error(w, errors.Wrap(err, "application handler failed"))
 			return
 		}
 
@@ -140,13 +146,13 @@ func (z ZiplineTemplate) Get(i interface{}, p ...interface{}) http.HandlerFunc {
 
 		handler, err := z.Resolve()
 		if err != nil {
-			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
+			render.Error(w, errors.Wrap(err, "failed to resolve application handler"))
 			return
 		}
 
 		response, err := handler.ReturnResponseAndError()
 		if err != nil {
-			render.Error(w, render.NewInternalServerError("application handler failed"))
+			render.Error(w, errors.Wrap(err, "application handler failed"))
 			return
 		}
 
@@ -166,13 +172,13 @@ func (z ZiplineTemplate) Delete(i interface{}, params ...interface{}) http.Handl
 
 		handler, err := z.Resolve()
 		if err != nil {
-			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
+			render.Error(w, errors.Wrap(err, "failed to resolve application handler"))
 			return
 		}
 
 		err = handler.ReturnError()
 		if err != nil {
-			render.Error(w, render.NewInternalServerError("application handler failed"))
+			render.Error(w, errors.Wrap(err, "application handler failed"))
 			return
 		}
 
@@ -192,13 +198,13 @@ func (z ZiplineTemplate) Put(i interface{}, p ...interface{}) http.HandlerFunc {
 
 		handler, err := z.Resolve()
 		if err != nil {
-			render.Error(w, render.NewInternalServerError("failed to resolve application handler"))
+			render.Error(w, errors.Wrap(err, "failed to resolve application handler"))
 			return
 		}
 
 		response, err := handler.ReturnResponseAndError()
 		if err != nil {
-			render.Error(w, render.NewInternalServerError("application handler failed"))
+			render.Error(w, errors.Wrap(err, "application handler failed"))
 			return
 		}
 

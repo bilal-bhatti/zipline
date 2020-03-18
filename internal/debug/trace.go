@@ -11,7 +11,7 @@ import (
 var Debug = false
 
 func init() {
-	// og.SetFlags(log.LstdFlags | log.Lshortfile)
+	// log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.SetFlags(0)
 	log.SetPrefix("zipline: ")
 	log.SetOutput(os.Stderr)

@@ -20,7 +20,7 @@ type (
 )
 
 // Create thing
-func (cs ThingsService) Create(ctxn context.Context, req models.ThingRequest) (*models.ThingResponse, error) {
+func (cs ThingsService) Create(ctx context.Context, req models.ThingRequest) (*models.ThingResponse, error) {
 	return &models.ThingResponse{}, nil
 }
 

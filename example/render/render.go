@@ -7,34 +7,6 @@ import (
 	"net/http"
 )
 
-type StateError interface {
-	error
-	Code() int
-}
-
-type err struct {
-	code int
-	msg  string
-}
-
-func (e *err) Error() string {
-	return e.msg
-}
-
-func NewBadRequestError(msg string) error {
-	return &err{
-		code: http.StatusBadRequest,
-		msg:  msg,
-	}
-}
-
-func NewInternalServerError(msg string) error {
-	return &err{
-		code: http.StatusInternalServerError,
-		msg:  msg,
-	}
-}
-
 func Response(w http.ResponseWriter, data interface{}) {
 	buf := &bytes.Buffer{}
 	enc := json.NewEncoder(buf)

@@ -15,6 +15,9 @@ import (
 )
 
 func main() {
+	// global log settings
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	listenAddr := flag.String("listen", ":5678", "spcifiy port to listen on")
 	flag.Parse()
 
@@ -25,7 +28,7 @@ func main() {
 	signal.Notify(quit, os.Interrupt)
 
 	// Configure a new logger
-	logger := log.New(os.Stdout, "ECHO: ", log.LstdFlags)
+	logger := log.New(os.Stdout, "SRVR: ", log.LstdFlags)
 
 	env := &connectors.Env{}
 
