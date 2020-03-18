@@ -39,7 +39,7 @@ func NewRouter(env *connectors.Env) *chi.Mux {
 
 	mux.Get("/echo/{input}", z.Get(Echo, env, z.Resolve, z.Path))
 
-	mux.Post("/doodads", z.Post(services.DoodadsService.Create, env, z.Resolve, z.Resolve, z.Body))
+	mux.Post("/doodads", z.Post(services.DoodadsService.Create, env, z.Resolve, z.Resolve, z.Resolve, z.Body))
 
 	mux.Post("/ping", z.Post(services.Ping, env, z.Resolve, z.Resolve, z.Body))
 

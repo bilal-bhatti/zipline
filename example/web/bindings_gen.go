@@ -542,6 +542,9 @@ func DoodadsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 		// resolve parameter [ctx] through a provider
 		ctx := services.ProvideContext(r)
 
+		// resolve parameter [url] through a provider
+		url := services.ProvideForwadedHeader(r)
+
 		// resolve parameter [thing] with [Body] template
 		defer io.Copy(ioutil.Discard, r.Body)
 		thing := &models.ThingRequest{}
@@ -552,7 +555,7 @@ func DoodadsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 		}
 
 		// execute application handler
-		response, err := handler.Create(ctx, r, thing)
+		response, err := handler.Create(ctx, url, r, thing)
 		if err != nil {
 			render.Error(w, errors.Wrap(err, "application handler failed"))
 			return

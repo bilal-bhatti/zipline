@@ -40,7 +40,7 @@ func (tt TypeToken) SameType(t types.Type, strict bool) bool {
 	if strict {
 		return tt.FullSignature == t.String()
 	}
-	return tt.FullSignature == strings.TrimPrefix(t.String(), "*")
+	return tt.Signature == strings.TrimPrefix(t.String(), "*")
 }
 
 func (tt TypeToken) VarName() string {
