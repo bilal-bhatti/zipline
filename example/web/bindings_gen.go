@@ -543,7 +543,7 @@ func DoodadsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 		ctx := services.ProvideContext(r)
 
 		// resolve parameter [url] through a provider
-		url := services.ProvideForwadedHeader(r)
+		url := services.ProvideForwardedHeader(r)
 
 		// resolve parameter [thing] with [Body] template
 		defer io.Copy(ioutil.Discard, r.Body)

@@ -212,7 +212,7 @@ func (r *renderer) resolve(pkg *packages.Package, b *binding, assn *ast.AssignSt
 
 func (r *renderer) expand(pkg *packages.Package, b *binding, assn *ast.AssignStmt, buf *util.Buffer) error {
 	// resolve/print app handler dependencies and retain their var names
-	err := r.parameters(pkg, b, buf)
+	params, err := r.parameters(pkg, b, buf)
 	if err != nil {
 		return err
 	}
@@ -236,7 +236,7 @@ func (r *renderer) expand(pkg *packages.Package, b *binding, assn *ast.AssignStm
 	// invoked app handler function
 	appFunc := tokens.FuncToken{
 		Rets: rets,
-		Args: b.handler.params,
+		Args: params,
 	}
 
 	if b.handler.x != nil {
@@ -260,7 +260,9 @@ func (r *renderer) expand(pkg *packages.Package, b *binding, assn *ast.AssignStm
 	return nil
 }
 
-func (r *renderer) parameters(pkg *packages.Package, b *binding, buf *util.Buffer) error {
+func (r *renderer) parameters(pkg *packages.Package, b *binding, buf *util.Buffer) ([]*tokens.TypeToken, error) {
+	params := []*tokens.TypeToken{}
+
 	for i := 0; i < len(b.handler.params); i++ {
 		p := b.handler.params[i]
 
@@ -274,20 +276,21 @@ func (r *renderer) parameters(pkg *packages.Package, b *binding, buf *util.Buffe
 				case "Query", "Path":
 					err := r.renderParamTemplate(pkg, template, b, p, buf)
 					if err != nil {
-						return err
+						return nil, err
 					}
 				case "Body":
 					err := r.renderBodyTemplate(pkg, template, b, p, buf)
 					if err != nil {
-						return err
+						return nil, err
 					}
 				default:
 					err := r.renderGenericTemplate(pkg, template, b, p, buf)
 					if err != nil {
-						return err
+						return nil, err
 					}
 				}
 
+				params = append(params, p)
 				buf.Sprintf("\n")
 				continue
 			}
@@ -297,26 +300,28 @@ func (r *renderer) parameters(pkg *packages.Package, b *binding, buf *util.Buffe
 				ft, err := r.provider.provideWithReturns(p, []string{p.VarName()})
 				if err != nil {
 					// check if type is already known
-					if _, ok := r.provider.typeTokenFor(p); ok {
-						debug.Trace("known variable (%s %s)\n", p.VarName(), p.FullSignature)
-
+					if known, ok := r.provider.typeTokenFor(p); ok {
+						debug.Trace("known variable (%s %s) as %s\n", p.VarName(), p.FullSignature, known.VarName())
+						// use var type token declared in the template body
+						params = append(params, known)
 						continue
 					}
-					return newParameterProviderError("failed to resolve handler parameters", pkg, b, p)
+					return nil, newParameterProviderError("failed to resolve handler parameters", pkg, b, p)
 				}
 
 				buf.Sprintf("\n// resolve parameter [%s] through a provider\n", p.VarName())
 				buf.Sprintf(ft.Call(pkg.PkgPath, token.DEFINE) + "\n")
 
+				params = append(params, p)
 				continue
 			}
 		}
 
 		// faild to find a way to satisfy parameter
-		return newParameterError("failed to resolve handler parameters", pkg, b, p)
+		return nil, newParameterError("failed to resolve handler parameters", pkg, b, p)
 	}
 
-	return nil
+	return params, nil
 }
 
 func (r *renderer) renderParamTemplate(pkg *packages.Package, t *template, b *binding, p *tokens.TypeToken, buf *util.Buffer) error {
