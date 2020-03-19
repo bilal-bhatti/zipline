@@ -159,7 +159,7 @@ func (r *renderer) renderFunctionTemplate(pkg *packages.Package, t *template, b 
 								return nil, err
 							}
 						} else {
-							if err := r.expand(pkg, b, assnStmt, buf); err != nil {
+							if err := r.generate(pkg, b, assnStmt, buf); err != nil {
 								return nil, err
 							}
 						}
@@ -198,7 +198,7 @@ func (r *renderer) resolve(pkg *packages.Package, b *binding, assn *ast.AssignSt
 			rets = append(rets, lhs.(*ast.Ident).String())
 		}
 
-		xp, err := r.provider.provideWithReturns(b.handler.x, rets)
+		xp, err := r.provider.provide(b.handler.x, rets)
 		if err != nil {
 			return newHandlerNotResolvedError(err.Error(), b, rets)
 		}
@@ -210,7 +210,7 @@ func (r *renderer) resolve(pkg *packages.Package, b *binding, assn *ast.AssignSt
 	return nil
 }
 
-func (r *renderer) expand(pkg *packages.Package, b *binding, assn *ast.AssignStmt, buf *util.Buffer) error {
+func (r *renderer) generate(pkg *packages.Package, b *binding, assn *ast.AssignStmt, buf *util.Buffer) error {
 	// resolve/print app handler dependencies and retain their var names
 	params, err := r.parameters(pkg, b, buf)
 	if err != nil {
@@ -255,7 +255,9 @@ func (r *renderer) expand(pkg *packages.Package, b *binding, assn *ast.AssignStm
 	}
 
 	// call handler with params
-	buf.Sprintf("%s\n", appFunc.Call(pkg.PkgPath, assn.Tok))
+	call := appFunc.Call(pkg.PkgPath, assn.Tok)
+	debug.Trace("generated call `%s`", call)
+	buf.Sprintf("%s\n", call)
 
 	return nil
 }
@@ -270,7 +272,7 @@ func (r *renderer) parameters(pkg *packages.Package, b *binding, buf *util.Buffe
 			tn := b.paramTemplates[i]
 			template := r.templates[tn]
 			if template != nil {
-				debug.Trace("using template %s for (%s %s)\n", tn, p.VarName(), p.FullSignature)
+				debug.Trace("using template %s for `%s %s`\n", tn, p.VarName(), p.FullSignature)
 				buf.Sprintf("\n// resolve parameter [%s] with [%s] template\n", p.VarName(), tn)
 				switch tn {
 				case "Query", "Path":
@@ -296,12 +298,12 @@ func (r *renderer) parameters(pkg *packages.Package, b *binding, buf *util.Buffe
 			}
 
 			if tn == ZiplineTemplateResolve {
-				debug.Trace("find a provider function for (%s %s)\n", p.VarName(), p.FullSignature)
-				ft, err := r.provider.provideWithReturns(p, []string{p.VarName()})
+				debug.Trace("find a provider function for `%s %s`\n", p.VarName(), p.FullSignature)
+				ft, err := r.provider.provide(p, []string{p.VarName()})
 				if err != nil {
 					// check if type is already known
 					if known, ok := r.provider.typeTokenFor(p); ok {
-						debug.Trace("known variable (%s %s) as %s\n", p.VarName(), p.FullSignature, known.VarName())
+						debug.Trace("known variable `%s %s` as `%s`\n", p.VarName(), p.FullSignature, known.VarName())
 						// use var type token declared in the template body
 						params = append(params, known)
 						continue
@@ -461,7 +463,9 @@ func (r *renderer) rename(old, format string, pkg *packages.Package, b *binding,
 		case *ast.AssignStmt:
 			if r.newStructValue(stmt) {
 				// get new object
-				buf.Sprintf("%s %s %s\n", new.VarName(), stmt.Tok.String(), new.NewInstance(pkg.PkgPath))
+				inst := fmt.Sprintf("%s %s %s", new.VarName(), stmt.Tok.String(), new.NewInstance(pkg.PkgPath))
+				debug.Trace("new struct `%s`", inst)
+				buf.Sprintf("%s\n", inst)
 				continue
 			}
 			ast.Inspect(stmtCopy, renamer)

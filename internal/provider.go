@@ -41,7 +41,7 @@ func (p provider) typeTokenFor(vt *tokens.TypeToken) (*tokens.TypeToken, bool) {
 	return v, ok
 }
 
-func (p provider) provideWithReturns(vt *tokens.TypeToken, retNames []string) (*tokens.FuncToken, error) {
+func (p provider) provide(vt *tokens.TypeToken, retNames []string) (*tokens.FuncToken, error) {
 	debug.Trace("scanning packages for %s", vt.FullSignature)
 
 	for _, pkg := range p.pkgs {
@@ -93,7 +93,7 @@ func (p provider) provideWithReturns(vt *tokens.TypeToken, retNames []string) (*
 						rets = append(rets, token)
 					}
 
-					debug.Trace("found a match for %s with %s : %s", vt.Signature, pf.Name(), sig.String())
+					debug.Trace("resolved %s with %s: %s", vt.FullSignature, pf.Name(), sig)
 					return &tokens.FuncToken{
 							Signature: pf.FullName(),
 							Args:      args,

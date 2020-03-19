@@ -276,6 +276,8 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 	printer.Fprint(zsb, pkg.Fset, zipline)
 	binding.spec = string(zsb.Bytes())
 
+	debug.Trace("parsing `%s`", binding.spec)
+
 	switch handler := zipline.Args[0].(type) {
 	case *ast.SelectorExpr:
 		handle, err := newHandlerInfoFromSelectorExpr(pkg, handler)
