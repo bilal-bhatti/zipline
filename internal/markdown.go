@@ -2,11 +2,12 @@ package internal
 
 import (
 	"fmt"
-	"github.com/bilal-bhatti/zipline/internal/util"
 	"io/ioutil"
 	"log"
 	"sort"
 	"strings"
+
+	"github.com/bilal-bhatti/zipline/internal/util"
 
 	"github.com/go-openapi/spec"
 	"github.com/pkg/errors"
@@ -57,7 +58,7 @@ func (s swagger) markdown() error {
 				buf.Sprintf("`path parameters`\n")
 				for _, p := range path {
 					if p.In == "path" {
-						buf.Sprintf("- name: `%s`, type: `%s`", p.Name, p.Type)
+						buf.Sprintf("- %s: `%s`", p.Name, p.Type)
 						if p.Format != "" {
 							buf.Sprintf("format: `%s`", p.Format)
 						}
@@ -71,7 +72,7 @@ func (s swagger) markdown() error {
 				buf.Sprintf("`query parameters`\n")
 				for _, p := range query {
 					if p.In == "query" {
-						buf.Sprintf("- name: `%s`, type: `%s`", p.Name, p.Type)
+						buf.Sprintf("- %s: `%s`", p.Name, p.Type)
 						if p.Format != "" {
 							buf.Sprintf(", format: `%s`", p.Format)
 						}
@@ -89,7 +90,7 @@ func (s swagger) markdown() error {
 						if p.Schema != nil {
 							path := strings.Split(p.Schema.Ref.GetPointer().String(), "/")[2]
 							def := s.swag.Definitions[path]
-							buf.Sprintf("- name: `%s`, type: `%s`\n", p.Name, path)
+							buf.Sprintf("- %s: `%s`\n", p.Name, path)
 							obj(1, def, buf)
 						}
 					}
@@ -196,13 +197,13 @@ func obj(lvl int, s spec.Schema, buf *util.Buffer) {
 	for _, key := range keys {
 		v := s.Properties[key]
 		if v.Type.Contains("object") {
-			buf.Sprintf("%s- name: `%s`, type: `%s`\n", strings.Repeat("\t", lvl), key, v.Type[0])
+			buf.Sprintf("%s- %s: `%s`\n", strings.Repeat("\t", lvl), key, v.Type[0])
 			obj(lvl+1, v, buf)
 		} else if v.Type.Contains("array") {
-			buf.Sprintf("%s- name: `%s`, type: `[]%s`\n", strings.Repeat("\t", lvl), key, v.Type[0])
+			buf.Sprintf("%s- %s: `[]%s`\n", strings.Repeat("\t", lvl), key, v.Type[0])
 			obj(lvl+1, *v.Items.Schema, buf)
 		} else {
-			buf.Sprintf("%s- name: `%s`, type: `%s`", strings.Repeat("\t", lvl), key, v.Type[0])
+			buf.Sprintf("%s- %s: `%s`", strings.Repeat("\t", lvl), key, v.Type[0])
 			if v.Format != "" {
 				buf.Sprintf(", format: `%s`", v.Format)
 			}

@@ -19,23 +19,23 @@ Create a new contact request entity.
 ```
 
 `body parameter`
-- name: `body`, type: `models.ContactRequest`
-	- name: `address`, type: `object`
-		- name: `city`, type: `string`
-		- name: `state`, type: `string`
-		- name: `street`, type: `string`
-		- name: `zipCode`, type: `string`
-	- name: `eMail`, type: `string`, format: `email`
-	- name: `firstName`, type: `string`
-	- name: `id`, type: `string`
-	- name: `lastName`, type: `string`
+- body: `models.ContactRequest`
+	- address: `object`
+		- city: `string`
+		- state: `string`
+		- street: `string`
+		- zipCode: `string`
+	- eMail: `string`, format: `email`
+	- firstName: `string`
+	- id: `string`
+	- lastName: `string`
 
 `responses`
 - code: `200`, type: `models.ContactResponse`
-	- name: `id`, type: `string`
+	- id: `string`
 - `default`, type: `Error`
-	- name: `code`, type: `integer`
-	- name: `status`, type: `string`
+	- code: `integer`
+	- status: `string`
 </details>
 
 <details>
@@ -47,13 +47,13 @@ DeleteBulk contact by id
 ```
 
 `query parameters`
-- name: `ids`, type: `string`
+- ids: `string`
 
 
 `responses`
 - `default`, type: `Error`
-	- name: `code`, type: `integer`
-	- name: `status`, type: `string`
+	- code: `integer`
+	- status: `string`
 </details>
 
 <details>
@@ -65,15 +65,15 @@ GetOne contact by id
 ```
 
 `path parameters`
-- name: `id`, type: `integer`
+- id: `integer`
 
 
 `responses`
 - code: `200`, type: `models.ContactResponse`
-	- name: `id`, type: `string`
+	- id: `string`
 - `default`, type: `Error`
-	- name: `code`, type: `integer`
-	- name: `status`, type: `string`
+	- code: `integer`
+	- status: `string`
 </details>
 
 <details>
@@ -85,26 +85,26 @@ Update a contact entity with provided data.
 ```
 
 `path parameters`
-- name: `id`, type: `integer`
+- id: `integer`
 
 `body parameter`
-- name: `body`, type: `models.ContactRequest`
-	- name: `address`, type: `object`
-		- name: `city`, type: `string`
-		- name: `state`, type: `string`
-		- name: `street`, type: `string`
-		- name: `zipCode`, type: `string`
-	- name: `eMail`, type: `string`, format: `email`
-	- name: `firstName`, type: `string`
-	- name: `id`, type: `string`
-	- name: `lastName`, type: `string`
+- body: `models.ContactRequest`
+	- address: `object`
+		- city: `string`
+		- state: `string`
+		- street: `string`
+		- zipCode: `string`
+	- eMail: `string`, format: `email`
+	- firstName: `string`
+	- id: `string`
+	- lastName: `string`
 
 `responses`
 - code: `200`, type: `models.ContactResponse`
-	- name: `id`, type: `string`
+	- id: `string`
 - `default`, type: `Error`
-	- name: `code`, type: `integer`
-	- name: `status`, type: `string`
+	- code: `integer`
+	- status: `string`
 </details>
 
 <details>
@@ -116,26 +116,26 @@ Replace a contact entity completely.
 ```
 
 `path parameters`
-- name: `id`, type: `integer`
+- id: `integer`
 
 `body parameter`
-- name: `body`, type: `models.ContactRequest`
-	- name: `address`, type: `object`
-		- name: `city`, type: `string`
-		- name: `state`, type: `string`
-		- name: `street`, type: `string`
-		- name: `zipCode`, type: `string`
-	- name: `eMail`, type: `string`, format: `email`
-	- name: `firstName`, type: `string`
-	- name: `id`, type: `string`
-	- name: `lastName`, type: `string`
+- body: `models.ContactRequest`
+	- address: `object`
+		- city: `string`
+		- state: `string`
+		- street: `string`
+		- zipCode: `string`
+	- eMail: `string`, format: `email`
+	- firstName: `string`
+	- id: `string`
+	- lastName: `string`
 
 `responses`
 - code: `200`, type: `models.ContactResponse`
-	- name: `id`, type: `string`
+	- id: `string`
 - `default`, type: `Error`
-	- name: `code`, type: `integer`
-	- name: `status`, type: `string`
+	- code: `integer`
+	- status: `string`
 </details>
 
 <details>
@@ -147,17 +147,17 @@ Get contacts list by date
 ```
 
 `path parameters`
-- name: `month`, type: `string`
-- name: `day`, type: `string`
-- name: `year`, type: `string`
+- month: `string`
+- day: `string`
+- year: `string`
 
 
 `responses`
 - code: `200`, type: `models.ContactResponse`
-	- name: `id`, type: `string`
+	- id: `string`
 - `default`, type: `Error`
-	- name: `code`, type: `integer`
-	- name: `status`, type: `string`
+	- code: `integer`
+	- status: `string`
 </details>
 
 <details>
@@ -169,30 +169,30 @@ Create a new doodad entity.
 ```
 
 `body parameter`
-- name: `body`, type: `models.ThingRequest`
-	- name: `name`, type: `string`
+- body: `models.ThingRequest`
+	- name: `string`
 
 `responses`
 - code: `200`, type: `models.ThingResponse`
-	- name: `bool`, type: `boolean`
-	- name: `createDate`, type: `string`, format: `date-time,2006-01-02`
-	- name: `float32`, type: `number`, format: `float`
-	- name: `float64`, type: `number`, format: `double`
-	- name: `int`, type: `integer`
-	- name: `int16`, type: `integer`, format: `int16`
-	- name: `int32`, type: `integer`, format: `int32`
-	- name: `int64`, type: `integer`, format: `int64`
-	- name: `int8`, type: `integer`, format: `int8`
-	- name: `name`, type: `string`
-	- name: `uint`, type: `integer`
-	- name: `uint16`, type: `integer`, format: `int16`
-	- name: `uint32`, type: `integer`, format: `int32`
-	- name: `uint64`, type: `integer`, format: `int64`
-	- name: `uint8`, type: `integer`, format: `int8`
-	- name: `updateDate`, type: `string`, format: `date-time`
+	- bool: `boolean`
+	- createDate: `string`, format: `date-time,2006-01-02`
+	- float32: `number`, format: `float`
+	- float64: `number`, format: `double`
+	- int: `integer`
+	- int16: `integer`, format: `int16`
+	- int32: `integer`, format: `int32`
+	- int64: `integer`, format: `int64`
+	- int8: `integer`, format: `int8`
+	- name: `string`
+	- uint: `integer`
+	- uint16: `integer`, format: `int16`
+	- uint32: `integer`, format: `int32`
+	- uint64: `integer`, format: `int64`
+	- uint8: `integer`, format: `int8`
+	- updateDate: `string`, format: `date-time`
 - `default`, type: `Error`
-	- name: `code`, type: `integer`
-	- name: `status`, type: `string`
+	- code: `integer`
+	- status: `string`
 </details>
 
 <details>
@@ -204,15 +204,15 @@ Echo returns body with 'i's replaced with 'o's
 ```
 
 `path parameters`
-- name: `input`, type: `string`
+- input: `string`
 
 
 `responses`
 - code: `200`, type: `EchoResponse`
-	- name: `output`, type: `string`
+	- output: `string`
 - `default`, type: `Error`
-	- name: `code`, type: `integer`
-	- name: `status`, type: `string`
+	- code: `integer`
+	- status: `string`
 </details>
 
 <details>
@@ -224,15 +224,15 @@ Ping returns body with 'i's replaced with 'o's
 ```
 
 `body parameter`
-- name: `body`, type: `services.PingRequest`
-	- name: `input`, type: `string`
+- body: `services.PingRequest`
+	- input: `string`
 
 `responses`
 - code: `200`, type: `services.PingResponse`
-	- name: `output`, type: `string`
+	- output: `string`
 - `default`, type: `Error`
-	- name: `code`, type: `integer`
-	- name: `status`, type: `string`
+	- code: `integer`
+	- status: `string`
 </details>
 
 <details>
@@ -247,32 +247,32 @@ Get things by date range
 ```
 
 `query parameters`
-- name: `from`, type: `string`, format: `date-time,2006-01-02`
-- name: `to`, type: `string`, format: `date-time,2006-01-02`
+- from: `string`, format: `date-time,2006-01-02`
+- to: `string`, format: `date-time,2006-01-02`
 
 
 `responses`
 - code: `200`, type: `ThingListResponse`
-	- name: `things`, type: `[]array`
-		- name: `bool`, type: `boolean`
-		- name: `createDate`, type: `string`, format: `date-time,2006-01-02`
-		- name: `float32`, type: `number`, format: `float`
-		- name: `float64`, type: `number`, format: `double`
-		- name: `int`, type: `integer`
-		- name: `int16`, type: `integer`, format: `int16`
-		- name: `int32`, type: `integer`, format: `int32`
-		- name: `int64`, type: `integer`, format: `int64`
-		- name: `int8`, type: `integer`, format: `int8`
-		- name: `name`, type: `string`
-		- name: `uint`, type: `integer`
-		- name: `uint16`, type: `integer`, format: `int16`
-		- name: `uint32`, type: `integer`, format: `int32`
-		- name: `uint64`, type: `integer`, format: `int64`
-		- name: `uint8`, type: `integer`, format: `int8`
-		- name: `updateDate`, type: `string`, format: `date-time`
+	- things: `[]array`
+		- bool: `boolean`
+		- createDate: `string`, format: `date-time,2006-01-02`
+		- float32: `number`, format: `float`
+		- float64: `number`, format: `double`
+		- int: `integer`
+		- int16: `integer`, format: `int16`
+		- int32: `integer`, format: `int32`
+		- int64: `integer`, format: `int64`
+		- int8: `integer`, format: `int8`
+		- name: `string`
+		- uint: `integer`
+		- uint16: `integer`, format: `int16`
+		- uint32: `integer`, format: `int32`
+		- uint64: `integer`, format: `int64`
+		- uint8: `integer`, format: `int8`
+		- updateDate: `string`, format: `date-time`
 - `default`, type: `Error`
-	- name: `code`, type: `integer`
-	- name: `status`, type: `string`
+	- code: `integer`
+	- status: `string`
 </details>
 
 <details>
@@ -284,30 +284,30 @@ Create thing
 ```
 
 `body parameter`
-- name: `body`, type: `models.ThingRequest`
-	- name: `name`, type: `string`
+- body: `models.ThingRequest`
+	- name: `string`
 
 `responses`
 - code: `200`, type: `models.ThingResponse`
-	- name: `bool`, type: `boolean`
-	- name: `createDate`, type: `string`, format: `date-time,2006-01-02`
-	- name: `float32`, type: `number`, format: `float`
-	- name: `float64`, type: `number`, format: `double`
-	- name: `int`, type: `integer`
-	- name: `int16`, type: `integer`, format: `int16`
-	- name: `int32`, type: `integer`, format: `int32`
-	- name: `int64`, type: `integer`, format: `int64`
-	- name: `int8`, type: `integer`, format: `int8`
-	- name: `name`, type: `string`
-	- name: `uint`, type: `integer`
-	- name: `uint16`, type: `integer`, format: `int16`
-	- name: `uint32`, type: `integer`, format: `int32`
-	- name: `uint64`, type: `integer`, format: `int64`
-	- name: `uint8`, type: `integer`, format: `int8`
-	- name: `updateDate`, type: `string`, format: `date-time`
+	- bool: `boolean`
+	- createDate: `string`, format: `date-time,2006-01-02`
+	- float32: `number`, format: `float`
+	- float64: `number`, format: `double`
+	- int: `integer`
+	- int16: `integer`, format: `int16`
+	- int32: `integer`, format: `int32`
+	- int64: `integer`, format: `int64`
+	- int8: `integer`, format: `int8`
+	- name: `string`
+	- uint: `integer`
+	- uint16: `integer`, format: `int16`
+	- uint32: `integer`, format: `int32`
+	- uint64: `integer`, format: `int64`
+	- uint8: `integer`, format: `int8`
+	- updateDate: `string`, format: `date-time`
 - `default`, type: `Error`
-	- name: `code`, type: `integer`
-	- name: `status`, type: `string`
+	- code: `integer`
+	- status: `string`
 </details>
 
 <details>
@@ -319,34 +319,34 @@ Get things by category and search query
 ```
 
 `path parameters`
-- name: `category`, type: `string`
+- category: `string`
 
 `query parameters`
-- name: `q`, type: `string`
+- q: `string`
 
 
 `responses`
 - code: `200`, type: `ThingListResponse`
-	- name: `things`, type: `[]array`
-		- name: `bool`, type: `boolean`
-		- name: `createDate`, type: `string`, format: `date-time,2006-01-02`
-		- name: `float32`, type: `number`, format: `float`
-		- name: `float64`, type: `number`, format: `double`
-		- name: `int`, type: `integer`
-		- name: `int16`, type: `integer`, format: `int16`
-		- name: `int32`, type: `integer`, format: `int32`
-		- name: `int64`, type: `integer`, format: `int64`
-		- name: `int8`, type: `integer`, format: `int8`
-		- name: `name`, type: `string`
-		- name: `uint`, type: `integer`
-		- name: `uint16`, type: `integer`, format: `int16`
-		- name: `uint32`, type: `integer`, format: `int32`
-		- name: `uint64`, type: `integer`, format: `int64`
-		- name: `uint8`, type: `integer`, format: `int8`
-		- name: `updateDate`, type: `string`, format: `date-time`
+	- things: `[]array`
+		- bool: `boolean`
+		- createDate: `string`, format: `date-time,2006-01-02`
+		- float32: `number`, format: `float`
+		- float64: `number`, format: `double`
+		- int: `integer`
+		- int16: `integer`, format: `int16`
+		- int32: `integer`, format: `int32`
+		- int64: `integer`, format: `int64`
+		- int8: `integer`, format: `int8`
+		- name: `string`
+		- uint: `integer`
+		- uint16: `integer`, format: `int16`
+		- uint32: `integer`, format: `int32`
+		- uint64: `integer`, format: `int64`
+		- uint8: `integer`, format: `int8`
+		- updateDate: `string`, format: `date-time`
 - `default`, type: `Error`
-	- name: `code`, type: `integer`
-	- name: `status`, type: `string`
+	- code: `integer`
+	- status: `string`
 </details>
 
 <details>
@@ -358,12 +358,12 @@ Delete thing by id
 ```
 
 `path parameters`
-- name: `id`, type: `integer`
+- id: `integer`
 
 
 `responses`
 - `default`, type: `Error`
-	- name: `code`, type: `integer`
-	- name: `status`, type: `string`
+	- code: `integer`
+	- status: `string`
 </details>
 
