@@ -6,7 +6,7 @@
     * `brew tap bilal-bhatti/homebrew-zipline`
     * `brew install zipline`
 
-* OR install from source
+OR install from source
 
 * Ensure GO environment is setup
     * `export GOPATH=<go directory>`
