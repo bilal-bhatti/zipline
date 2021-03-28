@@ -2,6 +2,10 @@
 
 
 ## Installation
+* Brew tap
+    * `brew tap bilal-bhatti/homebrew-zipline`
+    * `brew install zipline`
+
 * Ensure GO environment is setup
     * `export GOPATH=<go directory>`
     * `export GOBIN=GOPATH/bin`
