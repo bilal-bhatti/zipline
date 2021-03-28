@@ -18,6 +18,7 @@ OR install from source
     * `go install github.com/bilal-bhatti/zipline/cmd/zipline`
 
 ## Usage
-Project must be configured with GOPATH
+Project must be configured with GOPATH.
+
 `zipline ./...` from your project root
 
