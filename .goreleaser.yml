@@ -14,6 +14,8 @@ builds:
       - windows
       - darwin
     main: ./cmd/zipline/main.go
+brews:
+  -
     tap:
       owner: bilal-bhatti
       name: homebrew-zipline
