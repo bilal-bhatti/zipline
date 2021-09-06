@@ -13,6 +13,8 @@ import (
 	"github.com/google/subcommands"
 )
 
+var Version = "DEV"
+
 func main() {
 	subcommands.Register(subcommands.HelpCommand(), "")
 	subcommands.Register(subcommands.FlagsCommand(), "")
@@ -60,6 +62,8 @@ func (p *defaultCmd) SetFlags(f *flag.FlagSet) {
 }
 
 func (p *defaultCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+	log.Println(Version)
+
 	zipline := internal.NewZipline()
 
 	debug.Debug = p.debug
@@ -70,7 +74,7 @@ func (p *defaultCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 		log.Println(fmt.Errorf("%s", err.Error()))
 	}
 
-	fmt.Println()
+	log.Println()
 	return subcommands.ExitSuccess
 }
 

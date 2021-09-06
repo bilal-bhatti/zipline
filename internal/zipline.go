@@ -139,6 +139,11 @@ func (z *Zipline) Start(pkgPaths []string) error {
 		return err
 	}
 
+	err = convertToV3()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

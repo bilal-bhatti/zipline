@@ -1,0 +1,814 @@
+{
+  "components": {
+    "schemas": {
+      "EchoResponse": {
+        "additionalProperties": false,
+        "description": "EchoResponse model",
+        "properties": {
+          "output": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Error": {
+        "additionalProperties": false,
+        "description": "error response object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ThingListResponse": {
+        "additionalProperties": false,
+        "description": "List of things",
+        "properties": {
+          "things": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "bool": {
+                  "type": "boolean"
+                },
+                "createDate": {
+                  "format": "date-time,2006-01-02",
+                  "type": "string"
+                },
+                "float32": {
+                  "format": "float",
+                  "type": "number"
+                },
+                "float64": {
+                  "format": "double",
+                  "type": "number"
+                },
+                "int": {
+                  "type": "integer"
+                },
+                "int16": {
+                  "format": "int16",
+                  "type": "integer"
+                },
+                "int32": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "int64": {
+                  "format": "int64",
+                  "type": "integer"
+                },
+                "int8": {
+                  "format": "int8",
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "uint": {
+                  "type": "integer"
+                },
+                "uint16": {
+                  "format": "int16",
+                  "type": "integer"
+                },
+                "uint32": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "uint64": {
+                  "format": "int64",
+                  "type": "integer"
+                },
+                "uint8": {
+                  "format": "int8",
+                  "type": "integer"
+                },
+                "updateDate": {
+                  "format": "date-time",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "models.ContactRequest": {
+        "additionalProperties": false,
+        "description": "Contact request model",
+        "properties": {
+          "address": {
+            "additionalProperties": false,
+            "properties": {
+              "city": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "street": {
+                "type": "string"
+              },
+              "zipCode": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "eMail": {
+            "format": "email",
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "models.ContactResponse": {
+        "additionalProperties": false,
+        "description": "Contact response model",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "models.ThingRequest": {
+        "additionalProperties": false,
+        "description": "ThingRequest model",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "models.ThingResponse": {
+        "additionalProperties": false,
+        "description": "ThingResponse model",
+        "properties": {
+          "bool": {
+            "type": "boolean"
+          },
+          "createDate": {
+            "format": "date-time,2006-01-02",
+            "type": "string"
+          },
+          "float32": {
+            "format": "float",
+            "type": "number"
+          },
+          "float64": {
+            "format": "double",
+            "type": "number"
+          },
+          "int": {
+            "type": "integer"
+          },
+          "int16": {
+            "format": "int16",
+            "type": "integer"
+          },
+          "int32": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "int64": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "int8": {
+            "format": "int8",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "uint": {
+            "type": "integer"
+          },
+          "uint16": {
+            "format": "int16",
+            "type": "integer"
+          },
+          "uint32": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "uint64": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "uint8": {
+            "format": "int8",
+            "type": "integer"
+          },
+          "updateDate": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "services.PingRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "input": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "services.PingResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "output": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Example OpenAPI Version 2 Specification",
+    "title": "Example OpenAPI Version 2 Specification",
+    "version": "1.0.0"
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/contacts": {
+      "delete": {
+        "description": "DeleteBulk contact by id",
+        "operationId": "ContactsServiceDeleteBulk",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "ids",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "no content"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "unexpected error"
+          }
+        },
+        "summary": "DeleteBulk contact by id"
+      },
+      "post": {
+        "description": "Create a new contact request entity.",
+        "operationId": "ContactsServiceCreate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/models.ContactRequest"
+              }
+            }
+          },
+          "description": "Contact request model",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/models.ContactResponse"
+                }
+              }
+            },
+            "description": "200 success response"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "unexpected error"
+          }
+        },
+        "summary": "Create a new contact request entity."
+      }
+    },
+    "/contacts/{id}": {
+      "get": {
+        "description": "GetOne contact by id",
+        "operationId": "ContactsServiceGetOne",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/models.ContactResponse"
+                }
+              }
+            },
+            "description": "200 success response"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "unexpected error"
+          }
+        },
+        "summary": "GetOne contact by id"
+      },
+      "post": {
+        "description": "Update a contact entity with provided data.",
+        "operationId": "ContactsServiceUpdate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/models.ContactRequest"
+              }
+            }
+          },
+          "description": "Contact request model",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/models.ContactResponse"
+                }
+              }
+            },
+            "description": "200 success response"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "unexpected error"
+          }
+        },
+        "summary": "Update a contact entity with provided data."
+      },
+      "put": {
+        "description": "Replace a contact entity completely.",
+        "operationId": "ContactsServiceReplace",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/models.ContactRequest"
+              }
+            }
+          },
+          "description": "Contact request model",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/models.ContactResponse"
+                }
+              }
+            },
+            "description": "200 success response"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "unexpected error"
+          }
+        },
+        "summary": "Replace a contact entity completely."
+      }
+    },
+    "/contacts/{month}-{day}-{year}": {
+      "get": {
+        "description": "Get contacts list by date",
+        "operationId": "ContactsServiceGetByDate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "year",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/models.ContactResponse"
+                }
+              }
+            },
+            "description": "200 success response"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "unexpected error"
+          }
+        },
+        "summary": "Get contacts list by date"
+      }
+    },
+    "/doodads": {
+      "post": {
+        "description": "Create a new doodad entity.",
+        "operationId": "DoodadsServiceCreate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/models.ThingRequest"
+              }
+            }
+          },
+          "description": "ThingRequest model",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/models.ThingResponse"
+                }
+              }
+            },
+            "description": "200 success response"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "unexpected error"
+          }
+        },
+        "summary": "Create a new doodad entity."
+      }
+    },
+    "/echo/{input}": {
+      "get": {
+        "description": "Echo returns body with 'i's replaced with 'o's",
+        "operationId": "Echo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "input",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EchoResponse"
+                }
+              }
+            },
+            "description": "200 success response"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "unexpected error"
+          }
+        },
+        "summary": "Echo returns body with 'i's replaced with 'o's"
+      }
+    },
+    "/ping": {
+      "post": {
+        "description": "Ping returns body with 'i's replaced with 'o's",
+        "operationId": "Ping",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/services.PingRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/services.PingResponse"
+                }
+              }
+            },
+            "description": "200 success response"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "unexpected error"
+          }
+        },
+        "summary": "Ping returns body with 'i's replaced with 'o's"
+      }
+    },
+    "/things": {
+      "get": {
+        "description": "Get things by date range\n\n@from `format:\"date-time,2006-01-02\"` date should be in Go time format\n@to   `format:\"date-time,2006-01-02\"` date should be in Go time format",
+        "operationId": "ThingsServiceGetByDateRange",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "format": "date-time,2006-01-02",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "format": "date-time,2006-01-02",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThingListResponse"
+                }
+              }
+            },
+            "description": "200 success response"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "unexpected error"
+          }
+        },
+        "summary": "Get things by date range\n\n@from `format:\"date-time,2006-01-02\"` date should be in Go time format\n@to   `format:\"date-time,2006-01-02\"` date should be in Go time format"
+      },
+      "post": {
+        "description": "Create thing",
+        "operationId": "ThingsServiceCreate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/models.ThingRequest"
+              }
+            }
+          },
+          "description": "ThingRequest model",
+          "required": true,
+          "x-originalParamName": "body"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/models.ThingResponse"
+                }
+              }
+            },
+            "description": "200 success response"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "unexpected error"
+          }
+        },
+        "summary": "Create thing"
+      }
+    },
+    "/things/{category}": {
+      "get": {
+        "description": "Get things by category and search query",
+        "operationId": "ThingsServiceGetByCategoryAndQuery",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "category",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThingListResponse"
+                }
+              }
+            },
+            "description": "200 success response"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "unexpected error"
+          }
+        },
+        "summary": "Get things by category and search query"
+      }
+    },
+    "/things/{id}": {
+      "delete": {
+        "description": "Delete thing by id",
+        "operationId": "ThingsServiceDelete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "no content"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "unexpected error"
+          }
+        },
+        "summary": "Delete thing by id"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://api.example.com/api"
+    },
+    {
+      "url": "https://api.example.com/api"
+    }
+  ]
+}
