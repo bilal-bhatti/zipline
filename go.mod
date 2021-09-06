@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/fatih/structtag v1.2.0
-	github.com/getkin/kin-openapi v0.75.0 // indirect
+	github.com/getkin/kin-openapi v0.75.0
 	github.com/go-chi/chi v4.0.3+incompatible
 	github.com/go-openapi/spec v0.19.6
 	github.com/go-toolsmith/astcopy v1.0.0
