@@ -20,7 +20,7 @@ OR install from source
     * `go install github.com/bilal-bhatti/zipline/cmd/zipline`
 
 ## Usage
-Project must be configured with GOPATH.
+Project must be configured with GOPATH, i.e. project path/hierarchy should look like this `<GOPATH>/src/github.com/<git org/user>/<repo>`. For this repo it would be `<GOPATH>/src/github.com/bilal-bhatti/zipline`.
 
 `zipline ./...` from your project root
 
