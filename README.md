@@ -5,7 +5,7 @@ Zipline is a tool to help build RESTful APIs in Go. The intent is to enable sepa
 It's a template driven code generation tool. An example of a template is [here](https://github.com/bilal-bhatti/zipline/blob/master/example/web/bindings.go), without it the tool doesn't do anything. Once a similar template has been created, simply run `zipline ./...` from the Go project root.
 
 It will generate the following files:
-* `bindings_gen.go` in the same folder as the `bindings.go`
+* `bindings_gen.go` [example](https://github.com/bilal-bhatti/zipline/blob/master/example/web/bindings_gen.go)
 * `API.md` [example](https://github.com/bilal-bhatti/zipline/blob/master/API.md)
 * `api.oasv2.json` [example](https://github.com/bilal-bhatti/zipline/blob/master/api.oasv2.json)
 * `api.oasv3.json` [example](https://github.com/bilal-bhatti/zipline/blob/master/api.oasv3.json)
