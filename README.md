@@ -1,6 +1,6 @@
 # zipline
 
-## Ensure GO environment is setup using GOPATH. 
+## Ensure GO environment is setup using GOPATH
 
 Even though since 1.11 GOPATH isn't strictly required in favor of modules, but it is required and used by `zipline`. You can read more about this here: https://insujang.github.io/2020-04-04/go-modules/
 
