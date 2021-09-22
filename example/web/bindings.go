@@ -48,13 +48,28 @@ func NewRouter(env *connectors.Env) *chi.Mux {
 
 var z ZiplineTemplate
 
+// ZiplineTemplate is the code generation template for zipline cli
+// It is required, without it the tool does nothing
 type ZiplineTemplate struct {
+	// marker that the func returns a type and an error, so we have var handles in the template
 	ReturnResponseAndError func() (interface{}, error)
+	
+	// marker that the func has a single return of type error, so we have a error handle in the template
 	ReturnError            func() error
+	
+	// directive for zipline to go find a way to resolve the type
 	Resolve                func() (ZiplineTemplate, error)
+	
+	// used in the templates to stop go from complaining about unused vars
+	// omitted from output
 	DevNull                func(i ...interface{})
 }
 
+// Path is a template applied to path parameters
+// Must only contain a single switch statement
+// Each expected path parameter type needs a case clause
+// name is a reserved keyword used for AST rewriting
+// NOTE: best to have a single expression to find and convert the parameter
 func (z ZiplineTemplate) Path(kind string, w http.ResponseWriter, r *http.Request) {
 	switch kind {
 	case "string":
@@ -70,6 +85,11 @@ func (z ZiplineTemplate) Path(kind string, w http.ResponseWriter, r *http.Reques
 	}
 }
 
+// Query is a template applied to query parameters
+// Must only contain a single switch statement
+// Each expected path parameter type needs a case clause
+// name is a reserved keyword used for AST rewriting
+// NOTE: best to have a single expression to find and convert the parameter
 func (z ZiplineTemplate) Query(kind string, w http.ResponseWriter, r *http.Request) {
 	switch kind {
 	case "string":
@@ -95,6 +115,9 @@ func (z ZiplineTemplate) Query(kind string, w http.ResponseWriter, r *http.Reque
 	}
 }
 
+// Body is a template applied to request body
+// name := ZiplineTemplate{} line is replaced with the an instance of the desired struct
+// Remaining code is rewritten with name substituted with the desired type and name
 func (z ZiplineTemplate) Body(w http.ResponseWriter, r *http.Request) {
 	var err error
 	defer io.Copy(ioutil.Discard, r.Body)
@@ -108,6 +131,11 @@ func (z ZiplineTemplate) Body(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Post template is expected to be applied to HTTP POST requests.
+// It resolves HTTP parameters, request body, required application service handler
+// and invokes specified method
+// NOTE: All HTTP related marshalling/unmarshalling should take place here
+// All business related input validation and processing logic should be in the service
 func (z ZiplineTemplate) Post(i interface{}, p ...interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
@@ -134,6 +162,11 @@ func (z ZiplineTemplate) Post(i interface{}, p ...interface{}) http.HandlerFunc 
 	}
 }
 
+// Get template is expected to be applied to HTTP GET requests.
+// It resolves HTTP parameters, required application service handler
+// and invokes specified method
+// NOTE: All HTTP related marshalling/unmarshalling should take place here
+// All business related input validation and processing logic should be in the service
 func (z ZiplineTemplate) Get(i interface{}, p ...interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
@@ -160,6 +193,11 @@ func (z ZiplineTemplate) Get(i interface{}, p ...interface{}) http.HandlerFunc {
 	}
 }
 
+// Delete template is expected to be applied to HTTP DELETE requests.
+// It resolves HTTP parameters, required application service handler
+// and invokes specified method
+// NOTE: All HTTP related marshalling/unmarshalling should take place here
+// All business related input validation and processing logic should be in the service
 func (z ZiplineTemplate) Delete(i interface{}, params ...interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
@@ -186,6 +224,11 @@ func (z ZiplineTemplate) Delete(i interface{}, params ...interface{}) http.Handl
 	}
 }
 
+// Put template is expected to be applied to HTTP PUT requests.
+// It resolves HTTP parameters, request body, required application service handler
+// and invokes specified method
+// NOTE: All HTTP related marshalling/unmarshalling should take place here
+// All business related input validation and processing logic should be in the service
 func (z ZiplineTemplate) Put(i interface{}, p ...interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error // why not
