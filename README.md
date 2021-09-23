@@ -14,7 +14,7 @@ Check [here](https://github.com/bilal-bhatti/zipline/tree/master/example/web) fo
 
 ## Ensure GO environment is setup properly using `GOPATH` if `GO111MODULE=off`
 
-zipline will attempt detect package with `bindings.go` and generate the `bindings_gen.go` file in the same location.
+zipline will attempt to detect package with `bindings.go` file and generate the `bindings_gen.go` file in the same location.
 
 You can read more about the differences and implications here: https://insujang.github.io/2020-04-04/go-modules/
 
