@@ -68,24 +68,12 @@ func (z *Zipline) Start(pkgPaths []string) error {
 			return err
 		}
 
-		root, err := goSrcRoot()
+		pkgDir, err := detectOutDir(packet.pkg)
 		if err != nil {
 			return err
 		}
 
-		cwd, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-
-		od := strings.TrimPrefix(packet.pkg.PkgPath, root)
-		debug.Trace("* calculating output package location *")
-		debug.Trace("cwd: %s", cwd)
-		debug.Trace("package path: %s", packet.pkg.PkgPath)
-		debug.Trace("source root: %s", root)
-		debug.Trace("output dir: %s", od)
-
-		out := path.Join(cwd, od, "bindings_gen.go")
+		out := path.Join(pkgDir, "bindings_gen.go")
 
 		f, err := os.OpenFile(out, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
 		if err != nil {
@@ -93,9 +81,6 @@ func (z *Zipline) Start(pkgPaths []string) error {
 		}
 		// z.renderer.print(os.Stdout, false) // TODO: in case of error dump out for debug
 
-		if err != nil {
-
-		}
 		_, err = f.Write(output.Bytes())
 		if err != nil {
 			f.Close()
@@ -122,7 +107,7 @@ func (z *Zipline) Start(pkgPaths []string) error {
 			return err
 		}
 
-		log.Printf("wrote bindings to .%s\n", strings.TrimPrefix(out, cwd))
+		log.Printf("wrote bindings to     %s\n", out)
 
 		// reset code buffers
 		z.renderer.body.Reset()

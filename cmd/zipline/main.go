@@ -74,7 +74,7 @@ func (p *defaultCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 		log.Println(fmt.Errorf("%s", err.Error()))
 	}
 
-	log.Println()
+	log.Println("-----")
 	return subcommands.ExitSuccess
 }
 

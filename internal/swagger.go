@@ -6,6 +6,8 @@ import (
 	"go/types"
 	"io/ioutil"
 	"log"
+	"os"
+	"path"
 	"reflect"
 	"strings"
 
@@ -257,10 +259,8 @@ func (s swagger) generate(packets []*packet) error {
 
 func (s swagger) write() error {
 	// merge some info if spec exists
-	err := s.readAndMergeSchema()
-	if err != nil {
-		// nothing to do
-	}
+	// ignore if any errors
+	_ = s.readAndMergeSchema()
 
 	bites, err := json.MarshalIndent(s.swag, "", "  ")
 	if err != nil {
@@ -272,7 +272,12 @@ func (s swagger) write() error {
 		return errors.Wrap(err, "failed to write OpenAPI json to file")
 	}
 
-	log.Printf("wrote OpenAPI spec to ./%s\n", OpenAPIFile)
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	log.Printf("wrote OpenAPI spec to %s\n", path.Join(cwd, OpenAPIFile))
 	return nil
 }
 

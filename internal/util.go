@@ -7,8 +7,10 @@ import (
 	"go/types"
 	"log"
 	"os"
+	"path"
 	"strings"
 
+	"github.com/bilal-bhatti/zipline/internal/debug"
 	"github.com/pkg/errors"
 	"golang.org/x/tools/go/packages"
 )
@@ -130,24 +132,30 @@ func isZiplineNode(info *types.Info, fn ast.Node) bool {
 		// if we arrived here, then all previous checks passed and
 		// found what we were looking for
 		foundit = true
-		if foundit {
-			// returning false, signals stopping any further inspection
-			return false
-		}
 
-		// keep inspecting
-		return true
+		return false
 	})
 	return foundit
 }
 
-func goSrcRoot() (string, error) {
-	wd, err := os.Getwd()
+func detectOutDir(pkg *packages.Package) (string, error) {
+	cwd, err := os.Getwd()
 	if err != nil {
-		return "", errors.Wrap(err, "Failed to get working directory")
+		return "", errors.Wrap(err, "failed to get working directory")
 	}
 
-	return strings.TrimPrefix(wd, os.Getenv("GOPATH")+"/src/"), nil
+	if len(pkg.GoFiles) == 0 {
+		return "", errors.New("no files to derive output directory from package " + pkg.PkgPath)
+	}
+
+	out := path.Dir(pkg.GoFiles[0])
+
+	debug.Trace("* calculating output package location *")
+	debug.Trace("cwd: %s", cwd)
+	debug.Trace("package path: %s", pkg.PkgPath)
+	debug.Trace("package file: %s", out)
+
+	return out, nil
 }
 
 func reverse(ss []string) {

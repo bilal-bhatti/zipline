@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
+	"path"
 	"sort"
 	"strings"
 
@@ -179,7 +181,12 @@ func (s swagger) markdown() error {
 		return errors.Wrap(err, fmt.Sprintf("failed to write file %s", Markdown))
 	}
 
-	log.Printf("wrote API summary to ./%s\n", Markdown)
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	log.Printf("wrote API summary to  %s\n", path.Join(cwd, Markdown))
 
 	return nil
 }
