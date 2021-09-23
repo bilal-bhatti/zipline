@@ -62,7 +62,7 @@ func (p *defaultCmd) SetFlags(f *flag.FlagSet) {
 }
 
 func (p *defaultCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	log.Println(Version)
+	log.Printf("version: %s", Version)
 
 	zipline := internal.NewZipline()
 
