@@ -12,9 +12,11 @@ It will generate the following files:
 
 Check [here](https://github.com/bilal-bhatti/zipline/tree/master/example/web) for examples.
 
-## Ensure GO environment is setup using GOPATH
+## Ensure GO environment is setup properly using `GOPATH` if `GO111MODULE=off`
 
-Even though since 1.11 GOPATH isn't strictly required in favor of modules, but it is required and used by `zipline`. You can read more about the differences and implications here: https://insujang.github.io/2020-04-04/go-modules/
+zipline will attempt detect package with `bindings.go` and generate the `bindings_gen.go` file in the same location.
+
+You can read more about the differences and implications here: https://insujang.github.io/2020-04-04/go-modules/
 
 * `export GOPATH=<go directory>`
 * `export GOBIN=GOPATH/bin`
@@ -32,7 +34,5 @@ OR install from source
     * `go install github.com/bilal-bhatti/zipline/cmd/zipline`
 
 ## Usage
-Project must be configured with GOPATH, i.e. project path/hierarchy should look like this `<GOPATH>/src/github.com/<git org/user>/<repo>`. For this repo it would be `<GOPATH>/src/github.com/bilal-bhatti/zipline`.
-
-`zipline ./...` from your project root
+To explore the examples included in this repo navigate to `cd <path to project>/zipline` and run `zipline ./...` from your project root.
 
