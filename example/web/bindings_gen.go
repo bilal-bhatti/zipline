@@ -18,7 +18,7 @@ import (
 	"github.com/bilal-bhatti/zipline/example/models"
 	"github.com/bilal-bhatti/zipline/example/render"
 	"github.com/bilal-bhatti/zipline/example/services"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
 )
 

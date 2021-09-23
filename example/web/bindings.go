@@ -1,4 +1,5 @@
-//+build ziplinegen
+//go:build ziplinegen
+// +build ziplinegen
 
 package web
 
@@ -15,7 +16,7 @@ import (
 	"github.com/bilal-bhatti/zipline/example/connectors"
 	"github.com/bilal-bhatti/zipline/example/render"
 	"github.com/bilal-bhatti/zipline/example/services"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
 )
 
@@ -53,16 +54,15 @@ var z ZiplineTemplate
 type ZiplineTemplate struct {
 	// marker that the func returns a type and an error, so we have var handles in the template
 	ReturnResponseAndError func() (interface{}, error)
-	
+
 	// marker that the func has a single return of type error, so we have a error handle in the template
-	ReturnError            func() error
-	
+	ReturnError func() error
+
 	// directive for zipline to go find a way to resolve the type
-	Resolve                func() (ZiplineTemplate, error)
-	
-	// used in the templates to stop go from complaining about unused vars
-	// omitted from output
-	DevNull                func(i ...interface{})
+	Resolve func() (ZiplineTemplate, error)
+
+	// used in the templates to stop go from complaining about unused vars omitted from output
+	DevNull func(i ...interface{})
 }
 
 // Path is a template applied to path parameters
