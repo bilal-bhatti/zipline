@@ -1,7 +1,7 @@
 # zipline
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/bilal-bhatti/zipline)](https://goreportcard.com/report/github.com/bilal-bhatti/zipline)
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/bilal-bhatti/zipline/blob/main/LICENSE)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/bilal-bhatti/zipline/blob/master/LICENSE)
 [![release](https://img.shields.io/github/release/bilal-bhatti/zipline/all.svg)](https://github.com/bilal-bhatti/zipline/releases)
 [![pkg.go.dev](https://pkg.go.dev/badge/github.com/https://pkg.go.dev/github.com/bilal-bhatti/zipline)](https://pkg.go.dev/github.com/bilal-bhatti/zipline)
 
