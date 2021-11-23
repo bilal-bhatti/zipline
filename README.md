@@ -1,5 +1,10 @@
 # zipline
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/bilal-bhatti/zipline)](https://goreportcard.com/report/github.com/bilal-bhatti/zipline)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/bilal-bhatti/zipline/blob/master/LICENSE)
+[![release](https://img.shields.io/github/release/bilal-bhatti/zipline/all.svg)](https://github.com/bilal-bhatti/zipline/releases)
+[![pkg.go.dev](https://pkg.go.dev/badge/github.com/https://pkg.go.dev/github.com/bilal-bhatti/zipline)](https://pkg.go.dev/github.com/bilal-bhatti/zipline)
+
 Zipline is a tool to help build RESTful APIs in Go. The intent is to enable separation of HTTP/S request/response marshaling and un-marshaling from request/response processing, apply consistent request/response handling, and generate API documentation, without requiring a runtime dependency on any additional packages. It can be used with any of the popular routing packages. The examples in this repo use `chi`.
 
 It's a template driven code generation tool. An example of a template is [here](https://github.com/bilal-bhatti/zipline/blob/master/example/web/bindings.go), without it the tool doesn't do anything. Once a similar template has been created, simply run `zipline ./...` from the Go project root.
