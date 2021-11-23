@@ -29,7 +29,7 @@ You can read more about the differences and implications here: https://insujang.
 
 ## Installation
 * Brew tap
-    * `brew tap bilal-bhatti/homebrew-zipline`
+    * `brew tap bilal-bhatti/homebrew-taps`
     * `brew install zipline`
 
 OR install from source
