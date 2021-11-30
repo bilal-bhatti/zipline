@@ -35,9 +35,16 @@ You can read more about the differences and implications here: https://insujang.
 OR install from source
 
 * Get and install
-    * `go get -u github.com/bilal-bhatti/zipline/cmd/zipline`
-    * `go install github.com/bilal-bhatti/zipline/cmd/zipline`
+    * `go install github.com/bilal-bhatti/zipline/cmd/zipline@latest`
 
 ## Usage
 To explore the examples included in this repo navigate to `cd <path to project>/zipline` and run `zipline ./...` from your project root.
 
+## Troubleshooting
+VS Code uses `gopls` as the language server and can run into trouble parsing the `bidnings.go` file because of the `ziplinegen` build tag. To fix this, `gopls` needs to be made aware of the build tag, so it can analyze the code properly. Add the following setting to VS Code.
+
+```
+“gopls”: {
+    “buildFlags”: [“-tags=ziplinegen”],
+}
+```
