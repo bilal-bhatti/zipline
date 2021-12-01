@@ -27,7 +27,7 @@ func (*initCmd) Usage() string {
 
 init [package]
 
-generate initial zipline template in the specified package, defaults to "."
+generate starter ZiplineTemplate in the specified package, defaults to "."
 	example: "zipline init ./pkg/web"
 	example: "zipline init"
 
