@@ -135,6 +135,7 @@ func (z *Zipline) Start(pkgPaths []string) error {
 func (z *Zipline) prepare(packet *packet) error {
 	dfunc := packet.funcDecl
 
+	debug.Trace("processing binding func: %s from package: %s", dfunc.Name.String(), packet.pkg.Name)
 	for _, stmt := range dfunc.Body.List {
 		// looking for expression statements
 		expStmt, ok := stmt.(*ast.ExprStmt)
