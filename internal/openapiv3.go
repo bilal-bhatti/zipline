@@ -45,7 +45,7 @@ func convertToV3() error {
 		return err
 	}
 
-	log.Printf("wrote OpenAPI v3 spec to %s\n", path.Join(cwd, "api.oasv3.json"))
+	log.Printf("wrote OpenAPI v3 spec to  %s\n", path.Join(cwd, "api.oasv3.json"))
 
 	return nil
 }

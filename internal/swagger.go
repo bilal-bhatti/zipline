@@ -277,7 +277,7 @@ func (s swagger) write() error {
 		return err
 	}
 
-	log.Printf("wrote OpenAPI v2 spec to %s\n", path.Join(cwd, OpenAPIFile))
+	log.Printf("wrote OpenAPI v2 spec to  %s\n", path.Join(cwd, OpenAPIFile))
 	return nil
 }
 

@@ -186,7 +186,7 @@ func (s swagger) markdown() error {
 		return err
 	}
 
-	log.Printf("wrote API summary to  %s\n", path.Join(cwd, Markdown))
+	log.Printf("wrote API summary to      %s\n", path.Join(cwd, Markdown))
 
 	return nil
 }

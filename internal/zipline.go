@@ -107,7 +107,7 @@ func (z *Zipline) Start(pkgPaths []string) error {
 			return err
 		}
 
-		log.Printf("wrote bindings to     %s\n", out)
+		log.Printf("wrote bindings to         %s\n", out)
 
 		// reset code buffers
 		z.renderer.body.Reset()
