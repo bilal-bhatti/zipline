@@ -27,7 +27,7 @@ func (*genCmd) Usage() string {
 
 gen [packages]:
 
-generate documentation and bindings for template in specified package, defaults to "."
+generate documentation and bindings for ZiplineTemplate in specified package, defaults to "."
 	example: "zipline ./..."
 	example: "zipline gen ./..."
 	example: "zipline gen -d ./..."

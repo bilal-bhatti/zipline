@@ -19,7 +19,7 @@ type initCmd struct{}
 func (*initCmd) Name() string { return "init" }
 
 func (*initCmd) Synopsis() string {
-	return "generate initial zipline template in the specified package"
+	return "generate starter ZiplineTemplate in the specified package"
 }
 
 func (*initCmd) Usage() string {
@@ -89,7 +89,7 @@ func (c *initCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 
 	err = t.Execute(outFile, input{PackageName: name})
 	if err != nil {
-		log.Fatal("failed to write zipline template", err)
+		log.Fatal("failed to write ZiplineTemplate", err)
 		return subcommands.ExitFailure
 	}
 

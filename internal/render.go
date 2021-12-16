@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
 	"go/ast"
 	"go/format"
@@ -9,6 +8,8 @@ import (
 	"go/token"
 	"io"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/bilal-bhatti/zipline/internal/debug"
 	"github.com/bilal-bhatti/zipline/internal/util"
@@ -57,7 +58,7 @@ func (r *renderer) render(pkg *packages.Package, info *binding) error {
 		}
 		r.body.WriteBuffer(bites)
 	} else {
-		return errors.New(fmt.Sprintf("template not found for %s", info.template))
+		return errors.Errorf("template not found for %s", info.template)
 	}
 	return nil
 }
@@ -66,7 +67,7 @@ func pkgName(packet *packet) string {
 	pkn := packet.pkg.Name
 	idx := strings.LastIndex(pkn, "/")
 	if idx > 0 {
-		pkn = pkn[:len(pkn)]
+		pkn = pkn[:]
 		return pkn
 	}
 	return pkn
@@ -111,82 +112,106 @@ func (r *renderer) print(w io.Writer, frmt bool) error {
 func (r *renderer) renderFunctionTemplate(pkg *packages.Package, t *template, b *binding) (*util.Buffer, error) {
 	buf := util.NewBuffer()
 
+	buf.Sprintf("// %s%s handles requests to:\n", b.id(), t.funcSuffix())
+	buf.Sprintf("// path  : %s\n", b.path)
+	buf.Sprintf("// method: %s\n", strings.ToLower(b.template))
+	for _, c := range b.handler.comments.raw {
+		buf.Sprintf("// %s\n", c)
+	}
+
+	args := tokens.Join(b.boundParams, func(t *tokens.TypeToken) string {
+		return t.ArgDeclaration(pkg.PkgPath)
+	})
+
+	// print function signature
+	buf.Sprintf("func %s%s(%s) %s {\n", b.id(), t.funcSuffix(), args, t.returnType())
+
 	for _, stmt := range t.funcDecl.Body.List {
-		// must be a return statement
-		ret := stmt.(*ast.ReturnStmt)
-
-		funclit := ret.Results[0].(*ast.FuncLit)
-		// parse funclit type to extract type tokens
-		for _, param := range funclit.Type.Params.List {
-			for _, pn := range param.Names {
-				r.provider.memorize(pn)
+		switch st := stmt.(type) {
+		case *ast.ReturnStmt:
+			// return statement must return a func literal
+			err := r.renderFuncLiteral(pkg, b, st, buf)
+			if err != nil {
+				return nil, err
 			}
+		default:
+			printer.Fprint(buf, pkg.Fset, st)
+			buf.Sprintf("\n")
+		}
+	}
+
+	// close func body
+	buf.Sprintf("}\n\n")
+
+	return buf, nil
+}
+
+func (r *renderer) renderFuncLiteral(pkg *packages.Package, b *binding, ret *ast.ReturnStmt, buf *util.Buffer) error {
+	// statement must be a return statement
+	// that returns a function literal of type
+	// matching the closure return type
+
+	// TODO: add a check and fail gracefully
+	funclit := ret.Results[0].(*ast.FuncLit)
+
+	// parse funclit type to extract type tokens
+	for _, param := range funclit.Type.Params.List {
+		for _, pn := range param.Names {
+			r.provider.memorize(pn)
+		}
+	}
+
+	// print return literal func statement
+	buf.Sprintf("return ")
+	printer.Fprint(buf, pkg.Fset, funclit.Type)
+	buf.Sprintf(" {\n")
+
+	// process body of template func literal
+	for _, fstmt := range funclit.Body.List {
+		if r.devNull(fstmt) {
+			// omit
+			continue
 		}
 
-		buf.Sprintf("// %s%s handles requests to:\n", b.id(), t.funcSuffix())
-		buf.Sprintf("// path  : %s\n", b.path)
-		buf.Sprintf("// method: %s\n", strings.ToLower(b.template))
-		for _, c := range b.handler.comments.raw {
-			buf.Sprintf("// %s\n", c)
-		}
-
-		args := tokens.Join(b.boundParams, func(t *tokens.TypeToken) string {
-			return t.ArgDeclaration(pkg.PkgPath)
-		})
-
-		buf.Sprintf("func %s%s(%s) %s {\n", b.id(), t.funcSuffix(), args, t.returnType())
-		buf.Sprintf("return ")
-		printer.Fprint(buf, pkg.Fset, funclit.Type)
-		buf.Sprintf(" {\n")
-
-		for _, fstmt := range funclit.Body.List {
-			if r.devNull(fstmt) {
-				// omit
-				continue
-			}
-
-			assnStmt, ok := fstmt.(*ast.AssignStmt)
-			if !ok || len(assnStmt.Rhs) != 1 {
-				goto Include
-			}
-
-			if call, ok := assnStmt.Rhs[0].(*ast.CallExpr); ok {
-				if selector, ok := call.Fun.(*ast.SelectorExpr); ok {
-					obj := r.provider.qualifiedIdentObject(selector.X)
-					if obj != nil && strings.HasSuffix(obj.Type().String(), ZiplineTemplate) {
-						if selector.Sel.String() == ZiplineTemplateResolve {
-							if err := r.resolve(pkg, b, assnStmt, buf); err != nil {
-								return nil, err
+		if isZiplineNode(pkg.TypesInfo, fstmt) {
+			if assnStmt, ok := fstmt.(*ast.AssignStmt); ok {
+				if call, ok := assnStmt.Rhs[0].(*ast.CallExpr); ok {
+					if selector, ok := call.Fun.(*ast.SelectorExpr); ok {
+						obj := r.provider.qualifiedIdentObject(selector.X)
+						if obj != nil && strings.HasSuffix(obj.Type().String(), ZiplineTemplate) {
+							if selector.Sel.String() == ZiplineTemplateResolve {
+								if err := r.resolve(pkg, b, assnStmt, buf); err != nil {
+									return err
+								}
+							} else {
+								if err := r.generate(pkg, b, assnStmt, buf); err != nil {
+									return err
+								}
 							}
-						} else {
-							if err := r.generate(pkg, b, assnStmt, buf); err != nil {
-								return nil, err
-							}
+
+							continue
 						}
+					}
+				}
 
-						continue
+				// assignment statement, let's record any var assignments
+				for _, lhs := range assnStmt.Lhs {
+					if id, ok := lhs.(*ast.Ident); ok {
+						// this will keep the later declarations
+						// and override previously recorded identifiers
+						r.provider.memorize(id)
 					}
 				}
 			}
-
-			// assignment statement, let's record any var assignments
-			for _, lhs := range assnStmt.Lhs {
-				if id, ok := lhs.(*ast.Ident); ok {
-					// this will keep the later declarations
-					r.provider.memorize(id)
-				}
-			}
-
-		Include:
+		} else {
 			printer.Fprint(buf, pkg.Fset, fstmt)
 			buf.Sprintf("\n")
 		}
-
-		buf.Sprintf("}\n")
-		buf.Sprintf("}\n\n")
 	}
 
-	return buf, nil
+	buf.Sprintf("}\n")
+
+	return nil
 }
 
 func (r *renderer) resolve(pkg *packages.Package, b *binding, assn *ast.AssignStmt, buf *util.Buffer) error {
