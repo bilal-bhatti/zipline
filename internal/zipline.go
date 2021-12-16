@@ -40,7 +40,7 @@ func NewZipline() *Zipline {
 }
 
 func (z *Zipline) Start(pkgPaths []string) error {
-	cw, err := os.Getwd()
+	cw, _ := os.Getwd()
 
 	// log current directory
 	log.Println(cw)

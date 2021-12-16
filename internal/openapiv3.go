@@ -3,6 +3,9 @@ package internal
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
+	"os"
+	"path"
 
 	"github.com/getkin/kin-openapi/openapi2"
 	"github.com/getkin/kin-openapi/openapi2conv"
@@ -36,6 +39,13 @@ func convertToV3() error {
 	if err != nil {
 		return err
 	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	log.Printf("wrote OpenAPI v3 spec to %s\n", path.Join(cwd, "api.oasv3.json"))
 
 	return nil
 }
