@@ -19,7 +19,7 @@ Create a new contact request entity.
 ```
 
 `body parameter`
-- body: `models.ContactRequest`
+- body: `services.ContactRequest`
 	- address: `object`
 		- city: `string`
 		- state: `string`
@@ -31,7 +31,7 @@ Create a new contact request entity.
 	- lastName: `string`
 
 `responses`
-- code: `200`, type: `models.ContactResponse`
+- code: `200`, type: `services.ContactResponse`
 	- id: `string`
 - `default`, type: `Error`
 	- code: `integer`
@@ -69,7 +69,7 @@ GetOne contact by id
 
 
 `responses`
-- code: `200`, type: `models.ContactResponse`
+- code: `200`, type: `services.ContactResponse`
 	- id: `string`
 - `default`, type: `Error`
 	- code: `integer`
@@ -88,7 +88,7 @@ Update a contact entity with provided data.
 - id: `integer`
 
 `body parameter`
-- body: `models.ContactRequest`
+- body: `services.ContactRequest`
 	- address: `object`
 		- city: `string`
 		- state: `string`
@@ -100,7 +100,7 @@ Update a contact entity with provided data.
 	- lastName: `string`
 
 `responses`
-- code: `200`, type: `models.ContactResponse`
+- code: `200`, type: `services.ContactResponse`
 	- id: `string`
 - `default`, type: `Error`
 	- code: `integer`
@@ -119,7 +119,7 @@ Replace a contact entity completely.
 - id: `integer`
 
 `body parameter`
-- body: `models.ContactRequest`
+- body: `services.ContactRequest`
 	- address: `object`
 		- city: `string`
 		- state: `string`
@@ -131,7 +131,7 @@ Replace a contact entity completely.
 	- lastName: `string`
 
 `responses`
-- code: `200`, type: `models.ContactResponse`
+- code: `200`, type: `services.ContactResponse`
 	- id: `string`
 - `default`, type: `Error`
 	- code: `integer`
@@ -153,7 +153,7 @@ Get contacts list by date
 
 
 `responses`
-- code: `200`, type: `models.ContactResponse`
+- code: `200`, type: `services.ContactResponse`
 	- id: `string`
 - `default`, type: `Error`
 	- code: `integer`

@@ -100,54 +100,6 @@
         },
         "type": "object"
       },
-      "models.ContactRequest": {
-        "additionalProperties": false,
-        "description": "Contact request model",
-        "properties": {
-          "address": {
-            "additionalProperties": false,
-            "properties": {
-              "city": {
-                "type": "string"
-              },
-              "state": {
-                "type": "string"
-              },
-              "street": {
-                "type": "string"
-              },
-              "zipCode": {
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "eMail": {
-            "format": "email",
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "id": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          }
-        },
-        "type": "object"
-      },
-      "models.ContactResponse": {
-        "additionalProperties": false,
-        "description": "Contact response model",
-        "properties": {
-          "id": {
-            "type": "string"
-          }
-        },
-        "type": "object"
-      },
       "models.ThingRequest": {
         "additionalProperties": false,
         "description": "ThingRequest model",
@@ -225,6 +177,54 @@
         },
         "type": "object"
       },
+      "services.ContactRequest": {
+        "additionalProperties": false,
+        "description": "Contact request model",
+        "properties": {
+          "address": {
+            "additionalProperties": false,
+            "properties": {
+              "city": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "street": {
+                "type": "string"
+              },
+              "zipCode": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "eMail": {
+            "format": "email",
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "services.ContactResponse": {
+        "additionalProperties": false,
+        "description": "Contact response model",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "services.PingRequest": {
         "additionalProperties": false,
         "properties": {
@@ -290,7 +290,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/models.ContactRequest"
+                "$ref": "#/components/schemas/services.ContactRequest"
               }
             }
           },
@@ -303,7 +303,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/models.ContactResponse"
+                  "$ref": "#/components/schemas/services.ContactResponse"
                 }
               }
             },
@@ -342,7 +342,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/models.ContactResponse"
+                  "$ref": "#/components/schemas/services.ContactResponse"
                 }
               }
             },
@@ -378,7 +378,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/models.ContactRequest"
+                "$ref": "#/components/schemas/services.ContactRequest"
               }
             }
           },
@@ -391,7 +391,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/models.ContactResponse"
+                  "$ref": "#/components/schemas/services.ContactResponse"
                 }
               }
             },
@@ -427,7 +427,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/models.ContactRequest"
+                "$ref": "#/components/schemas/services.ContactRequest"
               }
             }
           },
@@ -440,7 +440,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/models.ContactResponse"
+                  "$ref": "#/components/schemas/services.ContactResponse"
                 }
               }
             },
@@ -495,7 +495,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/models.ContactResponse"
+                  "$ref": "#/components/schemas/services.ContactResponse"
                 }
               }
             },

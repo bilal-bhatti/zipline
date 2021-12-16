@@ -75,7 +75,7 @@ func ContactsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 
 		// resolve parameter [contactRequest] with [Body] template
 		defer io.Copy(ioutil.Discard, r.Body)
-		contactRequest := &models.ContactRequest{}
+		contactRequest := &services.ContactRequest{}
 		err = json.NewDecoder(r.Body).Decode(contactRequest)
 		if err != nil {
 			render.Error(w, render.WrapBadRequestError(err, "failed to parse request body"))
@@ -209,7 +209,7 @@ func ContactsServiceUpdateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 
 		// resolve parameter [contactRequest] with [Body] template
 		defer io.Copy(ioutil.Discard, r.Body)
-		contactRequest := models.ContactRequest{}
+		contactRequest := services.ContactRequest{}
 		err = json.NewDecoder(r.Body).Decode(&contactRequest)
 		if err != nil {
 			render.Error(w, render.WrapBadRequestError(err, "failed to parse request body"))
@@ -259,7 +259,7 @@ func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
 
 		// resolve parameter [contactRequest] with [Body] template
 		defer io.Copy(ioutil.Discard, r.Body)
-		contactRequest := models.ContactRequest{}
+		contactRequest := services.ContactRequest{}
 		err = json.NewDecoder(r.Body).Decode(&contactRequest)
 		if err != nil {
 			render.Error(w, render.WrapBadRequestError(err, "failed to parse request body"))
