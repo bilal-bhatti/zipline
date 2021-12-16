@@ -7,6 +7,7 @@ import (
 	"go/printer"
 	"go/token"
 	"io"
+	"reflect"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -173,35 +174,23 @@ func (r *renderer) renderFuncLiteral(pkg *packages.Package, b *binding, ret *ast
 			continue
 		}
 
-		if isZiplineNode(pkg.TypesInfo, fstmt) {
-			if assnStmt, ok := fstmt.(*ast.AssignStmt); ok {
-				if call, ok := assnStmt.Rhs[0].(*ast.CallExpr); ok {
-					if selector, ok := call.Fun.(*ast.SelectorExpr); ok {
-						obj := r.provider.qualifiedIdentObject(selector.X)
-						if obj != nil && strings.HasSuffix(obj.Type().String(), ZiplineTemplate) {
-							if selector.Sel.String() == ZiplineTemplateResolve {
-								if err := r.resolve(pkg, b, assnStmt, buf); err != nil {
-									return err
-								}
-							} else {
-								if err := r.generate(pkg, b, assnStmt, buf); err != nil {
-									return err
-								}
-							}
+		if assignStmt, ok := findZiplineNodeAs(pkg.TypesInfo, fstmt, reflect.TypeOf(&ast.AssignStmt{})); ok {
+			if selectorExpr, ok := findZiplineNodeAs(pkg.TypesInfo, assignStmt, reflect.TypeOf(&ast.SelectorExpr{})); ok {
+				// type coerce to make sure the find is working properly
+				assign := assignStmt.(*ast.AssignStmt)
+				selector := selectorExpr.(*ast.SelectorExpr)
 
-							continue
-						}
+				if selector.Sel.String() == ZiplineTemplateResolve {
+					if err := r.resolve(pkg, b, assign, buf); err != nil {
+						return err
+					}
+				} else {
+					if err := r.generate(pkg, b, assign, buf); err != nil {
+						return err
 					}
 				}
 
-				// assignment statement, let's record any var assignments
-				for _, lhs := range assnStmt.Lhs {
-					if id, ok := lhs.(*ast.Ident); ok {
-						// this will keep the later declarations
-						// and override previously recorded identifiers
-						r.provider.memorize(id)
-					}
-				}
+				continue
 			}
 		} else {
 			printer.Fprint(buf, pkg.Fset, fstmt)

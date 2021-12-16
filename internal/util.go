@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"reflect"
 	"strings"
 
 	"github.com/bilal-bhatti/zipline/internal/debug"
@@ -103,39 +104,55 @@ func qualifiedIdentObject(info *types.Info, expr ast.Expr) types.Object {
 	}
 }
 
+func findZiplineNodeAs(info *types.Info, fn ast.Node, targetType reflect.Type) (ast.Node, bool) {
+	var found ast.Node
+	var target ast.Node
+
+	ast.Inspect(fn, func(n ast.Node) bool {
+		if reflect.TypeOf(n) == targetType {
+			target = n
+		}
+
+		if id, ok := n.(*ast.Ident); ok {
+			ido := qualifiedIdentObject(info, id)
+
+			if ido != nil && strings.HasSuffix(ido.Type().String(), ZiplineTemplate) {
+				// search complete
+				found = n
+				return false
+			}
+		}
+
+		// continue to inspect the tree
+		return true
+	})
+
+	if found != nil {
+		return target, true
+	}
+
+	return nil, false
+}
+
 // Useful to do a broad search for a zipline spec or a template
 func isZiplineNode(info *types.Info, fn ast.Node) bool {
-	foundit := false
+	var found ast.Node
+
 	ast.Inspect(fn, func(n ast.Node) bool {
-		// ****************
-		// returning true here, means we don't want to inspect the node
-		// any further and want to move on to the next node
-		// ****************
+		if id, ok := n.(*ast.Ident); ok {
+			ido := qualifiedIdentObject(info, id)
 
-		// check the token ident is the ZiplineTemplate type
-		id, ok := n.(*ast.Ident)
-		if !ok {
-			return true
+			if ido != nil && strings.HasSuffix(ido.Type().String(), ZiplineTemplate) {
+				// search complete
+				found = n
+				return false
+			}
 		}
 
-		ido := qualifiedIdentObject(info, id)
-
-		if ido == nil {
-			return true
-		}
-
-		// ensure receiver var type is ZiplineTemplate
-		if !strings.HasSuffix(ido.Type().String(), ZiplineTemplate) {
-			return true
-		}
-
-		// if we arrived here, then all previous checks passed and
-		// found what we were looking for
-		foundit = true
-
-		return false
+		// continue to inspect the tree
+		return true
 	})
-	return foundit
+	return found != nil
 }
 
 func detectOutDir(pkg *packages.Package) (string, error) {

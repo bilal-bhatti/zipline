@@ -40,36 +40,25 @@ func (s scanner) scan() (map[string]*typeSpecWithPkg, map[string]*template, []*p
 						}
 					}
 				case *ast.FuncDecl:
-					funcD, ok := decl.(*ast.FuncDecl)
-					if !ok {
+					if !isZiplineNode(pkg.TypesInfo, dt) {
 						continue
 					}
 
-					if !isZiplineNode(pkg.TypesInfo, funcD) {
-						continue
-					}
+					// check if method receiver is ZiplineTemplate
+					if dt.Recv != nil && len(dt.Recv.List) > 0 {
+						if ok := isZiplineNode(pkg.TypesInfo, dt.Recv); ok {
+							templates[dt.Name.String()] = newTemplate(dt)
 
-					// receiver is ZiplineTemplate, and no additional?
-					if funcD.Recv != nil && len(funcD.Recv.List) == 1 {
-						// match ZiplineTemplate as receiver
-						field := funcD.Recv.List[0]
-						if zid, ok := field.Type.(*ast.Ident); ok {
-							if zid.String() == ZiplineTemplate {
-								// TODO: func must contain a single return statement,
-								// returning a func literal, WriteBuffer this check
-								templates[funcD.Name.String()] = newTemplate(funcD)
-
-								// this is a ZiplineTemplate method, used as a template
-								// we know what this is, so no further inspection
-								continue
-							}
+							// this is a ZiplineTemplate method, used as a template
+							// we know what this is, so no further inspection
+							continue
 						}
 					}
 
 					// else this is a func that declares zipline bindings
 					packets = append(packets, &packet{
 						pkg:      pkg,
-						funcDecl: funcD,
+						funcDecl: dt,
 					})
 				}
 			}
