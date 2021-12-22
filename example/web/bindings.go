@@ -125,7 +125,6 @@ func (z ZiplineTemplate) Body(w http.ResponseWriter, r *http.Request) {
 	name := ZiplineTemplate{}
 	err = json.NewDecoder(r.Body).Decode(&name)
 	if err != nil {
-		//render.NewBadRequestError("")
 		render.Error(w, render.WrapBadRequestError(err, "failed to parse request body"))
 		return
 	}
@@ -138,7 +137,7 @@ func (z ZiplineTemplate) Body(w http.ResponseWriter, r *http.Request) {
 // All business related input validation and processing logic should be in the service
 func (z ZiplineTemplate) Post(i interface{}, p ...interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
+		var err error
 
 		startTime := time.Now()
 		defer func() {
@@ -169,7 +168,7 @@ func (z ZiplineTemplate) Post(i interface{}, p ...interface{}) http.HandlerFunc 
 // All business related input validation and processing logic should be in the service
 func (z ZiplineTemplate) Get(i interface{}, p ...interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
+		var err error
 
 		startTime := time.Now()
 		defer func() {
@@ -200,7 +199,7 @@ func (z ZiplineTemplate) Get(i interface{}, p ...interface{}) http.HandlerFunc {
 // All business related input validation and processing logic should be in the service
 func (z ZiplineTemplate) Delete(i interface{}, params ...interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
+		var err error
 
 		startTime := time.Now()
 		defer func() {
@@ -231,7 +230,7 @@ func (z ZiplineTemplate) Delete(i interface{}, params ...interface{}) http.Handl
 // All business related input validation and processing logic should be in the service
 func (z ZiplineTemplate) Put(i interface{}, p ...interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
+		var err error
 
 		startTime := time.Now()
 		defer func() {
