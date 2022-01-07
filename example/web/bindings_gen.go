@@ -55,8 +55,7 @@ func NewRouter(env *connectors.Env) *chi.Mux {
 // Create a new contact request entity.
 func ContactsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
-
+		var err error
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
@@ -98,8 +97,7 @@ func ContactsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 // GetOne contact by id
 func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
-
+		var err error
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
@@ -139,8 +137,7 @@ func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 // Get contacts list by date
 func ContactsServiceGetByDateHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
-
+		var err error
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
@@ -182,8 +179,7 @@ func ContactsServiceGetByDateHandlerFunc() http.HandlerFunc {
 // Update a contact entity with provided data.
 func ContactsServiceUpdateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
-
+		var err error
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
@@ -232,8 +228,7 @@ func ContactsServiceUpdateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 // Replace a contact entity completely.
 func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
-
+		var err error
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
@@ -282,8 +277,7 @@ func ContactsServiceReplaceHandlerFunc() http.HandlerFunc {
 // DeleteBulk contact by id
 func ContactsServiceDeleteBulkHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
-
+		var err error
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
@@ -319,8 +313,7 @@ func ContactsServiceDeleteBulkHandlerFunc() http.HandlerFunc {
 // Create thing
 func ThingsServiceCreateHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
-
+		var err error
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
@@ -362,8 +355,7 @@ func ThingsServiceCreateHandlerFunc() http.HandlerFunc {
 // Get things by category and search query
 func ThingsServiceGetByCategoryAndQueryHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
-
+		var err error
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
@@ -405,8 +397,7 @@ func ThingsServiceGetByCategoryAndQueryHandlerFunc() http.HandlerFunc {
 // @to   `format:"date-time,2006-01-02"` date should be in Go time format
 func ThingsServiceGetByDateRangeHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
-
+		var err error
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
@@ -453,8 +444,7 @@ func ThingsServiceGetByDateRangeHandlerFunc() http.HandlerFunc {
 // Delete thing by id
 func ThingsServiceDeleteHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
-
+		var err error
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
@@ -491,8 +481,7 @@ func ThingsServiceDeleteHandlerFunc() http.HandlerFunc {
 // Echo returns body with 'i's replaced with 'o's
 func EchoHandlerFunc(env *connectors.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
-
+		var err error
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
@@ -525,8 +514,7 @@ func EchoHandlerFunc(env *connectors.Env) http.HandlerFunc {
 // Create a new doodad entity.
 func DoodadsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
-
+		var err error
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)
@@ -571,8 +559,7 @@ func DoodadsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 // Ping returns body with 'i's replaced with 'o's
 func PingHandlerFunc(env *connectors.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var err error // why not
-
+		var err error
 		startTime := time.Now()
 		defer func() {
 			duration := time.Now().Sub(startTime)

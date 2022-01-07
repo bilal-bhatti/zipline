@@ -1,48 +1,50 @@
+/*
+Copyright © 2021 Bilal Bhatti
+*/
+
 package main
 
 import (
-	"context"
-	"flag"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"text/template"
 
-	"github.com/google/subcommands"
+	"github.com/spf13/cobra"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/imports"
 )
 
-type initCmd struct{}
+// initCmds represents the swag command
+var initCmds = &cobra.Command{
+	Use:   "init [flags] [<package>, defaults to .]",
+	Short: "generate starter ZiplineTemplate in the specified package",
+	Long: `generate starter ZiplineTemplate in the specified package
 
-func (*initCmd) Name() string { return "init" }
+examples:
 
-func (*initCmd) Synopsis() string {
-	return "generate starter ZiplineTemplate in the specified package"
+	zipline init
+	zipline init ./pkg/web
+`,
+	Run: runInit,
 }
 
-func (*initCmd) Usage() string {
-	return `
+func init() {
+	rootCmd.AddCommand(initCmds)
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	// initCmds.PersistentFlags().String("foo", "", "A help for foo")
 
-init [package]
-
-generate starter ZiplineTemplate in the specified package, defaults to "."
-	example: "zipline init ./pkg/web"
-	example: "zipline init"
-
-`
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	// initCmds.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func (c *initCmd) SetFlags(f *flag.FlagSet) {
-}
-
-func (c *initCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	dests := packageParam(f)
+func runInit(cmd *cobra.Command, args []string) {
+	dests := packageList(args)
 	if len(dests) > 1 {
-		log.Println("specify one destination package")
-		log.Println(c.Usage())
-		return subcommands.ExitFailure
+		log.Fatalln("specify one destination package")
 	}
 
 	dest := dests[0]
@@ -50,7 +52,6 @@ func (c *initCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 	cwd, err := os.Getwd()
 	if err != nil {
 		log.Fatalln("unexpected error", err)
-		return subcommands.ExitFailure
 	}
 
 	outPath := path.Join(cwd, dest, "bindings.go")
@@ -63,34 +64,30 @@ func (c *initCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 	pkgs, err := packages.Load(cfg, dest)
 	if err != nil {
 		log.Fatalln("failed to load package", err)
-		return subcommands.ExitFailure
 	}
 
 	if len(pkgs) > 1 {
-		log.Println("multiple packages found, specify one destination package")
-		log.Println(c.Usage())
-		return subcommands.ExitFailure
+		log.Fatalln("multiple packages found, specify one destination package")
 	}
 
 	name := pkgs[0].Name
 	if name == "" {
-		log.Println("invalid package specified")
-		log.Println(c.Usage())
-		return subcommands.ExitFailure
+		log.Fatalln("invalid package specified")
 	}
 
 	outFile, err := os.OpenFile(outPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
 	if err != nil {
-		return subcommands.ExitFailure
+		log.Fatalln(err)
 	}
+
 	defer outFile.Close()
 
 	t := template.Must(template.New("zTemplate").Parse(zTemplate))
 
 	err = t.Execute(outFile, input{PackageName: name})
 	if err != nil {
-		log.Fatal("failed to write ZiplineTemplate", err)
-		return subcommands.ExitFailure
+		log.Fatalln("failed to write ZiplineTemplate", err)
+
 	}
 
 	log.Println("wrote ZiplineTemplate to", outPath)
@@ -99,7 +96,6 @@ func (c *initCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 	content, err := ioutil.ReadFile(outPath)
 	if err != nil {
 		log.Fatalln("failed to read generated file for formatting", err)
-		return subcommands.ExitFailure
 	}
 
 	opt := imports.Options{
@@ -109,16 +105,12 @@ func (c *initCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 	content, err = imports.Process(outPath, content, &opt)
 	if err != nil {
 		log.Fatalln("failed to format code", err)
-		return subcommands.ExitFailure
 	}
 
 	err = ioutil.WriteFile(outPath, content, os.ModePerm)
 	if err != nil {
 		log.Fatalln("failed to write formatted file", err)
-		return subcommands.ExitFailure
 	}
-
-	return subcommands.ExitSuccess
 }
 
 type input struct {

@@ -120,6 +120,7 @@ func (z ZiplineTemplate) Query(kind string, w http.ResponseWriter, r *http.Reque
 // Remaining code is rewritten with name substituted with the desired type and name
 func (z ZiplineTemplate) Body(w http.ResponseWriter, r *http.Request) {
 	var err error
+
 	defer io.Copy(ioutil.Discard, r.Body)
 
 	name := ZiplineTemplate{}
