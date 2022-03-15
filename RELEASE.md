@@ -15,3 +15,8 @@
 
 `goreleaser release`
 
+## reset tags
+`git tag -d v0.1.0`
+
+`git push origin :v0.1.0`
+

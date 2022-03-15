@@ -15,7 +15,7 @@ builds:
       - darwin
     ldflags:
       - -X main.Version={{.Version}}
-    main: ./cmd/zipline/main.go
+    main: ./cmd/zipline
 brews:
   -
     tap:
