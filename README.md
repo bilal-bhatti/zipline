@@ -39,6 +39,7 @@ OR install from source
 
 ## Usage
 To explore the examples included in this repo navigate to `cd <path to project>/zipline` and run `zipline ./...` from your project root.
+Use `zipline --debug ./...` to enable trace logging to help troubleshoot problems.
 
 ## Troubleshooting
 VS Code uses `gopls` as the language server and can run into trouble parsing the `bidnings.go` file because of the `ziplinegen` build tag. To fix this, `gopls` needs to be made aware of the build tag, so it can analyze the code properly. Add the following setting to VS Code.

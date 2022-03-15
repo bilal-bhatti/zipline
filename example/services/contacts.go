@@ -59,6 +59,7 @@ func (cs *ContactsService) Replace(ctx context.Context, id int, contactRequest C
 }
 
 // GetOne contact by id
+// @id contact id
 func (cs ContactsService) GetOne(ctx context.Context, id int) (*ContactResponse, error) {
 	return &ContactResponse{ID: "id"}, nil
 }

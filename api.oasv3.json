@@ -325,10 +325,11 @@
     },
     "/contacts/{id}": {
       "get": {
-        "description": "GetOne contact by id",
+        "description": "GetOne contact by id\n@id contact id",
         "operationId": "ContactsServiceGetOne",
         "parameters": [
           {
+            "description": "contact id",
             "in": "path",
             "name": "id",
             "required": true,
@@ -359,7 +360,7 @@
             "description": "unexpected error"
           }
         },
-        "summary": "GetOne contact by id"
+        "summary": "GetOne contact by id\n@id contact id"
       },
       "post": {
         "description": "Update a contact entity with provided data.",
@@ -641,6 +642,7 @@
         "operationId": "ThingsServiceGetByDateRange",
         "parameters": [
           {
+            "description": "`format:\"date-time,2006-01-02\"` date should be in Go time format",
             "in": "query",
             "name": "from",
             "required": true,
@@ -650,6 +652,7 @@
             }
           },
           {
+            "description": "`format:\"date-time,2006-01-02\"` date should be in Go time format",
             "in": "query",
             "name": "to",
             "required": true,
@@ -725,10 +728,11 @@
     },
     "/things/{category}": {
       "get": {
-        "description": "Get things by category and search query",
+        "description": "Get things by category and search query\n@category category of data to search\n@q search query",
         "operationId": "ThingsServiceGetByCategoryAndQuery",
         "parameters": [
           {
+            "description": "category of data to search",
             "in": "path",
             "name": "category",
             "required": true,
@@ -737,6 +741,7 @@
             }
           },
           {
+            "description": "search query",
             "in": "query",
             "name": "q",
             "required": true,
@@ -767,7 +772,7 @@
             "description": "unexpected error"
           }
         },
-        "summary": "Get things by category and search query"
+        "summary": "Get things by category and search query\n@category category of data to search\n@q search query"
       }
     },
     "/things/{id}": {

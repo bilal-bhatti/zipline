@@ -1,7 +1,3 @@
-/*
-Copyright © 2021 Bilal Bhatti
-*/
-
 package main
 
 import (
@@ -51,8 +47,8 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("curl", "c", false, "print cURL command")
-	rootCmd.Flags().StringP("env", "e", "", "environment settings file")
+	// rootCmd.Flags().BoolP("curl", "c", false, "print cURL command")
+	// rootCmd.Flags().StringP("env", "e", "", "environment settings file")
 }
 
 func run(cmd *cobra.Command, args []string) {

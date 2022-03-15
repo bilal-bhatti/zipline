@@ -62,6 +62,7 @@ DeleteBulk contact by id
 
 ```
 GetOne contact by id
+@id contact id
 ```
 
 `path parameters`
@@ -316,6 +317,8 @@ Create thing
 
 ```
 Get things by category and search query
+@category category of data to search
+@q search query
 ```
 
 `path parameters`

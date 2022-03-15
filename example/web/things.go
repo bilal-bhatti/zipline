@@ -30,6 +30,8 @@ func (cs *ThingsService) Delete(id int) error {
 }
 
 // Get things by category and search query
+// @category category of data to search
+// @q search query
 func (cs ThingsService) GetByCategoryAndQuery(ctx context.Context, category string, q string) (ThingListResponse, error) {
 	log.Println("Getting by category and query", category, q)
 	return ThingListResponse{}, nil

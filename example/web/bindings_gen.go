@@ -95,6 +95,7 @@ func ContactsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 // path  : /contacts/{id}
 // method: get
 // GetOne contact by id
+// @id contact id
 func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
@@ -353,6 +354,8 @@ func ThingsServiceCreateHandlerFunc() http.HandlerFunc {
 // path  : /things/{category}
 // method: get
 // Get things by category and search query
+// @category category of data to search
+// @q search query
 func ThingsServiceGetByCategoryAndQueryHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error

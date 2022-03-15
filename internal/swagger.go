@@ -122,11 +122,21 @@ func (s swagger) generate(packets []*packet) error {
 						}
 					}
 
+					var paramComment string = ""
+					for _, c := range b.handler.comments.raw {
+						ctag := "@" + strings.TrimSpace(param.VarName())
+						if strings.HasPrefix(c, ctag) {
+							paramComment = strings.TrimSpace(strings.TrimLeft(c, ctag))
+							break
+						}
+					}
+
 					op.AddParam(&spec.Parameter{
 						ParamProps: spec.ParamProps{
-							Name:     param.VarName(),
-							In:       strings.ToLower(template),
-							Required: true,
+							Name:        param.VarName(),
+							In:          strings.ToLower(template),
+							Required:    true,
+							Description: paramComment,
 						},
 						SimpleSchema: simpleSchema,
 					})

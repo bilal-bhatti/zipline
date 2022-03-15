@@ -76,12 +76,13 @@
     },
     "/contacts/{id}": {
       "get": {
-        "description": "GetOne contact by id",
-        "summary": "GetOne contact by id",
+        "description": "GetOne contact by id\n@id contact id",
+        "summary": "GetOne contact by id\n@id contact id",
         "operationId": "ContactsServiceGetOne",
         "parameters": [
           {
             "type": "integer",
+            "description": "contact id",
             "name": "id",
             "in": "path",
             "required": true
@@ -317,6 +318,7 @@
           {
             "type": "string",
             "format": "date-time,2006-01-02",
+            "description": "`format:\"date-time,2006-01-02\"` date should be in Go time format",
             "name": "from",
             "in": "query",
             "required": true
@@ -324,6 +326,7 @@
           {
             "type": "string",
             "format": "date-time,2006-01-02",
+            "description": "`format:\"date-time,2006-01-02\"` date should be in Go time format",
             "name": "to",
             "in": "query",
             "required": true
@@ -377,18 +380,20 @@
     },
     "/things/{category}": {
       "get": {
-        "description": "Get things by category and search query",
-        "summary": "Get things by category and search query",
+        "description": "Get things by category and search query\n@category category of data to search\n@q search query",
+        "summary": "Get things by category and search query\n@category category of data to search\n@q search query",
         "operationId": "ThingsServiceGetByCategoryAndQuery",
         "parameters": [
           {
             "type": "string",
+            "description": "category of data to search",
             "name": "category",
             "in": "path",
             "required": true
           },
           {
             "type": "string",
+            "description": "search query",
             "name": "q",
             "in": "query",
             "required": true
