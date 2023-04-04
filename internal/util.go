@@ -33,7 +33,7 @@ func load(ps []string) ([]*packages.Package, error) {
 
 	pkgs, err := packages.Load(cfg, ps...)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Failed to load packages")
 	}
 
 	var errs []error
