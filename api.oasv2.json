@@ -55,7 +55,10 @@
         "operationId": "ContactsServiceDeleteBulk",
         "parameters": [
           {
-            "type": "string",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
             "name": "ids",
             "in": "query",
             "required": true

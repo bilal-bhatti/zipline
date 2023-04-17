@@ -112,13 +112,16 @@ func (s swagger) generate(packets []*packet) error {
 				}
 
 				if template == "Path" || template == "Query" {
-					simpleSchema := paramSimpleSchema(param.Signature)
+					simpleSchema := paramSimpleSchema(param)
 					tags, ok := b.handler.comments.tags[param.VarName()]
 					if ok {
 						fmtTag, err := tags.Get("format")
 						if err == nil {
-							fmtTagStr := fmt.Sprintf("%s,%s", fmtTag.Name, strings.Join(fmtTag.Options, ","))
-							simpleSchema.Format = fmtTagStr
+							if len(fmtTag.Options) > 0 {
+								simpleSchema.Format = fmt.Sprintf("%s,%s", fmtTag.Name, strings.Join(fmtTag.Options, ","))
+							} else {
+								simpleSchema.Format = fmtTag.Name
+							}
 						}
 					}
 
@@ -457,16 +460,27 @@ func skema(t string) (*spec.Schema, error) {
 	}
 }
 
-func paramSimpleSchema(t string) spec.SimpleSchema {
-	typeSchema, err := skema(t)
+func paramSimpleSchema(tkn *tokens.TypeToken) spec.SimpleSchema {
+	typeSchema, err := skema(tkn.Signature)
 	if err != nil {
 		return spec.SimpleSchema{
 			Type: "string",
 		}
 	}
 
+	if tkn.IsSlice {
+		return spec.SimpleSchema{
+			Type:   "array",
+			Format: typeSchema.Format,
+			Items: &spec.Items{
+				SimpleSchema: spec.SimpleSchema{
+					Type: typeSchema.Type[0],
+				},
+			},
+		}
+	}
+
 	return spec.SimpleSchema{
-		Type:   typeSchema.Type[0],
-		Format: typeSchema.Format,
+		Type: typeSchema.Type[0],
 	}
 }

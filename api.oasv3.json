@@ -262,7 +262,10 @@
             "name": "ids",
             "required": true,
             "schema": {
-              "type": "string"
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
             }
           }
         ],

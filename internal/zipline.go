@@ -44,8 +44,8 @@ func (z *Zipline) Start(pkgPaths []string) error {
 
 	// log current directory
 	log.Println(cw)
-
 	log.Println("Loading package from paths", pkgPaths)
+
 	pkgs, err := load(pkgPaths)
 	if err != nil {
 		return err
@@ -53,7 +53,6 @@ func (z *Zipline) Start(pkgPaths []string) error {
 
 	scanner := scanner{pkgs: pkgs}
 
-	log.Println("Scanning packages")
 	z.typeSpecs, z.templates, z.packets = scanner.scan()
 
 	z.provider = newProvider(pkgs)

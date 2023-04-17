@@ -47,7 +47,7 @@ DeleteBulk contact by id
 ```
 
 `query parameters`
-- ids: `string`
+- ids: `array`
 
 
 `responses`
