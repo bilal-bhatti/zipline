@@ -19,6 +19,38 @@
   "basePath": "/api",
   "paths": {
     "/contacts": {
+      "get": {
+        "description": "GetBunch by ids\n@ids contact ids",
+        "summary": "GetBunch by ids\n@ids contact ids",
+        "operationId": "ContactsServiceGetBunch",
+        "parameters": [
+          {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "contact ids",
+            "name": "ids",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 success response",
+            "schema": {
+              "$ref": "#/definitions/services.ContactResponse"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
       "post": {
         "description": "Create a new contact request entity.",
         "summary": "Create a new contact request entity.",

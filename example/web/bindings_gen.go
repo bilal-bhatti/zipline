@@ -30,6 +30,7 @@ func NewRouter(env *connectors.Env) *chi.Mux {
 	mux.Post("/contacts", ContactsServiceCreateHandlerFunc(env))
 
 	mux.Get("/contacts/{id}", ContactsServiceGetOneHandlerFunc())
+	mux.Get("/contacts", ContactsServiceGetBunchHandlerFunc())
 	mux.Get("/contacts/{month}-{day}-{year}", ContactsServiceGetByDateHandlerFunc())
 	mux.Post("/contacts/{id}", ContactsServiceUpdateHandlerFunc(env))
 	mux.Put("/contacts/{id}", ContactsServiceReplaceHandlerFunc())
@@ -124,6 +125,47 @@ func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 
 		// execute application handler
 		response, err := handler.GetOne(ctx, id)
+		if err != nil {
+			render.Error(w, errors.Wrap(err, "application handler failed"))
+			return
+		}
+		render.Response(w, response)
+	}
+}
+
+// ContactsServiceGetBunchHandlerFunc handles requests to:
+// path  : /contacts
+// method: get
+// GetBunch by ids
+// @ids contact ids
+func ContactsServiceGetBunchHandlerFunc() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error
+		startTime := time.Now()
+		defer func() {
+			duration := time.Now().Sub(startTime)
+			log.Printf("It took %s to process request\n", duration.String())
+		}()
+
+		// initialize application handler
+		handler, err := services.InitContactsService()
+		if err != nil {
+			render.Error(w, errors.Wrap(err, "failed to resolve application handler"))
+			return
+		}
+
+		// resolve parameter [ctx] through a provider
+		ctx := services.ProvideContext(r)
+
+		// resolve parameter [ids] with [Query] template
+		ids, err := ParseInt64(r.URL.Query()["ids"])
+		if err != nil {
+			render.Error(w, render.WrapBadRequestError(err, "failed to parse parameter"))
+			return
+		}
+
+		// execute application handler
+		response, err := handler.GetBunch(ctx, ids)
 		if err != nil {
 			render.Error(w, errors.Wrap(err, "application handler failed"))
 			return

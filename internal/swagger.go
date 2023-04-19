@@ -470,17 +470,18 @@ func paramSimpleSchema(tkn *tokens.TypeToken) spec.SimpleSchema {
 
 	if tkn.IsSlice {
 		return spec.SimpleSchema{
-			Type:   "array",
-			Format: typeSchema.Format,
+			Type: "array",
 			Items: &spec.Items{
 				SimpleSchema: spec.SimpleSchema{
-					Type: typeSchema.Type[0],
+					Type:   typeSchema.Type[0],
+					Format: typeSchema.Format,
 				},
 			},
 		}
 	}
 
 	return spec.SimpleSchema{
-		Type: typeSchema.Type[0],
+		Type:   typeSchema.Type[0],
+		Format: typeSchema.Format,
 	}
 }

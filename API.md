@@ -11,6 +11,27 @@ Produces:    [application/json]
 ```
 
 <details>
+<summary>/contacts: get</summary>
+
+
+```
+GetBunch by ids
+@ids contact ids
+```
+
+`query parameters`
+- ids: `array`
+
+
+`responses`
+- code: `200`, type: `services.ContactResponse`
+	- id: `string`
+- `default`, type: `Error`
+	- code: `integer`
+	- status: `string`
+</details>
+
+<details>
 <summary>/contacts: post</summary>
 
 

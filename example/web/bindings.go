@@ -28,6 +28,7 @@ func NewRouter(env *connectors.Env) *chi.Mux {
 	mux.Post("/contacts", z.Post(services.ContactsService.Create, env, z.Resolve, z.Body))
 
 	mux.Get("/contacts/{id}", z.Get(services.ContactsService.GetOne, z.Resolve, z.Path))
+	mux.Get("/contacts", z.Get(services.ContactsService.GetBunch, z.Resolve, z.Query))
 	mux.Get("/contacts/{month}-{day}-{year}", z.Get(services.ContactsService.GetByDate, z.Resolve, z.Path, z.Path, z.Path))
 	mux.Post("/contacts/{id}", z.Post(services.ContactsService.Update, env, z.Resolve, z.Path, z.Body))
 	mux.Put("/contacts/{id}", z.Put(new(services.ContactsService).Replace, z.Resolve, z.Path, z.Body))
@@ -100,6 +101,13 @@ func (z ZiplineTemplate) Query(kind string, w http.ResponseWriter, r *http.Reque
 		z.DevNull(name)
 	case "int":
 		name, err := strconv.Atoi(r.URL.Query().Get("name"))
+		if err != nil {
+			render.Error(w, render.WrapBadRequestError(err, "failed to parse parameter"))
+			return
+		}
+		z.DevNull(name)
+	case "[]int64":
+		name, err := ParseInt64(r.URL.Query()["name"])
 		if err != nil {
 			render.Error(w, render.WrapBadRequestError(err, "failed to parse parameter"))
 			return

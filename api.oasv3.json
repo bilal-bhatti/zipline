@@ -286,6 +286,48 @@
         },
         "summary": "DeleteBulk contact by id"
       },
+      "get": {
+        "description": "GetBunch by ids\n@ids contact ids",
+        "operationId": "ContactsServiceGetBunch",
+        "parameters": [
+          {
+            "description": "contact ids",
+            "in": "query",
+            "name": "ids",
+            "required": true,
+            "schema": {
+              "items": {
+                "format": "int64",
+                "type": "integer"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/services.ContactResponse"
+                }
+              }
+            },
+            "description": "200 success response"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "unexpected error"
+          }
+        },
+        "summary": "GetBunch by ids\n@ids contact ids"
+      },
       "post": {
         "description": "Create a new contact request entity.",
         "operationId": "ContactsServiceCreate",

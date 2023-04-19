@@ -64,6 +64,12 @@ func (cs ContactsService) GetOne(ctx context.Context, id int) (*ContactResponse,
 	return &ContactResponse{ID: "id"}, nil
 }
 
+// GetBunch by ids
+// @ids contact ids
+func (cs ContactsService) GetBunch(ctx context.Context, ids []int64) (*ContactResponse, error) {
+	return &ContactResponse{ID: "id"}, nil
+}
+
 // Get contacts list by date
 func (cs ContactsService) GetByDate(ctx context.Context, month, day, year string) (*ContactResponse, error) {
 	return &ContactResponse{ID: "id"}, nil
