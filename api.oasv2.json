@@ -21,6 +21,9 @@
     "/contacts": {
       "get": {
         "description": "GetBunch by ids\n@ids contact ids",
+        "tags": [
+          "services"
+        ],
         "summary": "GetBunch by ids\n@ids contact ids",
         "operationId": "ContactsServiceGetBunch",
         "parameters": [
@@ -53,6 +56,9 @@
       },
       "post": {
         "description": "Create a new contact request entity.",
+        "tags": [
+          "services"
+        ],
         "summary": "Create a new contact request entity.",
         "operationId": "ContactsServiceCreate",
         "parameters": [
@@ -83,6 +89,9 @@
       },
       "delete": {
         "description": "DeleteBulk contact by id",
+        "tags": [
+          "services"
+        ],
         "summary": "DeleteBulk contact by id",
         "operationId": "ContactsServiceDeleteBulk",
         "parameters": [
@@ -112,6 +121,9 @@
     "/contacts/{id}": {
       "get": {
         "description": "GetOne contact by id\n@id contact id",
+        "tags": [
+          "services"
+        ],
         "summary": "GetOne contact by id\n@id contact id",
         "operationId": "ContactsServiceGetOne",
         "parameters": [
@@ -140,6 +152,9 @@
       },
       "put": {
         "description": "Replace a contact entity completely.",
+        "tags": [
+          "services"
+        ],
         "summary": "Replace a contact entity completely.",
         "operationId": "ContactsServiceReplace",
         "parameters": [
@@ -176,6 +191,9 @@
       },
       "post": {
         "description": "Update a contact entity with provided data.",
+        "tags": [
+          "services"
+        ],
         "summary": "Update a contact entity with provided data.",
         "operationId": "ContactsServiceUpdate",
         "parameters": [
@@ -214,6 +232,9 @@
     "/contacts/{month}-{day}-{year}": {
       "get": {
         "description": "Get contacts list by date",
+        "tags": [
+          "services"
+        ],
         "summary": "Get contacts list by date",
         "operationId": "ContactsServiceGetByDate",
         "parameters": [
@@ -255,6 +276,9 @@
     "/doodads": {
       "post": {
         "description": "Create a new doodad entity.",
+        "tags": [
+          "services"
+        ],
         "summary": "Create a new doodad entity.",
         "operationId": "DoodadsServiceCreate",
         "parameters": [
@@ -287,6 +311,9 @@
     "/echo/{input}": {
       "get": {
         "description": "Echo returns body with 'i's replaced with 'o's",
+        "tags": [
+          "web"
+        ],
         "summary": "Echo returns body with 'i's replaced with 'o's",
         "operationId": "Echo",
         "parameters": [
@@ -316,6 +343,9 @@
     "/ping": {
       "post": {
         "description": "Ping returns body with 'i's replaced with 'o's",
+        "tags": [
+          "services"
+        ],
         "summary": "Ping returns body with 'i's replaced with 'o's",
         "operationId": "Ping",
         "parameters": [
@@ -347,6 +377,9 @@
     "/things": {
       "get": {
         "description": "Get things by date range\n\n@from `format:\"date-time,2006-01-02\"` date should be in Go time format\n@to   `format:\"date-time,2006-01-02\"` date should be in Go time format",
+        "tags": [
+          "web"
+        ],
         "summary": "Get things by date range\n\n@from `format:\"date-time,2006-01-02\"` date should be in Go time format\n@to   `format:\"date-time,2006-01-02\"` date should be in Go time format",
         "operationId": "ThingsServiceGetByDateRange",
         "parameters": [
@@ -355,16 +388,14 @@
             "format": "date-time,2006-01-02",
             "description": "`format:\"date-time,2006-01-02\"` date should be in Go time format",
             "name": "from",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
             "format": "date-time,2006-01-02",
             "description": "`format:\"date-time,2006-01-02\"` date should be in Go time format",
             "name": "to",
-            "in": "query",
-            "required": true
+            "in": "query"
           }
         ],
         "responses": {
@@ -384,6 +415,9 @@
       },
       "post": {
         "description": "Create thing",
+        "tags": [
+          "web"
+        ],
         "summary": "Create thing",
         "operationId": "ThingsServiceCreate",
         "parameters": [
@@ -416,6 +450,9 @@
     "/things/{category}": {
       "get": {
         "description": "Get things by category and search query\n@category category of data to search\n@q search query",
+        "tags": [
+          "web"
+        ],
         "summary": "Get things by category and search query\n@category category of data to search\n@q search query",
         "operationId": "ThingsServiceGetByCategoryAndQuery",
         "parameters": [
@@ -453,6 +490,9 @@
     "/things/{id}": {
       "delete": {
         "description": "Delete thing by id",
+        "tags": [
+          "web"
+        ],
         "summary": "Delete thing by id",
         "operationId": "ThingsServiceDelete",
         "parameters": [

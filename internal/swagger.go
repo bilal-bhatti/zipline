@@ -86,6 +86,7 @@ func (s swagger) generate(packets []*packet) error {
 				OperationProps: spec.OperationProps{
 					Description: "Route description",
 					ID:          b.id(),
+					Tags:        []string{b.handler.pkg[strings.LastIndex(b.handler.pkg, "/")+1:]},
 					Responses: &spec.Responses{
 						ResponsesProps: spec.ResponsesProps{
 							StatusCodeResponses: make(map[int]spec.Response),
@@ -134,11 +135,16 @@ func (s swagger) generate(packets []*packet) error {
 						}
 					}
 
+					required := true
+					if template == "Query" {
+						required = !param.IsPtr
+					}
+
 					op.AddParam(&spec.Parameter{
 						ParamProps: spec.ParamProps{
 							Name:        param.VarName(),
 							In:          strings.ToLower(template),
-							Required:    true,
+							Required:    required,
 							Description: paramComment,
 						},
 						SimpleSchema: simpleSchema,
