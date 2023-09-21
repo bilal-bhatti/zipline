@@ -3,7 +3,8 @@
     "application/json"
   ],
   "produces": [
-    "application/json"
+    "application/json",
+    "application/text"
   ],
   "schemes": [
     "http",
@@ -11,20 +12,30 @@
   ],
   "swagger": "2.0",
   "info": {
-    "description": "Example OpenAPI Version 2 Specification",
-    "title": "Example OpenAPI Version 2 Specification",
-    "version": "1.0.0"
+    "description": "This is a sample Zipline generated server.",
+    "title": "Zipline Example Swagger API",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "name": "API Support",
+      "url": "http://www.swagger.io/support",
+      "email": "support@swagger.io"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http"
+    },
+    "version": "1.1"
   },
-  "host": "api.example.com",
+  "host": "zipline.example.com",
   "basePath": "/api",
   "paths": {
     "/contacts": {
       "get": {
-        "description": "GetBunch by ids\n@ids contact ids",
+        "description": "GetBunch of contacts by ids\n\n@summary           Get a list of contacts by ids\n@description       Get a list of contacts by ids\n@tags              contacts\n@produces          application/json\n@parameters        (name:ids, description: list of contact ids, required:true)\n@responses.400     {models.ErrorResponse}\n@responses.404     {models.ErrorResponse}\n@responses.default {models.ErrorResponse}",
         "tags": [
           "services"
         ],
-        "summary": "GetBunch by ids\n@ids contact ids",
+        "summary": "GetBunch of contacts by ids\n\n@summary           Get a list of contacts by ids\n@description       Get a list of contacts by ids\n@tags              contacts\n@produces          application/json\n@parameters        (name:ids, description: list of contact ids, required:true)\n@responses.400     {models.ErrorResponse}\n@responses.404     {models.ErrorResponse}\n@responses.default {models.ErrorResponse}",
         "operationId": "ContactsServiceGetBunch",
         "parameters": [
           {
@@ -33,7 +44,6 @@
               "type": "integer",
               "format": "int64"
             },
-            "description": "contact ids",
             "name": "ids",
             "in": "query",
             "required": true
@@ -760,5 +770,18 @@
       },
       "additionalProperties": false
     }
-  }
+  },
+  "securityDefinitions": {
+    "apiKey": {
+      "description": "required api key",
+      "type": "apiKey",
+      "name": "X-API-KEY",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "apiKey": []
+    }
+  ]
 }

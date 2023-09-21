@@ -25,40 +25,8 @@ type swagger struct {
 func newSwagger(typeSpecs map[string]*typeSpecWithPkg) (*swagger, error) {
 	// init defaults
 	swag := &spec.Swagger{
-		SwaggerProps: spec.SwaggerProps{
-			Swagger: "2.0",
-			Info: &spec.Info{
-				InfoProps: spec.InfoProps{
-					Version:     "1.0.0",
-					Title:       "OpenAPI Version 2 Specification",
-					Description: "OpenAPI Version 2 Specification",
-				},
-			},
-			Host:     "api.host.com",
-			BasePath: "/api",
-			Schemes:  []string{"http", "https"},
-			Consumes: []string{"application/json"},
-			Produces: []string{"application/json"},
-			Paths: &spec.Paths{
-				Paths: make(map[string]spec.PathItem),
-			},
-			Parameters:  make(map[string]spec.Parameter),
-			Definitions: make(map[string]spec.Schema),
-		},
+		SwaggerProps: spec.SwaggerProps{},
 	}
-
-	ert, err := skema("object")
-	if err != nil {
-		return nil, err
-	}
-	ert.Description = "error response object"
-	ert.Properties["code"] = spec.Schema{
-		SchemaProps: spec.SchemaProps{
-			Type: spec.StringOrArray{"integer"},
-		},
-	}
-	ert.Properties["status"] = *spec.StringProperty()
-	swag.Definitions["Error"] = *ert
 
 	return &swagger{
 		swag:      swag,
@@ -75,6 +43,48 @@ func (s swagger) generate(packets []*packet) error {
 	erresp := spec.NewResponse().WithDescription("unexpected error").WithSchema(erref)
 
 	for _, packet := range packets {
+		docs, err := parsedocs(packet.funcDecl.Doc.Text())
+
+		if err != nil {
+			return err
+		}
+
+		docsbytes, err := json.Marshal(docs)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(docsbytes, s.swag)
+		if err != nil {
+			return err
+		}
+
+		// populate some defaults
+		s.swag.SwaggerProps.Paths = &spec.Paths{
+			Paths: make(map[string]spec.PathItem),
+		}
+		s.swag.SwaggerProps.Parameters = make(map[string]spec.Parameter)
+		s.swag.SwaggerProps.Definitions = make(map[string]spec.Schema)
+
+		ert, err := skema("object")
+		if err != nil {
+			return err
+		}
+		ert.Description = "error response object"
+		ert.Properties["code"] = spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: spec.StringOrArray{"integer"},
+			},
+		}
+		ert.Properties["status"] = *spec.StringProperty()
+		s.swag.Definitions["Error"] = *ert
+		// defaults
+
+		// err = yaml.NewEncoder(os.Stdout).Encode(s.swag)
+		// if err != nil {
+		// 	fmt.Println(err)
+		// }
+
 		for _, b := range packet.bindings {
 			var pi spec.PathItem
 			pi, found := s.swag.Paths.Paths[b.path]
@@ -312,13 +322,25 @@ func (s swagger) readAndMergeSchema() error {
 		return err
 	}
 
-	s.swag.Swagger = old.Swagger
-	s.swag.Info = old.Info
-	s.swag.Host = old.Host
-	s.swag.BasePath = old.BasePath
+	if s.swag.Swagger == "" {
+		s.swag.Swagger = old.Swagger
+	}
+	if s.swag.Info == nil {
+		s.swag.Info = old.Info
+	}
+	if s.swag.Host == "" {
+		s.swag.Host = old.Host
+	}
+	if s.swag.BasePath == "" {
+		s.swag.BasePath = old.BasePath
+	}
+	if len(s.swag.Consumes) == 0 {
+		s.swag.Consumes = old.Consumes
+	}
+	if len(s.swag.Produces) == 0 {
+		s.swag.Produces = old.Produces
+	}
 	s.swag.Schemes = old.Schemes
-	s.swag.Consumes = old.Consumes
-	s.swag.Produces = old.Produces
 	s.swag.SecurityDefinitions = old.SecurityDefinitions
 	s.swag.Security = old.Security
 
