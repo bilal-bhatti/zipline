@@ -82,7 +82,7 @@ func parseLine(key, value string, data map[string]interface{}) error {
 func parseValue(value string) (interface{}, error) {
 	if strings.HasPrefix(value, "(") && strings.HasSuffix(value, ")") {
 		p := make(map[string]interface{})
-		value = strings.TrimRight(strings.TrimLeft(value, "("), ")")
+		value = strings.Trim(value, "()")
 		r := csv.NewReader(strings.NewReader(value))
 		r.TrimLeadingSpace = true
 		fields, err := r.Read()
@@ -96,7 +96,7 @@ func parseValue(value string) (interface{}, error) {
 		return p, nil
 	} else if strings.HasPrefix(value, "[") && strings.HasSuffix(value, "]") {
 		var p []interface{}
-		value = strings.TrimSpace(strings.TrimRight(strings.TrimLeft(value, "["), "]"))
+		value = strings.TrimSpace(strings.Trim(value, "[]"))
 		if value == "" {
 			return make([]interface{}, 0), nil
 		}
