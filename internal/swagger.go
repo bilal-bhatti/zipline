@@ -75,6 +75,21 @@ func (s swagger) generate(packets []*packet) error {
 	erresp := spec.NewResponse().WithDescription("unexpected error").WithSchema(erref)
 
 	for _, packet := range packets {
+		docs, err := parsedocs(packet.funcDecl.Doc.Text())
+		if err != nil {
+			return err
+		}
+
+		docsbytes, err := json.Marshal(docs)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(docsbytes, s.swag)
+		if err != nil {
+			return err
+		}
+
 		for _, b := range packet.bindings {
 			var pi spec.PathItem
 			pi, found := s.swag.Paths.Paths[b.path]
