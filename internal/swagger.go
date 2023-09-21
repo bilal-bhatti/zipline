@@ -44,7 +44,6 @@ func (s swagger) generate(packets []*packet) error {
 
 	for _, packet := range packets {
 		docs, err := parsedocs(packet.funcDecl.Doc.Text())
-
 		if err != nil {
 			return err
 		}
