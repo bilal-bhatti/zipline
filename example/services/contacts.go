@@ -79,3 +79,9 @@ func (cs ContactsService) GetByDate(ctx context.Context, month, day, year string
 func (cs ContactsService) DeleteBulk(ctx context.Context, ids []string) error {
 	return nil
 }
+
+// Redirect sends a redirect in response
+// @responses.302     {models.ErrorResponse}
+func (cs ContactsService) Redirect(ctx context.Context, ids []string) (string, error) {
+	return "https://donate.doctorswithoutborders.org", nil
+}
