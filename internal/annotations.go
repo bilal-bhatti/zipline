@@ -3,11 +3,7 @@ package internal
 import (
 	"encoding/csv"
 	"errors"
-	"fmt"
-	"os"
 	"strings"
-
-	"gopkg.in/yaml.v3"
 )
 
 func parsedocs(docs string) (map[string]interface{}, error) {
@@ -29,7 +25,7 @@ func parsedocs(docs string) (map[string]interface{}, error) {
 		// }
 	}
 
-	yaml.NewEncoder(os.Stdout).Encode(nested)
+	// yaml.NewEncoder(os.Stdout).Encode(nested)
 
 	return nested, nil
 }
@@ -105,7 +101,7 @@ func parseValue(value string) (interface{}, error) {
 			return make([]interface{}, 0), nil
 		}
 
-		fmt.Println("value", value)
+		// fmt.Println("value", value)
 		r := csv.NewReader(strings.NewReader(value))
 		r.TrimLeadingSpace = true
 
