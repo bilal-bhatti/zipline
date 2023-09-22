@@ -16,11 +16,11 @@ type (
 	}
 
 	binding struct {
-		spec           string
-		template, path string
-		handler        *handlerInfo
-		paramTemplates []string
-		boundParams    []*tokens.TypeToken
+		spec                   string
+		method, template, path string
+		handler                *handlerInfo
+		paramTemplates         []string
+		boundParams            []*tokens.TypeToken
 	}
 
 	handlerInfo struct {

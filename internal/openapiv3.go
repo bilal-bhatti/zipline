@@ -2,7 +2,6 @@ package internal
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -15,7 +14,7 @@ import (
 // TODO: switch to using newer v2 spec and v3 spec APIs
 // getkin/kin-openapi seems to better support for v2/v3 going forward
 func convertToV3() error {
-	input, err := ioutil.ReadFile("api.oasv2.json")
+	input, err := os.ReadFile("api.oasv2.json")
 	if err != nil {
 		return err
 	}
@@ -35,7 +34,9 @@ func convertToV3() error {
 		return err
 	}
 
-	err = ioutil.WriteFile("api.oasv3.json", bites, 0644)
+	bites = append(bites, []byte("\n")...)
+
+	err = os.WriteFile("api.oasv3.json", bites, 0644)
 	if err != nil {
 		return err
 	}

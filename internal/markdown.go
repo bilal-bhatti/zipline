@@ -2,7 +2,7 @@ package internal
 
 import (
 	"fmt"
-	"io/ioutil"
+
 	"log"
 	"os"
 	"path"
@@ -176,7 +176,7 @@ func (s swagger) markdown() error {
 		}
 	}
 
-	err := ioutil.WriteFile(Markdown, buf.Bytes(), 0644)
+	err := os.WriteFile(Markdown, buf.Bytes(), 0644)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("failed to write file %s", Markdown))
 	}

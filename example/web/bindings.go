@@ -60,6 +60,7 @@ func NewRouter(env *connectors.Env) *chi.Mux {
 	mux.Post("/contacts/{id}", z.Post(services.ContactsService.Update, env, z.Resolve, z.Path, z.Body))
 	mux.Put("/contacts/{id}", z.Put(new(services.ContactsService).Replace, z.Resolve, z.Path, z.Body))
 	mux.Delete("/contacts", z.Delete(services.ContactsService.DeleteBulk, z.Resolve, z.Query))
+	//mux.Get("/contacts/redirect", z.Redirect(services.ContactsService.Redirect, z.Resolve, z.Query))
 
 	mux.Post("/things", z.Post(ThingsService.Create, z.Resolve, z.Body))
 	mux.Get("/things/{category}", z.Get(ThingsService.GetByCategoryAndQuery, z.Resolve, z.Path, z.Query))
@@ -82,6 +83,9 @@ var z ZiplineTemplate
 type ZiplineTemplate struct {
 	// marker that the func returns a type and an error, so we have var handles in the template
 	ReturnResponseAndError func() (interface{}, error)
+
+	// marker that the func returns a string and an error, so we have var handles in the template
+	ReturnResponseStringAndError func() (string, error)
 
 	// marker that the func has a single return of type error, so we have a error handle in the template
 	ReturnError func() error
@@ -287,5 +291,37 @@ func (z ZiplineTemplate) Put(i interface{}, p ...interface{}) http.HandlerFunc {
 		}
 
 		render.Response(w, response)
+	}
+}
+
+// Redirect template is expected to be applied to HTTP GET requests that respond
+// with a redirect directive.
+// It resolves HTTP parameters, required application service handler
+// and invokes specified method
+// NOTE: All HTTP related marshalling/unmarshalling should take place here
+// All business related input validation and processing logic should be in the service
+func (z ZiplineTemplate) Redirect(i interface{}, p ...interface{}) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error
+
+		startTime := time.Now()
+		defer func() {
+			duration := time.Now().Sub(startTime)
+			log.Printf("It took %s to process request\n", duration.String())
+		}()
+
+		handler, err := z.Resolve()
+		if err != nil {
+			render.Error(w, errors.Wrap(err, "failed to resolve application handler"))
+			return
+		}
+
+		response, err := handler.ReturnResponseStringAndError()
+		if err != nil {
+			render.Error(w, errors.Wrap(err, "application handler failed"))
+			return
+		}
+
+		http.Redirect(w, r, response, http.StatusFound)
 	}
 }

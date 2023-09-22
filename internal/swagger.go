@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"go/types"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -281,7 +280,7 @@ func (s swagger) generate(packets []*packet) error {
 				}
 			}
 
-			switch strings.ToUpper(b.template) {
+			switch strings.ToUpper(b.method) {
 			case "GET":
 				pi.Get = op
 			case "POST":
@@ -293,7 +292,7 @@ func (s swagger) generate(packets []*packet) error {
 			case "PUT":
 				pi.Put = op
 			default:
-				return errors.New(fmt.Sprintf("oh noos what's this: %s", b.template))
+				return errors.New(fmt.Sprintf("oh noos what's this method: %s", b.template))
 			}
 
 			s.swag.Paths.Paths[b.path] = pi
@@ -321,8 +320,9 @@ func (s swagger) write() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to generate write OpenAPI json")
 	}
+	bites = append(bites, []byte("\n")...)
 
-	err = ioutil.WriteFile(OpenAPIFile, bites, 0644)
+	err = os.WriteFile(OpenAPIFile, bites, 0644)
 	if err != nil {
 		return errors.Wrap(err, "failed to write OpenAPI json to file")
 	}
@@ -337,7 +337,7 @@ func (s swagger) write() error {
 }
 
 func (s swagger) readAndMergeSchema() error {
-	bites, err := ioutil.ReadFile(OpenAPIFile)
+	bites, err := os.ReadFile(OpenAPIFile)
 	if err != nil {
 		return err
 	}

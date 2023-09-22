@@ -82,6 +82,6 @@ func (cs ContactsService) DeleteBulk(ctx context.Context, ids []string) error {
 
 // Redirect sends a redirect in response
 // @responses.302     {models.ErrorResponse}
-func (cs ContactsService) Redirect(ctx context.Context, ids []string) (string, error) {
+func (cs ContactsService) Redirect(ctx context.Context, id string) (string, error) {
 	return "https://donate.doctorswithoutborders.org", nil
 }

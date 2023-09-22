@@ -115,7 +115,7 @@ func (r *renderer) renderFunctionTemplate(pkg *packages.Package, t *template, b 
 
 	buf.Sprintf("// %s%s handles requests to:\n", b.id(), t.funcSuffix())
 	buf.Sprintf("// path  : %s\n", b.path)
-	buf.Sprintf("// method: %s\n", strings.ToLower(b.template))
+	buf.Sprintf("// method: %s\n", strings.ToLower(b.method))
 	for _, c := range b.handler.comments.raw {
 		buf.Sprintf("// %s\n", c)
 	}

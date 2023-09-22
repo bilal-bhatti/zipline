@@ -6,7 +6,6 @@ import (
 	"go/ast"
 	"go/printer"
 	"go/types"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -92,7 +91,7 @@ func (z *Zipline) Start(pkgPaths []string) error {
 
 		f.Close()
 
-		bs, err := ioutil.ReadFile(out)
+		bs, err := os.ReadFile(out)
 		if err != nil {
 			return err
 		}
@@ -105,7 +104,7 @@ func (z *Zipline) Start(pkgPaths []string) error {
 			return err
 		}
 
-		err = ioutil.WriteFile(out, bs, os.ModePerm)
+		err = os.WriteFile(out, bs, os.ModePerm)
 		if err != nil {
 			return err
 		}
@@ -260,7 +259,8 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 	}
 
 	binding := &binding{
-		template:       sel.Sel.Name,
+		method:         sel.Sel.Name,
+		template:       zipline.Fun.(*ast.SelectorExpr).Sel.Name,
 		path:           path,
 		paramTemplates: []string{},
 	}
@@ -270,7 +270,7 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 	printer.Fprint(zsb, pkg.Fset, zipline)
 	binding.spec = string(zsb.Bytes())
 
-	debug.Trace("parsing `%s`", binding.spec)
+	debug.Trace("parsing `%s`, applying template `%s`", binding.spec, binding.template)
 
 	switch handler := zipline.Args[0].(type) {
 	case *ast.SelectorExpr:
@@ -386,7 +386,7 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) (*handle
 		idx := strings.LastIndex(rcvr, ".")
 
 		if idx > 0 {
-			rcvr = strings.Trim(rcvr[idx:len(rcvr)], ".")
+			rcvr = strings.Trim(rcvr[idx:], ".")
 		}
 		id.WriteString(rcvr)
 	}
@@ -401,7 +401,7 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) (*handle
 
 	hi := &handlerInfo{
 		comments:  comments,
-		id:        string(id.Bytes()),
+		id:        id.String(),
 		sel:       handler.String(),
 		pkg:       obj.Pkg().Path(),
 		signature: sig,
