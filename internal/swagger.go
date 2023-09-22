@@ -23,49 +23,13 @@ type swagger struct {
 
 func newSwagger(typeSpecs map[string]*typeSpecWithPkg) (*swagger, error) {
 	// init defaults
-	swag := &spec.Swagger{
-		SwaggerProps: spec.SwaggerProps{
-			// Swagger: "2.0",
-			// Info: &spec.Info{
-			// 	InfoProps: spec.InfoProps{
-			// 		Version:     "1.0.0",
-			// 		Title:       "OpenAPI Version 2 Specification",
-			// 		Description: "OpenAPI Version 2 Specification",
-			// 	},
-			// },
-			// Host:     "api.host.com",
-			// BasePath: "/api",
-			// Schemes:  []string{"http", "https"},
-			// Consumes: []string{"application/json"},
-			// Produces: []string{"application/json"},
-			// Paths: &spec.Paths{
-			// 	Paths: make(map[string]spec.PathItem),
-			// },
-			// Parameters:  make(map[string]spec.Parameter),
-			// Definitions: make(map[string]spec.Schema),
-		},
-	}
-
-	// ert, err := skema("object")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// ert.Description = "error response object"
-	// ert.Properties["code"] = spec.Schema{
-	// 	SchemaProps: spec.SchemaProps{
-	// 		Type: spec.StringOrArray{"integer"},
-	// 	},
-	// }
-	// ert.Properties["status"] = *spec.StringProperty()
-	// swag.Definitions["Error"] = *ert
-
 	return &swagger{
-		swag:      swag,
+		swag:      &spec.Swagger{},
 		typeSpecs: typeSpecs,
 	}, nil
 }
 
-func (s swagger) generate(packets []*packet) error {
+func (s *swagger) generate(packets []*packet) error {
 	erref := &spec.Schema{
 		SchemaProps: spec.SchemaProps{
 			Ref: spec.MustCreateRef("#/definitions/Error"),
@@ -84,7 +48,7 @@ func (s swagger) generate(packets []*packet) error {
 			return err
 		}
 
-		err = json.Unmarshal(docsbytes, s.swag)
+		err = s.swag.UnmarshalJSON(docsbytes)
 		if err != nil {
 			return err
 		}
@@ -303,6 +267,7 @@ func (s swagger) generate(packets []*packet) error {
 	if err != nil {
 		return errors.Wrap(err, "OpenAPI spec generation failed")
 	}
+
 	err = s.markdown()
 	if err != nil {
 		return errors.Wrap(err, "failed to generate API.md summary file")
@@ -348,19 +313,19 @@ func (s swagger) readAndMergeSchema() error {
 		return err
 	}
 
-	if s.swag.Swagger != "" {
+	if s.swag.Swagger == "" {
 		s.swag.Swagger = old.Swagger
 	}
 
-	if s.swag.Info != nil {
+	if s.swag.Info == nil {
 		s.swag.Info = old.Info
 	}
 
-	if s.swag.Host != "" {
+	if s.swag.Host == "" {
 		s.swag.Host = old.Host
 	}
 
-	if s.swag.BasePath != "" {
+	if s.swag.BasePath == "" {
 		s.swag.BasePath = old.BasePath
 	}
 

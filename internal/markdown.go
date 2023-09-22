@@ -21,9 +21,9 @@ func (s swagger) markdown() error {
 	buf.Sprintf("# API Summary\n\n")
 
 	buf.Sprintf("```\n")
-	buf.Sprintf("Version:     %s\n", s.swag.SwaggerProps.Info.Version)
-	buf.Sprintf("Title:       %s\n", s.swag.SwaggerProps.Info.Title)
-	buf.Sprintf("Description: %s\n", s.swag.SwaggerProps.Info.Description)
+	buf.Sprintf("Version:     %s\n", s.swag.Info.Version)
+	buf.Sprintf("Title:       %s\n", s.swag.Info.Title)
+	buf.Sprintf("Description: %s\n", s.swag.Info.Description)
 	buf.Sprintf("Host:        %s\n", s.swag.Host)
 	buf.Sprintf("BasePath:    %s\n", s.swag.BasePath)
 	buf.Sprintf("Consumes:    %s\n", s.swag.Consumes)
