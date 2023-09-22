@@ -158,12 +158,15 @@ func (s *swagger) generate(packets []*packet) error {
 					if ts != nil {
 						pos := ts.pkg.Fset.PositionFor(ts.typeSpec.Pos(), true)
 						comms, err := getComments(pos)
+						// fmt.Println("xxx", comms.comments)
+						// fmt.Println("docs", ts.typeSpec.Doc.Text())
+						// comms, err := getParsedComments(ts.typeSpec.Doc.Text())
 						if err != nil {
 							// let's not fail on comments but log the error
 							log.Println("failed to extract comments", err.Error())
 						}
 
-						skema.Description = strings.Join(comms.raw, "\n")
+						skema.Description = strings.Join(comms.comments, "\n")
 					}
 
 					ref := spec.Schema{

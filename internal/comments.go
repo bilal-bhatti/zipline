@@ -1,8 +1,9 @@
 package internal
 
 import (
+	"fmt"
 	"go/token"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/fatih/structtag"
@@ -15,7 +16,7 @@ type comments struct {
 }
 
 func getComments(pos token.Position) (*comments, error) {
-	fileBytes, err := ioutil.ReadFile(pos.Filename)
+	fileBytes, err := os.ReadFile(pos.Filename)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +24,6 @@ func getComments(pos token.Position) (*comments, error) {
 	lines := strings.Split(string(fileBytes), "\n")
 
 	comms := &comments{
-		raw:  []string{},
 		tags: make(map[string]*structtag.Tags),
 	}
 
@@ -62,6 +62,45 @@ func getComments(pos token.Position) (*comments, error) {
 	}
 
 	reverse(comms.raw)
+	return comms, nil
+}
+
+func getParsedComments(docs string) (*comments, error) {
+	fmt.Println("docs", docs)
+	lines := strings.Split(docs, "\n")
+
+	comms := &comments{
+		tags: make(map[string]*structtag.Tags),
+	}
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+
+		if strings.HasPrefix(line, "//") {
+			line = strings.TrimSpace(strings.TrimPrefix(line, "//"))
+			if len(line) == 0 {
+				continue
+			}
+
+			if strings.HasPrefix(line, "@") {
+				tagline := strings.TrimPrefix(line, "@")
+				split := strings.SplitN(tagline, " ", 2)
+
+				if len(split) == 2 {
+					tags, err := structtag.Parse(parseTagIfAny(split[1]))
+					if err == nil {
+						comms.tags[strings.TrimSpace(split[0])] = tags
+					}
+				}
+			} else {
+				comms.comments = append(comms.comments, line)
+			}
+			comms.raw = append(comms.raw, line)
+		} else {
+			break
+		}
+	}
+
 	return comms, nil
 }
 

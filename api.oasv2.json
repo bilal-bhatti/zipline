@@ -63,7 +63,7 @@
         "operationId": "ContactsServiceCreate",
         "parameters": [
           {
-            "description": "Contact request model",
+            "description": "ContactRequest model",
             "name": "body",
             "in": "body",
             "required": true,
@@ -165,7 +165,7 @@
             "required": true
           },
           {
-            "description": "Contact request model",
+            "description": "ContactRequest model",
             "name": "body",
             "in": "body",
             "required": true,
@@ -204,7 +204,7 @@
             "required": true
           },
           {
-            "description": "Contact request model",
+            "description": "ContactRequest model",
             "name": "body",
             "in": "body",
             "required": true,
@@ -695,7 +695,7 @@
       "additionalProperties": false
     },
     "services.ContactRequest": {
-      "description": "Contact request model",
+      "description": "ContactRequest model",
       "type": "object",
       "properties": {
         "address": {
@@ -733,7 +733,7 @@
       "additionalProperties": false
     },
     "services.ContactResponse": {
-      "description": "Contact response model",
+      "description": "ContactResponse model",
       "type": "object",
       "properties": {
         "id": {

@@ -18,7 +18,7 @@ type (
 		ZipCode string `json:"zipCode"`
 	}
 
-	// Contact request model
+	// ContactRequest model
 	ContactRequest struct {
 		ID string `json:"id"`
 		Name
@@ -26,7 +26,7 @@ type (
 		Address *Address `json:"address"`
 	}
 
-	// Contact response model
+	// ContactResponse model
 	ContactResponse struct {
 		// id is the unique id of contact
 		ID string `json:"id"`

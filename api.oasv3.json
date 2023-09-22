@@ -179,7 +179,7 @@
       },
       "services.ContactRequest": {
         "additionalProperties": false,
-        "description": "Contact request model",
+        "description": "ContactRequest model",
         "properties": {
           "address": {
             "additionalProperties": false,
@@ -217,7 +217,7 @@
       },
       "services.ContactResponse": {
         "additionalProperties": false,
-        "description": "Contact response model",
+        "description": "ContactResponse model",
         "properties": {
           "id": {
             "type": "string"
@@ -350,7 +350,7 @@
               }
             }
           },
-          "description": "Contact request model",
+          "description": "ContactRequest model",
           "required": true,
           "x-originalParamName": "body"
         },
@@ -445,7 +445,7 @@
               }
             }
           },
-          "description": "Contact request model",
+          "description": "ContactRequest model",
           "required": true,
           "x-originalParamName": "body"
         },
@@ -497,7 +497,7 @@
               }
             }
           },
-          "description": "Contact request model",
+          "description": "ContactRequest model",
           "required": true,
           "x-originalParamName": "body"
         },
