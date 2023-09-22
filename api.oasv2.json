@@ -760,5 +760,18 @@
       },
       "additionalProperties": false
     }
-  }
+  },
+  "securityDefinitions": {
+    "token": {
+      "description": "Requests should pass a token.",
+      "type": "token",
+      "name": "X-TOKEN",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "token": []
+    }
+  ]
 }

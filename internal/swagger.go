@@ -348,15 +348,41 @@ func (s swagger) readAndMergeSchema() error {
 		return err
 	}
 
-	s.swag.Swagger = old.Swagger
-	s.swag.Info = old.Info
-	s.swag.Host = old.Host
-	s.swag.BasePath = old.BasePath
-	s.swag.Schemes = old.Schemes
-	s.swag.Consumes = old.Consumes
-	s.swag.Produces = old.Produces
-	s.swag.SecurityDefinitions = old.SecurityDefinitions
-	s.swag.Security = old.Security
+	if s.swag.Swagger != "" {
+		s.swag.Swagger = old.Swagger
+	}
+
+	if s.swag.Info != nil {
+		s.swag.Info = old.Info
+	}
+
+	if s.swag.Host != "" {
+		s.swag.Host = old.Host
+	}
+
+	if s.swag.BasePath != "" {
+		s.swag.BasePath = old.BasePath
+	}
+
+	if len(s.swag.Schemes) == 0 {
+		s.swag.Schemes = old.Schemes
+	}
+
+	if len(s.swag.Consumes) == 0 {
+		s.swag.Consumes = old.Consumes
+	}
+
+	if len(s.swag.Produces) == 0 {
+		s.swag.Produces = old.Produces
+	}
+
+	if len(s.swag.SecurityDefinitions) == 0 {
+		s.swag.SecurityDefinitions = old.SecurityDefinitions
+	}
+
+	if len(s.swag.Security) == 0 {
+		s.swag.Security = old.Security
+	}
 
 	return nil
 }

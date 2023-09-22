@@ -24,27 +24,29 @@ import (
 
 // NewRouter returns a router configured with endpoints and handlers.
 //
-// @info.title                Zipline Example Swagger API
-// @info.version              1.1
-// @info.description          This is a sample Zipline generated server.
-// @info.termsOfService       http://swagger.io/terms/
-// @info.contact.name         API Support
-// @info.contact.url          http://www.swagger.io/support
-// @info.contact.email        support@swagger.io
-// @info.license              (name: Apache 2.0, url: http://www.apache.org/licenses/LICENSE-2.0.html)
-// @schemes                   [http, https, "s,ftp"]
-// @host                      zipline.example.com
+// @swagger                   2.0
+// @info.title                Example OpenAPI Version 2 Specification
+// @info.version              1.0.0
+// @info.description          Example OpenAPI Version 2 Specification
+// info.termsOfService       http://swagger.io/terms/
+// info.contact.name         API Support
+// info.contact.url          http://www.swagger.io/support
+// info.contact.email        support@swagger.io
+// info.license              (name: Apache 2.0, url: http://www.apache.org/licenses/LICENSE-2.0.html)
+// @schemes                   [http, https]
+// @host                      api.example.com
 // @basePath                  /api
 // @consumes                  application/json
 // @produces                  application/json
-// @produces                  application/text
-// @scurityDefinitions.basic  BasicAuth
+// produces                  application/text
+// securityDefinitions.basic  BasicAuth
 // externalDocs.description  OpenAPI
 // externalDocs.url          https://swagger.io/resources/open-api/
-// @summary           Get a list of contacts by ids
-// @description       Get a list of contacts by ids
+//
+// summary          Get a list of contacts by ids
+// description      Get a list of contacts by ids
 // tags              contacts
-// @produces          application/json
+// produces         application/json
 // parameters        (name:ids, description: list of contact ids, required:true)
 // parameters        (name:foo, description: foo description, required:false)
 // responses.400     {models.ErrorResponse}

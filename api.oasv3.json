@@ -243,6 +243,11 @@
         },
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "token": {
+        "description": "Requests should pass a token."
+      }
     }
   },
   "info": {
@@ -893,6 +898,11 @@
       }
     }
   },
+  "security": [
+    {
+      "token": []
+    }
+  ],
   "servers": [
     {
       "url": "http://api.example.com/api"
