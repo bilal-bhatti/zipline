@@ -13,7 +13,7 @@
 
 `goreleaser check`
 
-`goreleaser release --rm-dist`
+`goreleaser release --clean`
 
 ## reset tags
 `git tag -d v0.1.0`
