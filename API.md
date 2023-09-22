@@ -16,7 +16,6 @@ Produces:    [application/json]
 
 ```
 GetBunch by ids
-@ids contact ids
 ```
 
 `query parameters`
@@ -83,7 +82,6 @@ DeleteBulk contact by id
 
 ```
 GetOne contact by id
-@id contact id
 ```
 
 `path parameters`
@@ -263,9 +261,6 @@ Ping returns body with 'i's replaced with 'o's
 
 ```
 Get things by date range
-
-@from `format:"date-time,2006-01-02"` date should be in Go time format
-@to   `format:"date-time,2006-01-02"` date should be in Go time format
 ```
 
 `query parameters`
@@ -338,8 +333,6 @@ Create thing
 
 ```
 Get things by category and search query
-@category category of data to search
-@q search query
 ```
 
 `path parameters`

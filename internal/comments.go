@@ -9,8 +9,9 @@ import (
 )
 
 type comments struct {
-	raw  []string
-	tags map[string]*structtag.Tags
+	raw      []string
+	tags     map[string]*structtag.Tags
+	comments []string
 }
 
 func getComments(pos token.Position) (*comments, error) {
@@ -37,6 +38,10 @@ func getComments(pos token.Position) (*comments, error) {
 		line := strings.TrimSpace(lines[i])
 		if strings.HasPrefix(line, "//") {
 			line = strings.TrimSpace(strings.TrimPrefix(line, "//"))
+			if len(line) == 0 {
+				continue
+			}
+
 			if strings.HasPrefix(line, "@") {
 				tagline := strings.TrimPrefix(line, "@")
 				split := strings.SplitN(tagline, " ", 2)
@@ -47,6 +52,8 @@ func getComments(pos token.Position) (*comments, error) {
 						comms.tags[strings.TrimSpace(split[0])] = tags
 					}
 				}
+			} else {
+				comms.comments = append(comms.comments, line)
 			}
 			comms.raw = append(comms.raw, line)
 		} else {

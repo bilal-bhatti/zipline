@@ -94,8 +94,8 @@ func (s *swagger) generate(packets []*packet) error {
 				},
 			}
 
-			if len(b.handler.comments.raw) > 0 {
-				op.Description = strings.Join(b.handler.comments.raw, "\n")
+			if len(b.handler.comments.comments) > 0 {
+				op.Description = strings.Join(b.handler.comments.comments, "\n")
 				op.Summary = op.Description
 			}
 

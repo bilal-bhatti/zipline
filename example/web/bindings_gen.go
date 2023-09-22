@@ -466,7 +466,6 @@ func ThingsServiceGetByCategoryAndQueryHandlerFunc() http.HandlerFunc {
 // path  : /things
 // method: get
 // Get things by date range
-//
 // @from `format:"date-time,2006-01-02"` date should be in Go time format
 // @to   `format:"date-time,2006-01-02"` date should be in Go time format
 func ThingsServiceGetByDateRangeHandlerFunc() http.HandlerFunc {

@@ -20,11 +20,11 @@
   "paths": {
     "/contacts": {
       "get": {
-        "description": "GetBunch by ids\n@ids contact ids",
+        "description": "GetBunch by ids",
         "tags": [
           "services"
         ],
-        "summary": "GetBunch by ids\n@ids contact ids",
+        "summary": "GetBunch by ids",
         "operationId": "ContactsServiceGetBunch",
         "parameters": [
           {
@@ -120,11 +120,11 @@
     },
     "/contacts/{id}": {
       "get": {
-        "description": "GetOne contact by id\n@id contact id",
+        "description": "GetOne contact by id",
         "tags": [
           "services"
         ],
-        "summary": "GetOne contact by id\n@id contact id",
+        "summary": "GetOne contact by id",
         "operationId": "ContactsServiceGetOne",
         "parameters": [
           {
@@ -376,11 +376,11 @@
     },
     "/things": {
       "get": {
-        "description": "Get things by date range\n\n@from `format:\"date-time,2006-01-02\"` date should be in Go time format\n@to   `format:\"date-time,2006-01-02\"` date should be in Go time format",
+        "description": "Get things by date range",
         "tags": [
           "web"
         ],
-        "summary": "Get things by date range\n\n@from `format:\"date-time,2006-01-02\"` date should be in Go time format\n@to   `format:\"date-time,2006-01-02\"` date should be in Go time format",
+        "summary": "Get things by date range",
         "operationId": "ThingsServiceGetByDateRange",
         "parameters": [
           {
@@ -449,11 +449,11 @@
     },
     "/things/{category}": {
       "get": {
-        "description": "Get things by category and search query\n@category category of data to search\n@q search query",
+        "description": "Get things by category and search query",
         "tags": [
           "web"
         ],
-        "summary": "Get things by category and search query\n@category category of data to search\n@q search query",
+        "summary": "Get things by category and search query",
         "operationId": "ThingsServiceGetByCategoryAndQuery",
         "parameters": [
           {
