@@ -278,7 +278,6 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 
 	switch handler := zipline.Args[0].(type) {
 	case *ast.SelectorExpr:
-		// handler func is in a different package, e.g. echo.Echo(x,y)
 		handlerInfo, err := newHandlerInfoFromSelectorExpr(pkg, handler)
 		if err != nil {
 			return nil, err
@@ -286,7 +285,7 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 
 		binding.handler = handlerInfo
 	case *ast.Ident:
-		// handler func is in the same package, e.g. Echo(x,y)
+		// handler func a func in the same package as bindings, e.g. Echo(x,y)
 		handlerInfo, err := newHandlerInfoFromIdent(pkg, handler)
 		if err != nil {
 			return nil, err
