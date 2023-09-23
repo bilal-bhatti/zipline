@@ -1,24 +1,25 @@
-package internal
+package docparser
 
 import (
 	"go/token"
 	"os"
 	"strings"
 
+	"github.com/bilal-bhatti/zipline/internal/util"
 	"github.com/fatih/structtag"
 )
 
-type comments struct {
-	raw      []string
-	tags     map[string]*structtag.Tags
-	comments []string
+type Comments struct {
+	Raw      []string
+	Tags     map[string]*structtag.Tags
+	Comments []string
 }
 
-func getComments(pos token.Position) (*comments, error) {
+func GetComments(pos token.Position) (*Comments, error) {
 	// just in case
 	if pos.Line-2 <= 0 {
-		return &comments{
-			tags: make(map[string]*structtag.Tags),
+		return &Comments{
+			Tags: make(map[string]*structtag.Tags),
 		}, nil
 	}
 
@@ -45,16 +46,16 @@ func getComments(pos token.Position) (*comments, error) {
 			break
 		}
 	}
-	reverse(comments)
-	return parsedComments(strings.Join(comments, "\n"))
+	util.Reverse(comments)
+	return ParsedComments(strings.Join(comments, "\n"))
 }
 
-func parsedComments(docs string) (*comments, error) {
+func ParsedComments(docs string) (*Comments, error) {
 	// fmt.Println("parsing", docs)
 	lines := strings.Split(docs, "\n")
 
-	comms := &comments{
-		tags: make(map[string]*structtag.Tags),
+	comms := &Comments{
+		Tags: make(map[string]*structtag.Tags),
 	}
 
 	for _, line := range lines {
@@ -72,13 +73,13 @@ func parsedComments(docs string) (*comments, error) {
 			if len(split) == 2 {
 				tags, err := structtag.Parse(parseTagIfAny(split[1]))
 				if err == nil {
-					comms.tags[strings.TrimSpace(split[0])] = tags
+					comms.Tags[strings.TrimSpace(split[0])] = tags
 				}
 			}
 		} else {
-			comms.comments = append(comms.comments, line)
+			comms.Comments = append(comms.Comments, line)
 		}
-		comms.raw = append(comms.raw, line)
+		comms.Raw = append(comms.Raw, line)
 	}
 
 	return comms, nil

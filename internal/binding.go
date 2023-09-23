@@ -4,6 +4,7 @@ import (
 	"go/ast"
 	"go/types"
 
+	"github.com/bilal-bhatti/zipline/internal/docparser"
 	"github.com/bilal-bhatti/zipline/internal/tokens"
 	"golang.org/x/tools/go/packages"
 )
@@ -25,7 +26,7 @@ type (
 
 	handlerInfo struct {
 		signature *types.Signature
-		comments  *comments
+		comments  *docparser.Comments
 		id        string
 		pkg       string
 		x         *tokens.TypeToken

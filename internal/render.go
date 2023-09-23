@@ -116,7 +116,7 @@ func (r *renderer) renderFunctionTemplate(pkg *packages.Package, t *template, b 
 	buf.Sprintf("// %s%s handles requests to:\n", b.id(), t.funcSuffix())
 	buf.Sprintf("// path  : %s\n", b.path)
 	buf.Sprintf("// method: %s\n", strings.ToLower(b.method))
-	for _, c := range b.handler.comments.raw {
+	for _, c := range b.handler.comments.Raw {
 		buf.Sprintf("// %s\n", c)
 	}
 
@@ -376,7 +376,7 @@ func (r *renderer) renderParamTemplate(pkg *packages.Package, t *template, b *bi
 	}
 
 	var format string
-	tags, ok := b.handler.comments.tags[p.VarName()]
+	tags, ok := b.handler.comments.Tags[p.VarName()]
 	if ok {
 		tag, err := tags.Get("format")
 		if err == nil {

@@ -1,4 +1,4 @@
-package internal
+package docparser
 
 import (
 	"encoding/csv"
@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func parsedocs(docs string) (map[string]interface{}, error) {
+func ParseDocs(docs string) (map[string]interface{}, error) {
 	// var doclines []string
 	nested := make(map[string]interface{})
 	lines := strings.Split(docs, "\n")
@@ -15,7 +15,7 @@ func parsedocs(docs string) (map[string]interface{}, error) {
 		if strings.HasPrefix(line, "@") {
 			kv := strings.SplitN(strings.TrimPrefix(line, "@"), " ", 2)
 
-			err := parseLine(strings.TrimSpace(kv[0]), strings.TrimSpace(kv[1]), nested)
+			err := ParseLine(strings.TrimSpace(kv[0]), strings.TrimSpace(kv[1]), nested)
 			if err != nil {
 				return nil, err
 			}
@@ -30,7 +30,7 @@ func parsedocs(docs string) (map[string]interface{}, error) {
 	return nested, nil
 }
 
-func parseLine(key, value string, data map[string]interface{}) error {
+func ParseLine(key, value string, data map[string]interface{}) error {
 	switch key {
 	case "schemes", "consumes", "produces", "tags", "parameters":
 		p, err := parseValue(value)

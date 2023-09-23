@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/bilal-bhatti/zipline/internal/docparser"
 	"github.com/bilal-bhatti/zipline/internal/tokens"
 	"github.com/fatih/structtag"
 	"github.com/go-openapi/spec"
@@ -38,7 +39,7 @@ func (s *swagger) generate(packets []*packet) error {
 	erresp := spec.NewResponse().WithDescription("unexpected error").WithSchema(erref)
 
 	for _, packet := range packets {
-		docs, err := parsedocs(packet.funcDecl.Doc.Text())
+		docs, err := docparser.ParseDocs(packet.funcDecl.Doc.Text())
 		if err != nil {
 			return err
 		}
@@ -94,8 +95,8 @@ func (s *swagger) generate(packets []*packet) error {
 				},
 			}
 
-			if len(b.handler.comments.comments) > 0 {
-				op.Description = strings.Join(b.handler.comments.comments, "\n")
+			if len(b.handler.comments.Comments) > 0 {
+				op.Description = strings.Join(b.handler.comments.Comments, "\n")
 				op.Summary = op.Description
 			}
 
@@ -113,7 +114,7 @@ func (s *swagger) generate(packets []*packet) error {
 
 				if template == "Path" || template == "Query" {
 					simpleSchema := paramSimpleSchema(param)
-					tags, ok := b.handler.comments.tags[param.VarName()]
+					tags, ok := b.handler.comments.Tags[param.VarName()]
 					if ok {
 						fmtTag, err := tags.Get("format")
 						if err == nil {
@@ -126,7 +127,7 @@ func (s *swagger) generate(packets []*packet) error {
 					}
 
 					var paramComment string = ""
-					for _, c := range b.handler.comments.raw {
+					for _, c := range b.handler.comments.Raw {
 						ctag := "@" + strings.TrimSpace(param.VarName())
 						if strings.HasPrefix(c, ctag) {
 							paramComment = strings.TrimSpace(strings.TrimLeft(c, ctag))
@@ -156,13 +157,13 @@ func (s *swagger) generate(packets []*packet) error {
 
 					ts := s.typeSpecs[param.Signature]
 					if ts != nil {
-						comms, err := parsedComments(ts.docs)
+						comms, err := docparser.ParsedComments(ts.docs)
 						if err != nil {
 							// let's not fail on comments but log the error
 							log.Println("failed to extract comments", err.Error())
 						}
 
-						skema.Description = strings.Join(comms.comments, "\n")
+						skema.Description = strings.Join(comms.Comments, "\n")
 					}
 
 					ref := spec.Schema{
@@ -200,13 +201,13 @@ func (s *swagger) generate(packets []*packet) error {
 				if ts != nil {
 					// pos := ts.pkg.Fset.PositionFor(ts.typeSpec.Pos(), true)
 					// comms, err := getComments(pos)
-					comms, err := parsedComments(ts.docs)
+					comms, err := docparser.ParsedComments(ts.docs)
 					if err != nil {
 						// let's not fail on comments but log the error
 						log.Println("failed to extract comments", err.Error())
 					}
 
-					sk.Description = strings.Join(comms.raw, "\n")
+					sk.Description = strings.Join(comms.Raw, "\n")
 				}
 
 				ref := spec.Schema{

@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/bilal-bhatti/zipline/internal/debug"
+	"github.com/bilal-bhatti/zipline/internal/docparser"
 
 	"github.com/bilal-bhatti/zipline/internal/util"
 
@@ -400,7 +401,7 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) (*handle
 	id.WriteString(obj.Name())
 
 	pos := pkg.Fset.PositionFor(obj.Pos(), true)
-	comments, err := getComments(pos)
+	comments, err := docparser.GetComments(pos)
 	if err != nil {
 		// let's not fail on comments but log the error
 		log.Println("failed to extract comments", err.Error())
