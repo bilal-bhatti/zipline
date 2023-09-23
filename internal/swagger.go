@@ -156,15 +156,7 @@ func (s *swagger) generate(packets []*packet) error {
 
 					ts := s.typeSpecs[param.Signature]
 					if ts != nil {
-						// fixme: comments are only supported on TypeSpec
-						// support GenDecl also
-						// type (
-						// // X comments
-						// X struct {
-						//   Y string
-						// }
-						// )
-						comms, err := getParsedComments(ts.typeSpec.Doc.Text())
+						comms, err := getParsedComments(ts.docs)
 						if err != nil {
 							// let's not fail on comments but log the error
 							log.Println("failed to extract comments", err.Error())
@@ -206,8 +198,9 @@ func (s *swagger) generate(packets []*packet) error {
 
 				ts := s.typeSpecs[ret.Signature]
 				if ts != nil {
-					pos := ts.pkg.Fset.PositionFor(ts.typeSpec.Pos(), true)
-					comms, err := getComments(pos)
+					// pos := ts.pkg.Fset.PositionFor(ts.typeSpec.Pos(), true)
+					// comms, err := getComments(pos)
+					comms, err := getParsedComments(ts.docs)
 					if err != nil {
 						// let's not fail on comments but log the error
 						log.Println("failed to extract comments", err.Error())

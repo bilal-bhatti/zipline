@@ -241,6 +241,10 @@ func (z *Zipline) newCallExpression(binding *binding, arg ast.Expr) *ast.CallExp
 }
 
 func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
+	zline := util.NewBuffer()
+	printer.Fprint(zline, pkg.Fset, spec)
+	debug.Trace("parsing `%s`", zline)
+
 	call, ok := spec.X.(*ast.CallExpr)
 	if !ok {
 		return nil, errors.New("spec invalid")
@@ -270,7 +274,7 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 	printer.Fprint(zsb, pkg.Fset, zipline)
 	binding.spec = string(zsb.Bytes())
 
-	debug.Trace("parsing `%s`, applying template `%s`", binding.spec, binding.template)
+	debug.Trace("zipline expression `%s`, applying template `%s`", binding.spec, binding.template)
 
 	switch handler := zipline.Args[0].(type) {
 	case *ast.SelectorExpr:
@@ -289,6 +293,8 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 	default:
 		return nil, errors.New("unsupported expression")
 	}
+
+	debug.Trace("target function %s", binding.handler.signature.String())
 
 	// parse additional parameters, if any
 	for i := 1; i < len(zipline.Args); i++ {

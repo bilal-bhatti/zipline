@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"go/token"
 	"os"
 	"strings"
@@ -16,6 +15,41 @@ type comments struct {
 }
 
 func getComments(pos token.Position) (*comments, error) {
+	// just in case
+	if pos.Line-2 <= 0 {
+		return &comments{
+			tags: make(map[string]*structtag.Tags),
+		}, nil
+	}
+
+	fileBytes, err := os.ReadFile(pos.Filename)
+	if err != nil {
+		return nil, err
+	}
+
+	lines := strings.Split(string(fileBytes), "\n")
+	var comments []string
+
+	// start from func declaration and go backwards
+	// stop when non comment line found
+	for i := pos.Line - 2; i >= 0; i-- {
+		line := strings.TrimSpace(lines[i])
+		if strings.HasPrefix(line, "//") {
+			line = strings.TrimSpace(strings.TrimPrefix(line, "//"))
+			if len(line) == 0 {
+				continue
+			}
+
+			comments = append(comments, line)
+		} else {
+			break
+		}
+	}
+	reverse(comments)
+	return getParsedComments(strings.Join(comments, "\n"))
+}
+
+func getCommentss(pos token.Position) (*comments, error) {
 	fileBytes, err := os.ReadFile(pos.Filename)
 	if err != nil {
 		return nil, err
@@ -66,7 +100,7 @@ func getComments(pos token.Position) (*comments, error) {
 }
 
 func getParsedComments(docs string) (*comments, error) {
-	fmt.Println("parsing", docs)
+	// fmt.Println("parsing", docs)
 	lines := strings.Split(docs, "\n")
 
 	comms := &comments{

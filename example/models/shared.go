@@ -2,12 +2,12 @@ package models
 
 import "time"
 
-type (
-	// ThingRequest model
-	ThingRequest struct {
-		Name string `json:"name"`
-	}
+// ThingRequest model
+type ThingRequest struct {
+	Name string `json:"name"`
+}
 
+type (
 	// ThingResponse model
 	ThingResponse struct {
 		Name       string    `json:"name"`

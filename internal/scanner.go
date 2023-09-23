@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"go/ast"
+	"strings"
 
 	"golang.org/x/tools/go/packages"
 )
@@ -10,6 +11,7 @@ import (
 type typeSpecWithPkg struct {
 	pkg      *packages.Package
 	typeSpec *ast.TypeSpec
+	docs     string
 }
 
 type scanner struct {
@@ -30,11 +32,19 @@ func (s scanner) scan() (map[string]*typeSpecWithPkg, map[string]*template, []*p
 						switch specType := spec.(type) {
 						case *ast.TypeSpec:
 							if _, ok := specType.Type.(*ast.StructType); ok {
+
+								signature := fmt.Sprintf("%s.%s", pkg.PkgPath, specType.Name.String())
+								var docstring string
+								if specType.Doc == nil {
+									docstring = strings.TrimSpace(dt.Doc.Text())
+								} else {
+									docstring = strings.TrimSpace(specType.Doc.Text())
+								}
 								typeSpec := &typeSpecWithPkg{
 									pkg:      pkg,
 									typeSpec: specType,
+									docs:     docstring,
 								}
-								signature := fmt.Sprintf("%s.%s", pkg.PkgPath, specType.Name.String())
 								typeSpecs[signature] = typeSpec
 							}
 						}

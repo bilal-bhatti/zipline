@@ -7,11 +7,12 @@ import (
 	"github.com/bilal-bhatti/zipline/example/connectors"
 )
 
+// PingRequest model
+type PingRequest struct {
+	Input string `json:"input"`
+}
+
 type (
-	// PingRequest model
-	PingRequest struct {
-		Input string `json:"input"`
-	}
 	// PingResponse model
 	PingResponse struct {
 		Output string `json:"output"`
