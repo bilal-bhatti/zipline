@@ -46,60 +46,10 @@ func getComments(pos token.Position) (*comments, error) {
 		}
 	}
 	reverse(comments)
-	return getParsedComments(strings.Join(comments, "\n"))
+	return parsedComments(strings.Join(comments, "\n"))
 }
 
-func getCommentss(pos token.Position) (*comments, error) {
-	fileBytes, err := os.ReadFile(pos.Filename)
-	if err != nil {
-		return nil, err
-	}
-
-	lines := strings.Split(string(fileBytes), "\n")
-
-	comms := &comments{
-		tags: make(map[string]*structtag.Tags),
-	}
-
-	// just in case
-	if pos.Line-2 <= 0 {
-		return comms, nil
-	}
-
-	// start from func declaration and go backwards
-	// stop when non comment line found
-	for i := pos.Line - 2; i >= 0; i-- {
-		line := strings.TrimSpace(lines[i])
-		if strings.HasPrefix(line, "//") {
-			line = strings.TrimSpace(strings.TrimPrefix(line, "//"))
-			if len(line) == 0 {
-				continue
-			}
-
-			if strings.HasPrefix(line, "@") {
-				tagline := strings.TrimPrefix(line, "@")
-				split := strings.SplitN(tagline, " ", 2)
-
-				if len(split) == 2 {
-					tags, err := structtag.Parse(parseTagIfAny(split[1]))
-					if err == nil {
-						comms.tags[strings.TrimSpace(split[0])] = tags
-					}
-				}
-			} else {
-				comms.comments = append(comms.comments, line)
-			}
-			comms.raw = append(comms.raw, line)
-		} else {
-			break
-		}
-	}
-
-	reverse(comms.raw)
-	return comms, nil
-}
-
-func getParsedComments(docs string) (*comments, error) {
+func parsedComments(docs string) (*comments, error) {
 	// fmt.Println("parsing", docs)
 	lines := strings.Split(docs, "\n")
 
