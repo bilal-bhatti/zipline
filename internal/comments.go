@@ -66,7 +66,7 @@ func getComments(pos token.Position) (*comments, error) {
 }
 
 func getParsedComments(docs string) (*comments, error) {
-	fmt.Println("docs", docs)
+	fmt.Println("parsing", docs)
 	lines := strings.Split(docs, "\n")
 
 	comms := &comments{
@@ -76,29 +76,25 @@ func getParsedComments(docs string) (*comments, error) {
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 
-		if strings.HasPrefix(line, "//") {
-			line = strings.TrimSpace(strings.TrimPrefix(line, "//"))
-			if len(line) == 0 {
-				continue
-			}
-
-			if strings.HasPrefix(line, "@") {
-				tagline := strings.TrimPrefix(line, "@")
-				split := strings.SplitN(tagline, " ", 2)
-
-				if len(split) == 2 {
-					tags, err := structtag.Parse(parseTagIfAny(split[1]))
-					if err == nil {
-						comms.tags[strings.TrimSpace(split[0])] = tags
-					}
-				}
-			} else {
-				comms.comments = append(comms.comments, line)
-			}
-			comms.raw = append(comms.raw, line)
-		} else {
-			break
+		line = strings.TrimSpace(strings.TrimPrefix(line, "//"))
+		if len(line) == 0 {
+			continue
 		}
+
+		if strings.HasPrefix(line, "@") {
+			tagline := strings.TrimPrefix(line, "@")
+			split := strings.SplitN(tagline, " ", 2)
+
+			if len(split) == 2 {
+				tags, err := structtag.Parse(parseTagIfAny(split[1]))
+				if err == nil {
+					comms.tags[strings.TrimSpace(split[0])] = tags
+				}
+			}
+		} else {
+			comms.comments = append(comms.comments, line)
+		}
+		comms.raw = append(comms.raw, line)
 	}
 
 	return comms, nil

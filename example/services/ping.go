@@ -7,13 +7,16 @@ import (
 	"github.com/bilal-bhatti/zipline/example/connectors"
 )
 
-type PingRequest struct {
-	Input string `json:"input"`
-}
-
-type PingResponse struct {
-	Output string `json:"output"`
-}
+type (
+	// PingRequest model
+	PingRequest struct {
+		Input string `json:"input"`
+	}
+	// PingResponse model
+	PingResponse struct {
+		Output string `json:"output"`
+	}
+)
 
 // Ping returns body with 'i's replaced with 'o's
 func Ping(ctx context.Context, env *connectors.Env, pingRequest PingRequest) (PingResponse, error) {

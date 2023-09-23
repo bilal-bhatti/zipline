@@ -227,6 +227,7 @@
       },
       "services.PingRequest": {
         "additionalProperties": false,
+        "description": "PingRequest model",
         "properties": {
           "input": {
             "type": "string"
@@ -236,6 +237,7 @@
       },
       "services.PingResponse": {
         "additionalProperties": false,
+        "description": "PingResponse model",
         "properties": {
           "output": {
             "type": "string"
@@ -685,6 +687,7 @@
               }
             }
           },
+          "description": "PingRequest model",
           "required": true,
           "x-originalParamName": "body"
         },

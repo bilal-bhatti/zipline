@@ -350,6 +350,7 @@
         "operationId": "Ping",
         "parameters": [
           {
+            "description": "PingRequest model",
             "name": "body",
             "in": "body",
             "required": true,
@@ -743,6 +744,7 @@
       "additionalProperties": false
     },
     "services.PingRequest": {
+      "description": "PingRequest model",
       "type": "object",
       "properties": {
         "input": {
@@ -752,6 +754,7 @@
       "additionalProperties": false
     },
     "services.PingResponse": {
+      "description": "PingResponse model",
       "type": "object",
       "properties": {
         "output": {
