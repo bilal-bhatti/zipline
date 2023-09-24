@@ -52,11 +52,12 @@ func init() {
 }
 
 func run(cmd *cobra.Command, args []string) {
-	zipline := internal.NewZipline()
-
-	err := zipline.Start(packageList(args))
-
+	zipline, err := internal.NewZipline(packageList(args))
 	if err != nil {
+		log.Println(fmt.Errorf("%s", err.Error()))
+	}
+
+	if err := zipline.Start(); err != nil {
 		log.Println(fmt.Errorf("%s", err.Error()))
 	}
 

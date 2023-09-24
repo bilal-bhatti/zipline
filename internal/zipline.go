@@ -27,19 +27,12 @@ type Zipline struct {
 	packets   []*packet
 	templates map[string]*template
 	typeSpecs map[string]*typeSpecWithPkg
+	scanner   scanner
 	renderer  *renderer
 	provider  *provider
 }
 
-func NewZipline() *Zipline {
-	return &Zipline{
-		packets:   []*packet{},
-		templates: make(map[string]*template),
-		typeSpecs: make(map[string]*typeSpecWithPkg),
-	}
-}
-
-func (z *Zipline) Start(pkgPaths []string) error {
+func NewZipline(pkgPaths []string) (*Zipline, error) {
 	cw, _ := os.Getwd()
 
 	// log current directory
@@ -48,14 +41,19 @@ func (z *Zipline) Start(pkgPaths []string) error {
 
 	pkgs, err := load(pkgPaths)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	scanner := scanner{pkgs: pkgs}
+	return &Zipline{
+		provider:  newProvider(pkgs),
+		scanner:   scanner{pkgs: pkgs},
+		templates: make(map[string]*template),
+		typeSpecs: make(map[string]*typeSpecWithPkg),
+	}, nil
+}
 
-	z.typeSpecs, z.templates, z.packets = scanner.scan()
-
-	z.provider = newProvider(pkgs)
+func (z *Zipline) Start() error {
+	z.typeSpecs, z.templates, z.packets = z.scanner.scan()
 	z.renderer = newRenderer(z.templates, z.provider)
 
 	for _, packet := range z.packets {

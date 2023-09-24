@@ -27,4 +27,9 @@ type (
 		CreateDate time.Time `json:"createDate" format:"date-time,2006-01-02"`
 		UpdateDate time.Time `json:"updateDate"`
 	}
+
+	ErrorResponse struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+	}
 )

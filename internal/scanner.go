@@ -75,5 +75,28 @@ func (s scanner) scan() (map[string]*typeSpecWithPkg, map[string]*template, []*p
 		}
 	}
 
+	s.find("models.ErrorResponse")
+
 	return typeSpecs, templates, packets
+}
+
+func (s scanner) find(tname string) {
+	for _, pkg := range s.pkgs {
+		for _, file := range pkg.Syntax {
+			ast.Inspect(file, func(n ast.Node) bool {
+				if ts, ok := n.(*ast.TypeSpec); ok {
+					if struc, ok := ts.Type.(*ast.StructType); ok {
+						if pkg.Name+"."+ts.Name.Name == tname {
+							obj := pkg.TypesInfo.Defs[ts.Name]
+							fmt.Println("obj types.Type", obj.Type(), ts.Doc.Text())
+							fmt.Println("struct", struc.Fields)
+
+							return false
+						}
+					}
+				}
+				return true
+			})
+		}
+	}
 }

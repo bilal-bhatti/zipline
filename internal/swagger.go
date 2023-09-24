@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/bilal-bhatti/zipline/internal/debug"
 	"github.com/bilal-bhatti/zipline/internal/docparser"
 	"github.com/bilal-bhatti/zipline/internal/tokens"
 	"github.com/fatih/structtag"
@@ -149,7 +150,7 @@ func (s *swagger) generate(packets []*packet) error {
 						},
 						SimpleSchema: simpleSchema,
 					})
-				} else {
+				} else { // body
 					skema, err := field("--", param.VarType.Type())
 					if err != nil {
 						return err
@@ -280,7 +281,7 @@ func (s *swagger) generate(packets []*packet) error {
 func (s swagger) write() error {
 	// merge some info if spec exists
 	// ignore if any errors
-	_ = s.readAndMergeSchema()
+	s.readAndMergeSchema()
 
 	bites, err := json.MarshalIndent(s.swag, "", "  ")
 	if err != nil {
@@ -302,16 +303,34 @@ func (s swagger) write() error {
 	return nil
 }
 
-func (s swagger) readAndMergeSchema() error {
+func (s swagger) readAndMergeSchema() {
+	old := &spec.Swagger{}
+
 	bites, err := os.ReadFile(OpenAPIFile)
 	if err != nil {
-		return err
-	}
+		debug.Trace("no exising `%s` file, creating new one with defaults", OpenAPIFile)
 
-	old := &spec.Swagger{}
-	err = old.UnmarshalJSON(bites)
-	if err != nil {
-		return err
+		old.SwaggerProps = spec.SwaggerProps{
+			Swagger: "2.0",
+			Info: &spec.Info{
+				InfoProps: spec.InfoProps{
+					Version:     "1.0.0",
+					Title:       "OpenAPI Version 2 Specification",
+					Description: "OpenAPI Version 2 Specification",
+				},
+			},
+			Host:     "api.host.com",
+			BasePath: "/api",
+			Schemes:  []string{"http", "https"},
+			Consumes: []string{"application/json"},
+			Produces: []string{"application/json"},
+		}
+
+	} else {
+		err = old.UnmarshalJSON(bites)
+		if err != nil {
+			debug.Trace("failed to parse existing API spec file")
+		}
 	}
 
 	if s.swag.Swagger == "" {
@@ -349,8 +368,6 @@ func (s swagger) readAndMergeSchema() error {
 	if len(s.swag.Security) == 0 {
 		s.swag.Security = old.Security
 	}
-
-	return nil
 }
 
 func field(name string, t types.Type) (*spec.Schema, error) {

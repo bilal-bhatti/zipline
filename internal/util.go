@@ -52,7 +52,7 @@ func load(ps []string) ([]*packages.Package, error) {
 	}
 
 	// load imported package with same root path as well
-	// if already not loaded
+	// if not already loaded
 	var pkgSet = make(map[string]*packages.Package)
 	var importSet = make(map[string]*packages.Package)
 	for _, pkg := range pkgs {
