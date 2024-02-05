@@ -20,11 +20,11 @@
   "paths": {
     "/contacts": {
       "get": {
-        "description": "GetBunch by ids",
+        "description": "GetBunch of contacts by ids",
         "tags": [
           "services"
         ],
-        "summary": "GetBunch by ids",
+        "summary": "GetBunch of contacts by ids",
         "operationId": "ContactsServiceGetBunch",
         "parameters": [
           {
@@ -33,7 +33,6 @@
               "type": "integer",
               "format": "int64"
             },
-            "description": "contact ids",
             "name": "ids",
             "in": "query",
             "required": true
