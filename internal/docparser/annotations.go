@@ -3,12 +3,8 @@ package docparser
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
-	"os"
 	"strings"
-
-	"gopkg.in/yaml.v3"
 )
 
 func ParseDocs(docs string) (map[string]interface{}, error) {
@@ -41,7 +37,7 @@ func ParseDocs(docs string) (map[string]interface{}, error) {
 				kv[1] = kv[1] + lines[i+1]
 			}
 
-			fmt.Println("kv", kv[0], kv[1])
+			// fmt.Println("kv", kv[0], kv[1])
 			err := ParseLine(strings.TrimSpace(kv[0]), strings.TrimSpace(kv[1]), nested)
 			if err != nil {
 				return nil, err
@@ -65,7 +61,7 @@ func ParseDocs(docs string) (map[string]interface{}, error) {
 	// 	// }
 	// }
 
-	yaml.NewEncoder(os.Stdout).Encode(nested)
+	// yaml.NewEncoder(os.Stdout).Encode(nested)
 
 	return nested, nil
 }
@@ -124,7 +120,7 @@ func parseValue(value string) (interface{}, error) {
 		if err := json.Unmarshal([]byte(value), &obj); err != nil {
 			log.Printf("failed to parse annotation `%s`, error: %v", value, err)
 		}
-		json.NewEncoder(os.Stdout).Encode(obj)
+		// json.NewEncoder(os.Stdout).Encode(obj)
 		return obj, nil
 	} else if strings.HasPrefix(value, "[") && strings.HasSuffix(value, "]") {
 		obj := make([]interface{}, 0)

@@ -51,10 +51,7 @@ import (
 //	 "in": "header"
 //	}
 //
-//	@security                   [{
-//	 "token": []
-//	}]
-//
+// @security                   [{"token": []}]
 // @externalDocs.description   OpenAPI
 // @externalDocs.url           https://swagger.io/resources/open-api/
 //
