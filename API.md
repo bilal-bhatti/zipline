@@ -7,7 +7,7 @@ Description: Example OpenAPI Version 2 Specification
 Host:        api.example.com
 BasePath:    /api
 Consumes:    [application/json]
-Produces:    [application/json]
+Produces:    [application/json application/text]
 ```
 
 <details>
