@@ -247,15 +247,33 @@
       }
     },
     "securitySchemes": {
+<<<<<<< HEAD
       "token": {
         "description": "Requests should pass a token."
+=======
+      "apiKey": {
+        "description": "required api key",
+        "in": "header",
+        "name": "X-API-KEY",
+        "type": "apiKey"
+>>>>>>> annotations
       }
     }
   },
   "info": {
-    "description": "Example OpenAPI Version 2 Specification",
-    "title": "Example OpenAPI Version 2 Specification",
-    "version": "1.0.0"
+    "contact": {
+      "email": "support@swagger.io",
+      "name": "API Support",
+      "url": "http://www.swagger.io/support"
+    },
+    "description": "This is a sample Zipline generated server.",
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http"
+    },
+    "termsOfService": "http://swagger.io/terms/",
+    "title": "Zipline Example Swagger API",
+    "version": "1.1"
   },
   "openapi": "3.0.3",
   "paths": {
@@ -297,11 +315,14 @@
         ]
       },
       "get": {
+<<<<<<< HEAD
         "description": "GetBunch by ids",
+=======
+        "description": "GetBunch of contacts by ids\n\n@summary           Get a list of contacts by ids\n@description       Get a list of contacts by ids\n@tags              contacts\n@produces          application/json\n@parameters        (name:ids, description: list of contact ids, required:true)\n@responses.400     {models.ErrorResponse}\n@responses.404     {models.ErrorResponse}\n@responses.default {models.ErrorResponse}",
+>>>>>>> annotations
         "operationId": "ContactsServiceGetBunch",
         "parameters": [
           {
-            "description": "contact ids",
             "in": "query",
             "name": "ids",
             "required": true,
@@ -336,7 +357,11 @@
             "description": "unexpected error"
           }
         },
+<<<<<<< HEAD
         "summary": "GetBunch by ids",
+=======
+        "summary": "GetBunch of contacts by ids\n\n@summary           Get a list of contacts by ids\n@description       Get a list of contacts by ids\n@tags              contacts\n@produces          application/json\n@parameters        (name:ids, description: list of contact ids, required:true)\n@responses.400     {models.ErrorResponse}\n@responses.404     {models.ErrorResponse}\n@responses.default {models.ErrorResponse}",
+>>>>>>> annotations
         "tags": [
           "services"
         ]
@@ -903,15 +928,19 @@
   },
   "security": [
     {
+<<<<<<< HEAD
       "token": []
+=======
+      "apiKey": []
+>>>>>>> annotations
     }
   ],
   "servers": [
     {
-      "url": "http://api.example.com/api"
+      "url": "http://zipline.example.com/api"
     },
     {
-      "url": "https://api.example.com/api"
+      "url": "https://zipline.example.com/api"
     }
   ]
 }

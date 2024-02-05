@@ -25,6 +25,11 @@ type swagger struct {
 
 func newSwagger(typeSpecs map[string]*typeSpecWithPkg) (*swagger, error) {
 	// init defaults
+
+	// swag := &spec.Swagger{
+	// 	SwaggerProps: spec.SwaggerProps{},
+	// }
+
 	return &swagger{
 		swag:      &spec.Swagger{},
 		typeSpecs: typeSpecs,
@@ -41,6 +46,7 @@ func (s *swagger) generate(packets []*packet) error {
 
 	for _, packet := range packets {
 		docs, err := docparser.ParseDocs(packet.funcDecl.Doc.Text())
+		// docs, err := parsedocs(packet.funcDecl.Doc.Text())
 		if err != nil {
 			return err
 		}
@@ -51,6 +57,7 @@ func (s *swagger) generate(packets []*packet) error {
 		}
 
 		err = s.swag.UnmarshalJSON(docsbytes)
+		// err = json.Unmarshal(docsbytes, s.swag)
 		if err != nil {
 			return err
 		}
@@ -75,6 +82,11 @@ func (s *swagger) generate(packets []*packet) error {
 		ert.Properties["status"] = *spec.StringProperty()
 		s.swag.Definitions["Error"] = *ert
 		// defaults
+
+		// err = yaml.NewEncoder(os.Stdout).Encode(s.swag)
+		// if err != nil {
+		// 	fmt.Println(err)
+		// }
 
 		for _, b := range packet.bindings {
 			var pi spec.PathItem

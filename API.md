@@ -1,13 +1,13 @@
 # API Summary
 
 ```
-Version:     1.0.0
-Title:       Example OpenAPI Version 2 Specification
-Description: Example OpenAPI Version 2 Specification
-Host:        api.example.com
+Version:     1.1
+Title:       Zipline Example Swagger API
+Description: This is a sample Zipline generated server.
+Host:        zipline.example.com
 BasePath:    /api
 Consumes:    [application/json]
-Produces:    [application/json]
+Produces:    [application/json application/text]
 ```
 
 <details>
@@ -15,7 +15,20 @@ Produces:    [application/json]
 
 
 ```
+<<<<<<< HEAD
 GetBunch by ids
+=======
+GetBunch of contacts by ids
+
+@summary           Get a list of contacts by ids
+@description       Get a list of contacts by ids
+@tags              contacts
+@produces          application/json
+@parameters        (name:ids, description: list of contact ids, required:true)
+@responses.400     {models.ErrorResponse}
+@responses.404     {models.ErrorResponse}
+@responses.default {models.ErrorResponse}
+>>>>>>> annotations
 ```
 
 `query parameters`
