@@ -1,10 +1,13 @@
 package internal
 
 import (
+	"encoding/json"
 	"fmt"
 	"go/ast"
+	"os"
 	"strings"
 
+	"github.com/bilal-bhatti/zipline/internal/schema"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -91,6 +94,15 @@ func (s scanner) find(tname string) {
 							fmt.Println("obj types.Type", obj.Type(), ts.Doc.Text())
 							fmt.Println("struct", struc.Fields)
 
+							// schema, err := schema.Field("--", obj.Type())
+							schema, err := schema.FieldNew("--", obj.Type())
+							if err != nil {
+								fmt.Println("error generating schema", err)
+							}
+
+							if err := json.NewEncoder(os.Stdout).Encode(schema); err != nil {
+								fmt.Println("error generating schema", err)
+							}
 							return false
 						}
 					}
