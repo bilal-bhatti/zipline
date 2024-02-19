@@ -5,11 +5,16 @@ import (
 	"errors"
 	"log"
 	"strings"
+
+	"github.com/fatih/structtag"
 )
 
 type DocData struct {
-	Doc  string
-	Data map[string]interface{}
+	Doc      string
+	Raw      []string
+	Comments []string
+	Data     map[string]interface{}
+	Tags     map[string]*structtag.Tags
 }
 
 func ParseDoc(doc string) (*DocData, error) {
@@ -27,7 +32,7 @@ func ParseDoc(doc string) (*DocData, error) {
 	// 	}
 	// }
 
-	// var doclines []string
+	var doclines []string
 	nested := make(map[string]interface{})
 	lines := strings.Split(doc, "\n")
 
@@ -46,6 +51,8 @@ func ParseDoc(doc string) (*DocData, error) {
 			if err != nil {
 				return nil, err
 			}
+		} else {
+			doclines = append(doclines, strings.TrimSpace(lines[i]))
 		}
 	}
 	// for _, line := range lines {
@@ -67,7 +74,7 @@ func ParseDoc(doc string) (*DocData, error) {
 
 	// yaml.NewEncoder(os.Stdout).Encode(nested)
 
-	return &DocData{Doc: doc, Data: nested}, nil
+	return &DocData{Doc: doc, Raw: lines, Comments: doclines, Data: nested, Tags: make(map[string]*structtag.Tags)}, nil
 }
 
 func ParseLine(key, value string, data map[string]interface{}) error {
