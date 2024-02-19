@@ -130,16 +130,15 @@
     },
     "/contacts/{id}": {
       "get": {
-        "description": "GetOne contact by id",
+        "description": "GetOne contact by id\nid contact id",
         "tags": [
           "services"
         ],
-        "summary": "GetOne contact by id",
+        "summary": "GetOne contact by id\nid contact id",
         "operationId": "ContactsServiceGetOne",
         "parameters": [
           {
             "type": "integer",
-            "description": "contact id",
             "name": "id",
             "in": "path",
             "required": true

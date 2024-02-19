@@ -28,8 +28,16 @@ type (
 		UpdateDate time.Time `json:"updateDate"`
 	}
 
+	// //ErrorResponse is the standard error respons format (type block)
 	// ErrorResponse struct {
 	// 	Code    string `json:"code"`
 	// 	Message string `json:"message"`
 	// }
 )
+
+// ErrorResponse is the standard error respons format (independent)
+type ErrorResponse struct {
+	Code        int    `json:"code"`
+	Status      string `json:"status"`
+	Description string `json:"description,omitempty"`
+}

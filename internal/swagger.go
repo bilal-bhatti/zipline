@@ -45,13 +45,13 @@ func (s *swagger) generate(packets []*packet) error {
 	erresp := spec.NewResponse().WithDescription("unexpected error").WithSchema(erref)
 
 	for _, packet := range packets {
-		docs, err := docparser.ParseDocs(packet.funcDecl.Doc.Text())
+		docData, err := docparser.ParseDoc(packet.funcDecl.Doc.Text())
 		// docs, err := parsedocs(packet.funcDecl.Doc.Text())
 		if err != nil {
 			return err
 		}
 
-		docsbytes, err := json.Marshal(docs)
+		docsbytes, err := json.Marshal(docData.Data)
 		if err != nil {
 			return err
 		}

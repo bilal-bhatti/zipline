@@ -7,9 +7,14 @@ import (
 	"strings"
 )
 
-func ParseDocs(docs string) (map[string]interface{}, error) {
+type DocData struct {
+	Doc  string
+	Data map[string]interface{}
+}
+
+func ParseDoc(doc string) (*DocData, error) {
 	// var p comment.Parser
-	// doc := p.Parse(docs)
+	// doc := p.Parse(doc)
 	// fmt.Println()
 	// for _, c := range doc.Content {
 	// 	switch v := c.(type) {
@@ -24,7 +29,7 @@ func ParseDocs(docs string) (map[string]interface{}, error) {
 
 	// var doclines []string
 	nested := make(map[string]interface{})
-	lines := strings.Split(docs, "\n")
+	lines := strings.Split(doc, "\n")
 
 	for i := 0; i < len(lines); i++ {
 		lines[i] = strings.TrimSpace(lines[i])
@@ -37,7 +42,6 @@ func ParseDocs(docs string) (map[string]interface{}, error) {
 				kv[1] = kv[1] + lines[i+1]
 			}
 
-			// fmt.Println("kv", kv[0], kv[1])
 			err := ParseLine(strings.TrimSpace(kv[0]), strings.TrimSpace(kv[1]), nested)
 			if err != nil {
 				return nil, err
@@ -63,7 +67,7 @@ func ParseDocs(docs string) (map[string]interface{}, error) {
 
 	// yaml.NewEncoder(os.Stdout).Encode(nested)
 
-	return nested, nil
+	return &DocData{Doc: doc, Data: nested}, nil
 }
 
 func ParseLine(key, value string, data map[string]interface{}) error {

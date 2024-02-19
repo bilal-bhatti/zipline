@@ -7,6 +7,7 @@ import (
 
 	"github.com/bilal-bhatti/zipline/internal/util"
 	"github.com/fatih/structtag"
+	"gopkg.in/yaml.v3"
 )
 
 type Comments struct {
@@ -47,6 +48,13 @@ func GetComments(pos token.Position) (*Comments, error) {
 		}
 	}
 	util.Reverse(comments)
+
+	data, err := ParseDoc(strings.Join(comments, "\n"))
+	if err != nil {
+		return nil, err
+	}
+	yaml.NewEncoder(os.Stdout).Encode(data.Data)
+
 	return ParsedComments(strings.Join(comments, "\n"))
 }
 

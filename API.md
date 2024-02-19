@@ -82,6 +82,7 @@ DeleteBulk contact by id
 
 ```
 GetOne contact by id
+id contact id
 ```
 
 `path parameters`

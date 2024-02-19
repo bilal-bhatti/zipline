@@ -399,11 +399,10 @@
     },
     "/contacts/{id}": {
       "get": {
-        "description": "GetOne contact by id",
+        "description": "GetOne contact by id\nid contact id",
         "operationId": "ContactsServiceGetOne",
         "parameters": [
           {
-            "description": "contact id",
             "in": "path",
             "name": "id",
             "required": true,
@@ -434,7 +433,7 @@
             "description": "unexpected error"
           }
         },
-        "summary": "GetOne contact by id",
+        "summary": "GetOne contact by id\nid contact id",
         "tags": [
           "services"
         ]

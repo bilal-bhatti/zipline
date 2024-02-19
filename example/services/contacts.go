@@ -59,21 +59,18 @@ func (cs *ContactsService) Replace(ctx context.Context, id int, contactRequest C
 }
 
 // GetOne contact by id
-// @id contact id
+// id contact id
 func (cs ContactsService) GetOne(ctx context.Context, id int) (*ContactResponse, error) {
 	return &ContactResponse{ID: "id"}, nil
 }
 
 // GetBunch of contacts by ids
 //
-// @summary           Get a list of contacts by ids
-// @description       Get a list of contacts by ids
-// @tags              contacts
-// @produces          application/json
-// @parameters        (name:ids, description: list of contact ids, required:true)
-// @responses.400     {models.ErrorResponse}
-// @responses.404     {models.ErrorResponse}
-// @responses.default {models.ErrorResponse}
+// @summary          Get a list of contacts by ids
+// @description      Get a list of contacts by ids
+// @tags             contacts
+// @produces         application/json
+// @parameters       {"name":"ids", "description":"list of contact ids", "required":true}
 func (cs ContactsService) GetBunch(ctx context.Context, ids []int64) (*ContactResponse, error) {
 	return &ContactResponse{ID: "id"}, nil
 }
@@ -89,7 +86,8 @@ func (cs ContactsService) DeleteBulk(ctx context.Context, ids []string) error {
 }
 
 // Redirect sends a redirect in response
-// @responses.302     {models.ErrorResponse}
+//
+// responses.302     {models.ErrorResponse}
 func (cs ContactsService) Redirect(ctx context.Context, id string) (string, error) {
 	// return url.Parse("https://donate.doctorswithoutborders.org")
 	return "https://donate.doctorswithoutborders.org", nil

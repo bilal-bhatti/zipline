@@ -54,16 +54,6 @@ import (
 // @security                   [{"token": []}]
 // @externalDocs.description   OpenAPI
 // @externalDocs.url           https://swagger.io/resources/open-api/
-//
-// summary          Get a list of contacts by ids
-// description      Get a list of contacts by ids
-// tags              contacts
-// produces         application/json
-// parameters        (name:ids, description: list of contact ids, required:true)
-// parameters        {"name": "foo", "description": "foo description", "required": false}
-// responses.400     {models.ErrorResponse}
-// responses.404     {models.ErrorResponse}
-// responses.default {models.ErrorResponse}
 func NewRouter(env *connectors.Env) *chi.Mux {
 	mux := chi.NewRouter()
 	mux.Use(services.Authentication)
@@ -137,7 +127,7 @@ func ContactsServiceCreateHandlerFunc(env *connectors.Env) http.HandlerFunc {
 // path  : /contacts/{id}
 // method: get
 // GetOne contact by id
-// @id contact id
+// id contact id
 func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
@@ -178,14 +168,11 @@ func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 // path  : /contacts
 // method: get
 // GetBunch of contacts by ids
-// @summary           Get a list of contacts by ids
-// @description       Get a list of contacts by ids
-// @tags              contacts
-// @produces          application/json
-// @parameters        (name:ids, description: list of contact ids, required:true)
-// @responses.400     {models.ErrorResponse}
-// @responses.404     {models.ErrorResponse}
-// @responses.default {models.ErrorResponse}
+// @summary          Get a list of contacts by ids
+// @description      Get a list of contacts by ids
+// @tags             contacts
+// @produces         application/json
+// @parameters       {"name":"ids", "description":"list of contact ids", "required":true}
 func ContactsServiceGetBunchHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error

@@ -78,35 +78,43 @@ func (s scanner) scan() (map[string]*typeSpecWithPkg, map[string]*template, []*p
 		}
 	}
 
-	s.find("models.ErrorResponse")
+	// s.find("models.ErrorResponse")
 
 	return typeSpecs, templates, packets
 }
 
-func (s scanner) find(tname string) {
+// find a struct type by a name (used for looking up {models.ErrorResponse} in comments)
+func (s scanner) Find(tname string) {
 	for _, pkg := range s.pkgs {
 		for _, file := range pkg.Syntax {
 			ast.Inspect(file, func(n ast.Node) bool {
-				if ts, ok := n.(*ast.TypeSpec); ok {
-					if struc, ok := ts.Type.(*ast.StructType); ok {
-						if pkg.Name+"."+ts.Name.Name == tname {
-							obj := pkg.TypesInfo.Defs[ts.Name]
-							fmt.Println("obj types.Type", obj.Type(), ts.Doc.Text())
-							fmt.Println("struct", struc.Fields)
+				if gd, ok := n.(*ast.GenDecl); ok {
+					for _, spec := range gd.Specs {
+						if specType, ok := spec.(*ast.TypeSpec); ok {
+							if _, ok := specType.Type.(*ast.StructType); ok {
+								if pkg.Name+"."+specType.Name.Name == tname {
+									obj := pkg.TypesInfo.Defs[specType.Name]
+									schema, err := schema.FieldNew("--", obj.Type())
+									if err != nil {
+										fmt.Println("error generating schema", err)
+									}
 
-							// schema, err := schema.Field("--", obj.Type())
-							schema, err := schema.FieldNew("--", obj.Type())
-							if err != nil {
-								fmt.Println("error generating schema", err)
-							}
+									if err := json.NewEncoder(os.Stdout).Encode(schema); err != nil {
+										fmt.Println("error generating schema", err)
+									}
 
-							if err := json.NewEncoder(os.Stdout).Encode(schema); err != nil {
-								fmt.Println("error generating schema", err)
+									if len(strings.TrimSpace(specType.Doc.Text())) > 0 {
+										fmt.Println("docs", specType.Doc.Text())
+									} else {
+										fmt.Println("docs", gd.Doc.Text())
+									}
+									return true
+								}
 							}
-							return false
 						}
 					}
 				}
+
 				return true
 			})
 		}
