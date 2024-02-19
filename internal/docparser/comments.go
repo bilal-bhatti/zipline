@@ -16,6 +16,48 @@ type Comments struct {
 	Comments []string
 }
 
+func GetDocComments(pos token.Position) (*DocData, error) {
+	// just in case
+	if pos.Line-2 <= 0 {
+		return &DocData{
+			Tags: make(map[string]*structtag.Tags),
+		}, nil
+	}
+
+	fileBytes, err := os.ReadFile(pos.Filename)
+	if err != nil {
+		return nil, err
+	}
+
+	lines := strings.Split(string(fileBytes), "\n")
+	var comments []string
+
+	// start from func declaration and go backwards
+	// stop when non comment line found
+	for i := pos.Line - 2; i >= 0; i-- {
+		line := strings.TrimSpace(lines[i])
+		if strings.HasPrefix(line, "//") {
+			line = strings.TrimSpace(strings.TrimPrefix(line, "//"))
+			if len(line) == 0 {
+				continue
+			}
+
+			comments = append(comments, line)
+		} else {
+			break
+		}
+	}
+	util.Reverse(comments)
+
+	data, err := ParseDoc(strings.Join(comments, "\n"))
+	if err != nil {
+		return nil, err
+	}
+	yaml.NewEncoder(os.Stdout).Encode(data.Data)
+
+	return ParseDoc(strings.Join(comments, "\n"))
+}
+
 func GetComments(pos token.Position) (*Comments, error) {
 	// just in case
 	if pos.Line-2 <= 0 {
