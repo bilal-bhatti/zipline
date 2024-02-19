@@ -431,8 +431,8 @@ func ThingsServiceCreateHandlerFunc() http.HandlerFunc {
 // path  : /things/{category}
 // method: get
 // Get things by category and search query
-// @category category of data to search
-// @q search query
+// @parameters  {"name":"category", "description": "category of data to search"}
+// @parameters  {"name":"q", "description": "search query"}
 func ThingsServiceGetByCategoryAndQueryHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
@@ -472,8 +472,18 @@ func ThingsServiceGetByCategoryAndQueryHandlerFunc() http.HandlerFunc {
 // path  : /things
 // method: get
 // Get things by date range
-// @from `format:"date-time,2006-01-02"` date should be in Go time format
-// @to   `format:"date-time,2006-01-02"` date should be in Go time format
+// @description       A long description of this endpoint
+// @summary           A short summary of this endpoint
+// @tags              contacts
+// @consumes          application/json
+// @produces          application/json
+// @produces          plain/text
+// @tags              ["things", "example", "get"]
+// @parameters        {"name":"from", "format":"date-time,2006-01-02", "description": "date should be in Go time format"}
+// @parameters        {"name":"to", "format":"date-time,2006-01-02", "description": "date should be in Go time format"}
+// @responses.400     {models.ErrorResponse}
+// @responses.404     {models.ErrorResponse}
+// @responses.default {models.ErrorResponse}
 func ThingsServiceGetByDateRangeHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error

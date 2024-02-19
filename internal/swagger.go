@@ -24,12 +24,6 @@ type swagger struct {
 }
 
 func newSwagger(typeSpecs map[string]*typeSpecWithPkg) (*swagger, error) {
-	// init defaults
-
-	// swag := &spec.Swagger{
-	// 	SwaggerProps: spec.SwaggerProps{},
-	// }
-
 	return &swagger{
 		swag:      &spec.Swagger{},
 		typeSpecs: typeSpecs,
@@ -46,7 +40,6 @@ func (s *swagger) generate(packets []*packet) error {
 
 	for _, packet := range packets {
 		docData, err := docparser.ParseDoc(packet.funcDecl.Doc.Text())
-		// docs, err := parsedocs(packet.funcDecl.Doc.Text())
 		if err != nil {
 			return err
 		}
@@ -57,12 +50,11 @@ func (s *swagger) generate(packets []*packet) error {
 		}
 
 		err = s.swag.UnmarshalJSON(docsbytes)
-		// err = json.Unmarshal(docsbytes, s.swag)
 		if err != nil {
 			return err
 		}
 
-		// populate some defaults
+		//start: populate some defaults
 		s.swag.SwaggerProps.Paths = &spec.Paths{
 			Paths: make(map[string]spec.PathItem),
 		}
@@ -81,12 +73,7 @@ func (s *swagger) generate(packets []*packet) error {
 		}
 		ert.Properties["status"] = *spec.StringProperty()
 		s.swag.Definitions["Error"] = *ert
-		// defaults
-
-		// err = yaml.NewEncoder(os.Stdout).Encode(s.swag)
-		// if err != nil {
-		// 	fmt.Println(err)
-		// }
+		//end: defaults
 
 		for _, b := range packet.bindings {
 			var pi spec.PathItem
@@ -108,10 +95,33 @@ func (s *swagger) generate(packets []*packet) error {
 				},
 			}
 
-			if len(b.handler.comments.Comments) > 0 {
-				op.Description = strings.Join(b.handler.comments.Comments, "\n")
+			// Start: Process overrices from doc comments
+			if d, ok := b.handler.docs.Data["description"]; ok {
+				op.Description = d.(string)
+			} else {
+				if len(b.handler.docs.Comments) > 0 {
+					op.Description = strings.Join(b.handler.docs.Comments, "\n")
+				}
+			}
+
+			if s, ok := b.handler.docs.Data["summary"]; ok {
+				op.Summary = s.(string)
+			} else {
 				op.Summary = op.Description
 			}
+
+			if c, ok := b.handler.docs.Data["consumes"]; ok {
+				op.Consumes = c.([]string)
+			}
+
+			if p, ok := b.handler.docs.Data["produces"]; ok {
+				op.Produces = p.([]string)
+			}
+
+			if t, ok := b.handler.docs.Data["tags"]; ok {
+				op.Tags = t.([]string)
+			}
+			// End: Process overrices from doc comments
 
 			for i := 0; i < len(b.handler.params); i++ {
 				param := b.handler.params[i]
@@ -127,28 +137,31 @@ func (s *swagger) generate(packets []*packet) error {
 
 				if template == "Path" || template == "Query" {
 					simpleSchema := paramSimpleSchema(param)
-					tags, ok := b.handler.comments.Tags[param.VarName()]
+
+					pdef, ok := b.handler.docs.Parameter(param.VarName())
+
+					// Start: Process overrices from doc comments
+					// The parameter names must match
+					var description string = ""
+					var in = strings.ToLower(template)
+					var required = true
+
 					if ok {
-						fmtTag, err := tags.Get("format")
-						if err == nil {
-							if len(fmtTag.Options) > 0 {
-								simpleSchema.Format = fmt.Sprintf("%s,%s", fmtTag.Name, strings.Join(fmtTag.Options, ","))
-							} else {
-								simpleSchema.Format = fmtTag.Name
-							}
+						if value, ok := pdef["format"]; ok {
+							simpleSchema.Format = value.(string)
+						}
+						if value, ok := pdef["description"]; ok {
+							description = value.(string)
+						}
+						if value, ok := pdef["in"]; ok {
+							in = value.(string)
+						}
+						if value, ok := pdef["required"]; ok {
+							required = value.(bool)
 						}
 					}
+					// End: Process overrices from doc comments
 
-					var paramComment string = ""
-					for _, c := range b.handler.comments.Raw {
-						ctag := "@" + strings.TrimSpace(param.VarName())
-						if strings.HasPrefix(c, ctag) {
-							paramComment = strings.TrimSpace(strings.TrimLeft(c, ctag))
-							break
-						}
-					}
-
-					required := true
 					if template == "Query" {
 						required = !param.IsPtr
 					}
@@ -156,9 +169,9 @@ func (s *swagger) generate(packets []*packet) error {
 					op.AddParam(&spec.Parameter{
 						ParamProps: spec.ParamProps{
 							Name:        param.VarName(),
-							In:          strings.ToLower(template),
+							In:          in,
 							Required:    required,
-							Description: paramComment,
+							Description: description,
 						},
 						SimpleSchema: simpleSchema,
 					})
@@ -170,7 +183,7 @@ func (s *swagger) generate(packets []*packet) error {
 
 					ts := s.typeSpecs[param.Signature]
 					if ts != nil {
-						comms, err := docparser.ParsedComments(ts.docs)
+						comms, err := docparser.ParseDoc(ts.docs)
 						if err != nil {
 							// let's not fail on comments but log the error
 							log.Println("failed to extract comments", err.Error())
@@ -199,6 +212,7 @@ func (s *swagger) generate(packets []*packet) error {
 				}
 			}
 
+			// generate specs for responses
 			for _, ret := range b.handler.returns {
 				if ret.VarType.Type().String() == "error" {
 					op.Responses.ResponsesProps.Default = erresp
@@ -212,9 +226,7 @@ func (s *swagger) generate(packets []*packet) error {
 
 				ts := s.typeSpecs[ret.Signature]
 				if ts != nil {
-					// pos := ts.pkg.Fset.PositionFor(ts.typeSpec.Pos(), true)
-					// comms, err := getComments(pos)
-					comms, err := docparser.ParsedComments(ts.docs)
+					comms, err := docparser.ParseDoc(ts.docs)
 					if err != nil {
 						// let's not fail on comments but log the error
 						log.Println("failed to extract comments", err.Error())

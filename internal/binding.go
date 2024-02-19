@@ -26,7 +26,7 @@ type (
 
 	handlerInfo struct {
 		signature *types.Signature
-		comments  *docparser.Comments
+		docs      *docparser.DocData
 		id        string
 		pkg       string
 		x         *tokens.TypeToken

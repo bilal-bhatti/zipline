@@ -78,6 +78,7 @@ func (s scanner) scan() (map[string]*typeSpecWithPkg, map[string]*template, []*p
 		}
 	}
 
+	// TODO : handle additonal response types
 	// s.find("models.ErrorResponse")
 
 	return typeSpecs, templates, packets

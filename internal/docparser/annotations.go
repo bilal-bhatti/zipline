@@ -5,8 +5,6 @@ import (
 	"errors"
 	"log"
 	"strings"
-
-	"github.com/fatih/structtag"
 )
 
 type DocData struct {
@@ -14,10 +12,24 @@ type DocData struct {
 	Raw      []string
 	Comments []string
 	Data     map[string]interface{}
-	Tags     map[string]*structtag.Tags
+}
+
+func (d *DocData) Parameter(varName string) (map[string]interface{}, bool) {
+	if params, ok := d.Data["parameters"]; ok {
+		params := params.([]interface{})
+		for _, p := range params {
+			param := p.(map[string]interface{})
+			if param["name"] == varName {
+				return param, true
+			}
+		}
+	}
+
+	return nil, false
 }
 
 func ParseDoc(doc string) (*DocData, error) {
+	// TODO: investigate using Go doc formatter to parse blocks of comments
 	// var p comment.Parser
 	// doc := p.Parse(doc)
 	// fmt.Println()
@@ -33,7 +45,7 @@ func ParseDoc(doc string) (*DocData, error) {
 	// }
 
 	var doclines []string
-	nested := make(map[string]interface{})
+	spec := make(map[string]interface{})
 	lines := strings.Split(doc, "\n")
 
 	for i := 0; i < len(lines); i++ {
@@ -47,7 +59,7 @@ func ParseDoc(doc string) (*DocData, error) {
 				kv[1] = kv[1] + lines[i+1]
 			}
 
-			err := ParseLine(strings.TrimSpace(kv[0]), strings.TrimSpace(kv[1]), nested)
+			err := ParseLine(strings.TrimSpace(kv[0]), strings.TrimSpace(kv[1]), spec)
 			if err != nil {
 				return nil, err
 			}
@@ -55,31 +67,29 @@ func ParseDoc(doc string) (*DocData, error) {
 			doclines = append(doclines, strings.TrimSpace(lines[i]))
 		}
 	}
-	// for _, line := range lines {
-	// 	if strings.HasPrefix(line, "@") {
-	// 		kv := strings.SplitN(strings.TrimPrefix(line, "@"), " ", 2)
 
-	// 		kv[0], kv[1] = strings.TrimSpace(kv[0]), strings.TrimSpace(kv[1])
-	// 		fmt.Println("parsing, k, v:", kv)
-
-	// 		err := ParseLine(strings.TrimSpace(kv[0]), strings.TrimSpace(kv[1]), nested)
-	// 		if err != nil {
-	// 			return nil, err
-	// 		}
-	// 	}
-	// 	// else {
-	// 	// 	doclines = append(doclines, strings.TrimSpace(line))
-	// 	// }
-	// }
-
-	// yaml.NewEncoder(os.Stdout).Encode(nested)
-
-	return &DocData{Doc: doc, Raw: lines, Comments: doclines, Data: nested, Tags: make(map[string]*structtag.Tags)}, nil
+	// yaml.NewEncoder(os.Stdout).Encode(spec)
+	return &DocData{Doc: doc, Raw: lines, Comments: doclines, Data: spec}, nil
 }
 
 func ParseLine(key, value string, data map[string]interface{}) error {
 	switch key {
-	case "schemes", "consumes", "produces", "tags", "parameters":
+	case "schemes", "consumes", "produces", "tags":
+		p, err := parseStringValue(value)
+		if err != nil {
+			return err
+		}
+
+		if pl, ok := p.([]string); ok {
+			data[key] = pl
+		} else {
+			if ov, ok := data[key]; ok {
+				data[key] = append(ov.([]string), p.(string))
+			} else {
+				data[key] = []string{p.(string)}
+			}
+		}
+	case "parameters":
 		p, err := parseValue(value)
 		if err != nil {
 			return err
@@ -131,117 +141,26 @@ func parseValue(value string) (interface{}, error) {
 		if err := json.Unmarshal([]byte(value), &obj); err != nil {
 			log.Printf("failed to parse annotation `%s`, error: %v", value, err)
 		}
-		// json.NewEncoder(os.Stdout).Encode(obj)
 		return obj, nil
 	} else if strings.HasPrefix(value, "[") && strings.HasSuffix(value, "]") {
 		obj := make([]interface{}, 0)
 		if err := json.Unmarshal([]byte(value), &obj); err != nil {
 			log.Printf("failed to parse annotation `%s`, error: %v", value, err)
 		}
-		// json.NewEncoder(os.Stdout).Encode(obj)
 		return obj, nil
 	}
 
 	return value, nil
 }
 
-// func ParseLine_x(key, value string, data map[string]interface{}) error {
-// 	switch key {
-// 	case "schemes", "consumes", "produces", "tags", "parameters":
-// 		p, err := parseValue(value)
-// 		if err != nil {
-// 			return err
-// 		}
+func parseStringValue(value string) (interface{}, error) {
+	if strings.HasPrefix(value, "[") && strings.HasSuffix(value, "]") {
+		obj := make([]string, 0)
+		if err := json.Unmarshal([]byte(value), &obj); err != nil {
+			log.Printf("failed to parse annotation `%s`, error: %v", value, err)
+		}
+		return obj, nil
+	}
 
-// 		if pl, ok := p.([]interface{}); ok {
-// 			data[key] = pl
-// 		} else {
-// 			if ov, ok := data[key]; ok {
-// 				data[key] = append(ov.([]interface{}), p)
-// 			} else {
-// 				data[key] = []interface{}{p}
-// 			}
-// 		}
-// 	default:
-// 		keys := strings.Split(key, ".")
-// 		for i := 0; i < len(keys); i++ {
-// 			if i+1 == len(keys) {
-// 				pv, err := parseValue(value)
-// 				if err != nil {
-// 					return err
-// 				}
-// 				if pl, ok := pv.([]interface{}); ok {
-// 					data[keys[i]] = pl
-// 				} else {
-// 					data[keys[i]] = pv
-// 				}
-// 			} else {
-// 				if ov, ok := data[keys[i]]; ok {
-// 					if ov, ok := ov.(map[string]interface{}); ok {
-// 						data = ov
-// 					} else {
-// 						return errors.New("expecting a map for key: " + key)
-// 					}
-// 				} else {
-// 					temp := make(map[string]interface{})
-// 					data[keys[i]] = temp
-// 					data = temp
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	return nil
-// }
-
-// func parseValue(value string) (interface{}, error) {
-// 	if strings.HasPrefix(value, "(") && strings.HasSuffix(value, ")") {
-// 		p := make(map[string]interface{})
-// 		value = strings.Trim(value, "()")
-// 		r := csv.NewReader(strings.NewReader(value))
-// 		r.TrimLeadingSpace = true
-// 		fields, err := r.Read()
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		for _, f := range fields {
-// 			kv := strings.Split(f, ":")
-// 			p[strings.TrimSpace(kv[0])] = guess(strings.TrimSpace(kv[1]))
-// 		}
-// 		return p, nil
-// 	} else if strings.HasPrefix(value, "[") && strings.HasSuffix(value, "]") {
-// 		var p []interface{}
-// 		value = strings.TrimSpace(strings.Trim(value, "[]"))
-// 		if value == "" {
-// 			return make([]interface{}, 0), nil
-// 		}
-
-// 		// fmt.Println("value", value)
-// 		r := csv.NewReader(strings.NewReader(value))
-// 		r.TrimLeadingSpace = true
-
-// 		lines, err := r.Read()
-// 		if err != nil {
-// 			return err, nil
-// 		}
-// 		for _, f := range lines {
-// 			p = append(p, guess(strings.TrimSpace(f)))
-// 		}
-// 		return p, nil
-// 	} else {
-// 		return guess(value), nil
-// 	}
-// }
-
-// func guess(v interface{}) interface{} {
-// 	if v, ok := v.(string); ok {
-// 		if v == "yes" || v == "true" || v == "on" {
-// 			return true
-// 		}
-// 		if v == "no" || v == "false" || v == "off" {
-// 			return false
-// 		}
-// 	}
-
-// 	return v
-// }
+	return value, nil
+}

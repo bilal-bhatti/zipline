@@ -116,7 +116,7 @@ func (r *renderer) renderFunctionTemplate(pkg *packages.Package, t *template, b 
 	buf.Sprintf("// %s%s handles requests to:\n", b.id(), t.funcSuffix())
 	buf.Sprintf("// path  : %s\n", b.path)
 	buf.Sprintf("// method: %s\n", strings.ToLower(b.method))
-	for _, c := range b.handler.comments.Raw {
+	for _, c := range b.handler.docs.Raw {
 		buf.Sprintf("// %s\n", c)
 	}
 
@@ -376,11 +376,9 @@ func (r *renderer) renderParamTemplate(pkg *packages.Package, t *template, b *bi
 	}
 
 	var format string
-	tags, ok := b.handler.comments.Tags[p.VarName()]
-	if ok {
-		tag, err := tags.Get("format")
-		if err == nil {
-			format = fmt.Sprintf("%s,%s", tag.Name, strings.Join(tag.Options, ","))
+	if pdef, ok := b.handler.docs.Parameter(p.VarName()); ok {
+		if f, ok := pdef["format"]; ok {
+			format = f.(string)
 		}
 	}
 
@@ -407,7 +405,7 @@ func (r *renderer) rename(old, format string, pkg *packages.Package, b *binding,
 			if n.Value == fmt.Sprintf("\"%s\"", old) {
 				n.Value = fmt.Sprintf("\"%s\"", new.Name)
 			}
-			if format != "" && n.Value == fmt.Sprintf("\"format\"") {
+			if format != "" && n.Value == "\"format\"" {
 				n.Value = fmt.Sprintf("\"%s\"", format)
 			}
 		case *ast.Ident:

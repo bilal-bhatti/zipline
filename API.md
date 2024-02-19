@@ -15,7 +15,7 @@ Produces:    [application/json application/text]
 
 
 ```
-GetBunch of contacts by ids
+Get a list of contacts by ids
 ```
 
 `query parameters`
@@ -261,7 +261,7 @@ Ping returns body with 'i's replaced with 'o's
 
 
 ```
-Get things by date range
+A short summary of this endpoint
 ```
 
 `query parameters`

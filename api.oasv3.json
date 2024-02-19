@@ -311,10 +311,11 @@
         ]
       },
       "get": {
-        "description": "GetBunch of contacts by ids",
+        "description": "Get a list of contacts by ids",
         "operationId": "ContactsServiceGetBunch",
         "parameters": [
           {
+            "description": "list of contact ids",
             "in": "query",
             "name": "ids",
             "required": true,
@@ -349,9 +350,9 @@
             "description": "unexpected error"
           }
         },
-        "summary": "GetBunch of contacts by ids",
+        "summary": "Get a list of contacts by ids",
         "tags": [
-          "services"
+          "contacts"
         ]
       },
       "post": {
@@ -733,11 +734,11 @@
     },
     "/things": {
       "get": {
-        "description": "Get things by date range",
+        "description": "A long description of this endpoint",
         "operationId": "ThingsServiceGetByDateRange",
         "parameters": [
           {
-            "description": "`format:\"date-time,2006-01-02\"` date should be in Go time format",
+            "description": "date should be in Go time format",
             "in": "query",
             "name": "from",
             "schema": {
@@ -746,7 +747,7 @@
             }
           },
           {
-            "description": "`format:\"date-time,2006-01-02\"` date should be in Go time format",
+            "description": "date should be in Go time format",
             "in": "query",
             "name": "to",
             "schema": {
@@ -762,6 +763,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ThingListResponse"
                 }
+              },
+              "plain/text": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThingListResponse"
+                }
               }
             },
             "description": "200 success response"
@@ -772,14 +778,21 @@
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
+              },
+              "plain/text": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             },
             "description": "unexpected error"
           }
         },
-        "summary": "Get things by date range",
+        "summary": "A short summary of this endpoint",
         "tags": [
-          "web"
+          "things",
+          "example",
+          "get"
         ]
       },
       "post": {

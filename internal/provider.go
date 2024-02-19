@@ -45,6 +45,7 @@ func (p provider) typeTokenFor(vt *tokens.TypeToken) (*tokens.TypeToken, bool) {
 func (p provider) provide(vt *tokens.TypeToken, retNames []string) (*tokens.FuncToken, error) {
 	debug.Trace("scanning packages for %s", vt.FullSignature)
 
+	// TODO : do additional response types
 	// id := ast.NewIdent("github.com/bilal-bhatti/zipline/example/models.ErrorResponse")
 	id := ast.NewIdent("ErrorResponse")
 

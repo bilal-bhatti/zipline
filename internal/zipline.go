@@ -399,14 +399,15 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) (*handle
 	id.WriteString(obj.Name())
 
 	pos := pkg.Fset.PositionFor(obj.Pos(), true)
-	comments, err := docparser.GetComments(pos)
+	comments, err := docparser.GetDocComments(pos)
 	if err != nil {
 		// let's not fail on comments but log the error
 		log.Println("failed to extract comments", err.Error())
 	}
 
 	hi := &handlerInfo{
-		comments:  comments,
+		// comments:  comments,
+		docs:      comments,
 		id:        id.String(),
 		sel:       handler.String(),
 		pkg:       obj.Pkg().Path(),
