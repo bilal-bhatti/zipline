@@ -19,9 +19,9 @@ git tag -d v0.1.0
 git push origin :v0.1.0
 ```
 
-Copy Pasta
+## Copy Pasta
 ``` sh
-git tag -a v0.5.0 -m "Implement doc annotations as overrides for generated OpenAPI specs"
+git tag -a v0.5.0 -m ""
 git push origin v0.5.0
 goreleaser release --clean
 ```
