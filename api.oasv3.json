@@ -339,6 +339,28 @@
             },
             "description": "200 success response"
           },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "400 response"
+          },
           "default": {
             "content": {
               "application/json": {
@@ -735,7 +757,7 @@
     "/things": {
       "get": {
         "description": "A long description of this endpoint",
-        "operationId": "ThingsServiceGetByDateRange",
+        "operationId": "GetThingsByDateRange",
         "parameters": [
           {
             "description": "date should be in Go time format",
@@ -752,6 +774,16 @@
             "name": "to",
             "schema": {
               "format": "date-time,2006-01-02",
+              "type": "string"
+            }
+          },
+          {
+            "description": "parameter not found in code, tsk tsk",
+            "in": "path",
+            "name": "notgood",
+            "required": true,
+            "schema": {
+              "format": "eMail",
               "type": "string"
             }
           }
@@ -771,6 +803,84 @@
               }
             },
             "description": "200 success response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "plain/text": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "400 response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "plain/text": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "404 response"
           },
           "default": {
             "content": {

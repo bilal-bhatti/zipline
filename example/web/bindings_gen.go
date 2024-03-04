@@ -173,6 +173,7 @@ func ContactsServiceGetOneHandlerFunc() http.HandlerFunc {
 // @tags             contacts
 // @produces         application/json
 // @parameters       {"name":"ids", "description":"list of contact ids", "required":true}
+// @responses.400    {models.ErrorResponse}
 func ContactsServiceGetBunchHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
@@ -474,16 +475,16 @@ func ThingsServiceGetByCategoryAndQueryHandlerFunc() http.HandlerFunc {
 // Get things by date range
 // @description       A long description of this endpoint
 // @summary           A short summary of this endpoint
-// @tags              contacts
+// @operationId       GetThingsByDateRange
 // @consumes          application/json
 // @produces          application/json
 // @produces          plain/text
 // @tags              ["things", "example", "get"]
 // @parameters        {"name":"from", "format":"date-time,2006-01-02", "description": "date should be in Go time format"}
 // @parameters        {"name":"to", "format":"date-time,2006-01-02", "description": "date should be in Go time format"}
+// @parameters        {"name":"notgood", "description": "parameter not found in code, tsk tsk", "in": "path", "type": "string", "format": "eMail"}
 // @responses.400     {models.ErrorResponse}
 // @responses.404     {models.ErrorResponse}
-// @responses.default {models.ErrorResponse}
 func ThingsServiceGetByDateRangeHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error

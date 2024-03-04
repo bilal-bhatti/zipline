@@ -42,16 +42,16 @@ func (cs ThingsService) GetByCategoryAndQuery(ctx context.Context, category stri
 //
 // @description       A long description of this endpoint
 // @summary           A short summary of this endpoint
-// @tags              contacts
+// @operationId       GetThingsByDateRange
 // @consumes          application/json
 // @produces          application/json
 // @produces          plain/text
 // @tags              ["things", "example", "get"]
 // @parameters        {"name":"from", "format":"date-time,2006-01-02", "description": "date should be in Go time format"}
 // @parameters        {"name":"to", "format":"date-time,2006-01-02", "description": "date should be in Go time format"}
+// @parameters        {"name":"notgood", "description": "parameter not found in code, tsk tsk", "in": "path", "type": "string", "format": "eMail"}
 // @responses.400     {models.ErrorResponse}
 // @responses.404     {models.ErrorResponse}
-// @responses.default {models.ErrorResponse}
 func (cs ThingsService) GetByDateRange(ctx context.Context, from, to *time.Time) (ThingListResponse, error) {
 	log.Println("Getting by category and query", from, to)
 	return ThingListResponse{}, nil

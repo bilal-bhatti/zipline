@@ -8,25 +8,30 @@ import (
 	"os"
 	"path"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/bilal-bhatti/zipline/internal/debug"
 	"github.com/bilal-bhatti/zipline/internal/docparser"
 	"github.com/bilal-bhatti/zipline/internal/tokens"
+	"github.com/bilal-bhatti/zipline/internal/util"
 	"github.com/fatih/structtag"
 	"github.com/go-openapi/spec"
 	"github.com/pkg/errors"
+	"golang.org/x/tools/go/packages"
 )
 
 type swagger struct {
 	swag      *spec.Swagger
 	typeSpecs map[string]*typeSpecWithPkg
+	pkgs      []*packages.Package
 }
 
-func newSwagger(typeSpecs map[string]*typeSpecWithPkg) (*swagger, error) {
+func newSwagger(pkgs []*packages.Package, typeSpecs map[string]*typeSpecWithPkg) (*swagger, error) {
 	return &swagger{
 		swag:      &spec.Swagger{},
 		typeSpecs: typeSpecs,
+		pkgs:      pkgs,
 	}, nil
 }
 
@@ -39,7 +44,8 @@ func (s *swagger) generate(packets []*packet) error {
 	erresp := spec.NewResponse().WithDescription("unexpected error").WithSchema(erref)
 
 	for _, packet := range packets {
-		docData, err := docparser.ParseDoc(packet.funcDecl.Doc.Text())
+		// parse router function level docs
+		docData, err := docparser.ParseDoc(s.pkgs, packet.funcDecl.Doc.Text())
 		if err != nil {
 			return err
 		}
@@ -82,10 +88,17 @@ func (s *swagger) generate(packets []*packet) error {
 				pi = spec.PathItem{}
 			}
 
+			var opId string
+			if id, ok := b.handler.docs.Data["operationId"]; ok {
+				opId = id.(string)
+			} else {
+				opId = b.id()
+			}
+			// fmt.Println(b.handler.docs.Data["operationId"])
 			op := &spec.Operation{
 				OperationProps: spec.OperationProps{
 					Description: "Route description",
-					ID:          b.id(),
+					ID:          opId,
 					Tags:        []string{b.handler.pkg[strings.LastIndex(b.handler.pkg, "/")+1:]},
 					Responses: &spec.Responses{
 						ResponsesProps: spec.ResponsesProps{
@@ -95,7 +108,7 @@ func (s *swagger) generate(packets []*packet) error {
 				},
 			}
 
-			// Start: Process overrices from doc comments
+			// Start: Process overrides from doc comments
 			if d, ok := b.handler.docs.Data["description"]; ok {
 				op.Description = d.(string)
 			} else {
@@ -121,7 +134,7 @@ func (s *swagger) generate(packets []*packet) error {
 			if t, ok := b.handler.docs.Data["tags"]; ok {
 				op.Tags = t.([]string)
 			}
-			// End: Process overrices from doc comments
+			// End: Process overrides from doc comments
 
 			for i := 0; i < len(b.handler.params); i++ {
 				param := b.handler.params[i]
@@ -140,7 +153,7 @@ func (s *swagger) generate(packets []*packet) error {
 
 					pdef, ok := b.handler.docs.Parameter(param.VarName())
 
-					// Start: Process overrices from doc comments
+					// Start: Process overrides from doc comments
 					// The parameter names must match
 					var description string = ""
 					var in = strings.ToLower(template)
@@ -183,7 +196,7 @@ func (s *swagger) generate(packets []*packet) error {
 
 					ts := s.typeSpecs[param.Signature]
 					if ts != nil {
-						comms, err := docparser.ParseDoc(ts.docs)
+						comms, err := docparser.ParseDoc(s.pkgs, ts.docs)
 						if err != nil {
 							// let's not fail on comments but log the error
 							log.Println("failed to extract comments", err.Error())
@@ -212,6 +225,16 @@ func (s *swagger) generate(packets []*packet) error {
 				}
 			}
 
+			// Start: add parameters that are not in code, but are declared as overrides
+			// yaml.NewEncoder(os.Stdout).Encode(b.handler.docs.Data["parameters"])
+			// op.Parameters
+			overrides := b.handler.docs.Data["parameters"]
+			newparms := overriddenParams(overrides, op.Parameters)
+			for _, p := range newparms {
+				op.AddParam(p)
+			}
+			// End: add parameters that are not in code, but are declared as overrides
+
 			// generate specs for responses
 			for _, ret := range b.handler.returns {
 				if ret.VarType.Type().String() == "error" {
@@ -226,7 +249,7 @@ func (s *swagger) generate(packets []*packet) error {
 
 				ts := s.typeSpecs[ret.Signature]
 				if ts != nil {
-					comms, err := docparser.ParseDoc(ts.docs)
+					comms, err := docparser.ParseDoc(s.pkgs, ts.docs)
 					if err != nil {
 						// let's not fail on comments but log the error
 						log.Println("failed to extract comments", err.Error())
@@ -269,6 +292,29 @@ func (s *swagger) generate(packets []*packet) error {
 					},
 				}
 			}
+
+			// Start: handle response annotations from comments
+			if responses, ok := b.handler.docs.Data["responses"]; ok {
+				for k, v := range responses.(map[string]interface{}) {
+					resp, err := util.MapToSpecSchema(v)
+					if err != nil {
+						return err
+					}
+					respSpec := spec.Response{
+						ResponseProps: spec.ResponseProps{
+							Description: fmt.Sprintf("%v response", k),
+							Schema:      resp,
+						},
+					}
+
+					if k == "default" {
+						op.Responses.ResponsesProps.Default = &respSpec
+					} else if code, err := strconv.Atoi(k); err == nil {
+						op.Responses.ResponsesProps.StatusCodeResponses[code] = respSpec
+					}
+				}
+			}
+			// End: handle response annotations from comments
 
 			switch strings.ToUpper(b.method) {
 			case "GET":
@@ -559,4 +605,51 @@ func paramSimpleSchema(tkn *tokens.TypeToken) spec.SimpleSchema {
 		Type:   typeSchema.Type[0],
 		Format: typeSchema.Format,
 	}
+}
+
+func overriddenParams(overrides interface{}, known []spec.Parameter) []*spec.Parameter {
+	if overrides == nil {
+		return []*spec.Parameter{}
+	}
+
+	newparams := []*spec.Parameter{}
+
+	for _, o := range overrides.([]interface{}) {
+		override := o.(map[string]interface{})
+		if !in(override["name"].(string), known) {
+			p := &spec.Parameter{
+				ParamProps:   spec.ParamProps{},
+				SimpleSchema: spec.SimpleSchema{},
+			}
+
+			p.ParamProps.Name = override["name"].(string)
+			p.ParamProps.In = override["in"].(string)
+
+			if v, ok := override["requrired"]; ok {
+				p.ParamProps.Required = v.(bool)
+			}
+
+			if v, ok := override["description"]; ok {
+				p.ParamProps.Description = v.(string)
+			}
+
+			p.SimpleSchema.Type = override["type"].(string)
+			if v, ok := override["format"]; ok {
+				p.SimpleSchema.Format = v.(string)
+			}
+
+			newparams = append(newparams, p)
+		}
+	}
+
+	return newparams
+}
+
+func in(name string, known []spec.Parameter) bool {
+	for _, k := range known {
+		if k.Name == name {
+			return true
+		}
+	}
+	return false
 }

@@ -118,7 +118,10 @@ func (s swagger) markdown() error {
 						ref = strings.TrimPrefix(ref[idx:], "/")
 					}
 
-					def := s.swag.Definitions[ref]
+					def, ok := s.swag.Definitions[ref]
+					if !ok {
+						def = *r.ResponseProps.Schema
+					}
 
 					if r.ResponseProps.Schema.Items != nil {
 						buf.Sprintf("- code: `%d`, type: `[]%s`\n", code, ref)
@@ -130,7 +133,7 @@ func (s swagger) markdown() error {
 				}
 			}
 
-			if op.Responses.Default != nil {
+			if op.Responses.Default != nil && op.Responses.Default.ResponseProps.Schema.Ref.GetPointer() != nil {
 				ref := op.Responses.Default.ResponseProps.Schema.Ref.GetPointer().String()
 
 				idx := strings.LastIndex(ref, "/")

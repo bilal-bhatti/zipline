@@ -60,6 +60,24 @@
               "$ref": "#/definitions/services.ContactResponse"
             }
           },
+          "400": {
+            "description": "400 response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
           "default": {
             "description": "unexpected error",
             "schema": {
@@ -404,7 +422,7 @@
           "get"
         ],
         "summary": "A short summary of this endpoint",
-        "operationId": "ThingsServiceGetByDateRange",
+        "operationId": "GetThingsByDateRange",
         "parameters": [
           {
             "type": "string",
@@ -419,6 +437,13 @@
             "description": "date should be in Go time format",
             "name": "to",
             "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "eMail",
+            "description": "parameter not found in code, tsk tsk",
+            "name": "notgood",
+            "in": "path"
           }
         ],
         "responses": {
@@ -426,6 +451,42 @@
             "description": "200 success response",
             "schema": {
               "$ref": "#/definitions/ThingListResponse"
+            }
+          },
+          "400": {
+            "description": "400 response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "404": {
+            "description": "404 response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
             }
           },
           "default": {

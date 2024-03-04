@@ -5,6 +5,8 @@ import (
 	"errors"
 	"log"
 	"strings"
+
+	"golang.org/x/tools/go/packages"
 )
 
 type DocData struct {
@@ -28,7 +30,7 @@ func (d *DocData) Parameter(varName string) (map[string]interface{}, bool) {
 	return nil, false
 }
 
-func ParseDoc(doc string) (*DocData, error) {
+func ParseDoc(pkgs []*packages.Package, doc string) (*DocData, error) {
 	// TODO: investigate using Go doc formatter to parse blocks of comments
 	// var p comment.Parser
 	// doc := p.Parse(doc)
@@ -59,7 +61,7 @@ func ParseDoc(doc string) (*DocData, error) {
 				kv[1] = kv[1] + lines[i+1]
 			}
 
-			err := ParseLine(strings.TrimSpace(kv[0]), strings.TrimSpace(kv[1]), spec)
+			err := ParseLine(pkgs, strings.TrimSpace(kv[0]), strings.TrimSpace(kv[1]), spec)
 			if err != nil {
 				return nil, err
 			}
@@ -72,7 +74,7 @@ func ParseDoc(doc string) (*DocData, error) {
 	return &DocData{Doc: doc, Raw: lines, Comments: doclines, Data: spec}, nil
 }
 
-func ParseLine(key, value string, data map[string]interface{}) error {
+func ParseLine(pkgs []*packages.Package, key, value string, data map[string]interface{}) error {
 	switch key {
 	case "schemes", "consumes", "produces", "tags":
 		p, err := parseStringValue(value)
@@ -90,7 +92,7 @@ func ParseLine(key, value string, data map[string]interface{}) error {
 			}
 		}
 	case "parameters":
-		p, err := parseValue(value)
+		p, err := parseValue(pkgs, value)
 		if err != nil {
 			return err
 		}
@@ -108,7 +110,7 @@ func ParseLine(key, value string, data map[string]interface{}) error {
 		keys := strings.Split(key, ".")
 		for i := 0; i < len(keys); i++ {
 			if i+1 == len(keys) {
-				pv, err := parseValue(value)
+				pv, err := parseValue(pkgs, value)
 				if err != nil {
 					return err
 				}
@@ -135,10 +137,16 @@ func ParseLine(key, value string, data map[string]interface{}) error {
 	return nil
 }
 
-func parseValue(value string) (interface{}, error) {
+func parseValue(pkgs []*packages.Package, value string) (interface{}, error) {
 	if strings.HasPrefix(value, "{") && strings.HasSuffix(value, "}") {
 		obj := make(map[string]interface{})
 		if err := json.Unmarshal([]byte(value), &obj); err != nil {
+			// attempt to parse struct in format `{packagename.structname}`
+			data, err := FindStruct(pkgs, strings.Trim(value, "{}"))
+			if err == nil {
+				return data, err
+			}
+
 			log.Printf("failed to parse annotation `%s`, error: %v", value, err)
 		}
 		return obj, nil

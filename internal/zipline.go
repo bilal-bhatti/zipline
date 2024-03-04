@@ -115,7 +115,7 @@ func (z *Zipline) Start() error {
 		z.renderer.preamble.Reset()
 	}
 
-	swagger, err := newSwagger(z.typeSpecs)
+	swagger, err := newSwagger(z.provider.pkgs, z.typeSpecs)
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func (z *Zipline) prepare(packet *packet) error {
 					}
 
 					// rewrite ast to replace zipline spec
-					expType.Args[i] = z.newCallExpression(binding, expType.Args[i])
+					expType.Args[i] = z.newCallExpression(binding)
 					packet.bindings = append(packet.bindings, binding)
 				}
 			}
@@ -208,7 +208,7 @@ func (z *Zipline) prepare(packet *packet) error {
 }
 
 func (z *Zipline) processStatement(pkg *packages.Package, stmt *ast.ExprStmt) (*binding, error) {
-	binding, err := parseSpec(pkg, stmt)
+	binding, err := z.parseSpec(pkg, stmt)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +219,7 @@ func (z *Zipline) processStatement(pkg *packages.Package, stmt *ast.ExprStmt) (*
 	return binding, nil
 }
 
-func (z *Zipline) newCallExpression(binding *binding, arg ast.Expr) *ast.CallExpr {
+func (z *Zipline) newCallExpression(binding *binding) *ast.CallExpr {
 	template := z.templates[binding.template]
 
 	ce := &ast.CallExpr{
@@ -239,7 +239,7 @@ func (z *Zipline) newCallExpression(binding *binding, arg ast.Expr) *ast.CallExp
 	return ce
 }
 
-func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
+func (z *Zipline) parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 	zline := util.NewBuffer()
 	printer.Fprint(zline, pkg.Fset, spec)
 	debug.Trace("parsing `%s`", zline)
@@ -277,7 +277,7 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 
 	switch handler := zipline.Args[0].(type) {
 	case *ast.SelectorExpr:
-		handlerInfo, err := newHandlerInfoFromSelectorExpr(pkg, handler)
+		handlerInfo, err := z.newHandlerInfoFromSelectorExpr(pkg, handler)
 		if err != nil {
 			return nil, err
 		}
@@ -285,7 +285,7 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 		binding.handler = handlerInfo
 	case *ast.Ident:
 		// handler func a func in the same package as bindings, e.g. Echo(x,y)
-		handlerInfo, err := newHandlerInfoFromIdent(pkg, handler)
+		handlerInfo, err := z.newHandlerInfoFromIdent(pkg, handler)
 		if err != nil {
 			return nil, err
 		}
@@ -325,8 +325,8 @@ func parseSpec(pkg *packages.Package, spec *ast.ExprStmt) (*binding, error) {
 	return binding, nil
 }
 
-func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.SelectorExpr) (*handlerInfo, error) {
-	handlerInfo, err := newHandlerInfoFromIdent(pkg, handler.Sel)
+func (z *Zipline) newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.SelectorExpr) (*handlerInfo, error) {
+	handlerInfo, err := z.newHandlerInfoFromIdent(pkg, handler.Sel)
 	if err != nil {
 		return nil, err
 	}
@@ -379,7 +379,7 @@ func newHandlerInfoFromSelectorExpr(pkg *packages.Package, handler *ast.Selector
 	return handlerInfo, nil
 }
 
-func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) (*handlerInfo, error) {
+func (z *Zipline) newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) (*handlerInfo, error) {
 	obj := qualifiedIdentObject(pkg.TypesInfo, handler)
 
 	sig := obj.Type().(*types.Signature)
@@ -399,7 +399,7 @@ func newHandlerInfoFromIdent(pkg *packages.Package, handler *ast.Ident) (*handle
 	id.WriteString(obj.Name())
 
 	pos := pkg.Fset.PositionFor(obj.Pos(), true)
-	comments, err := docparser.GetDocComments(pos)
+	comments, err := docparser.GetDocComments(z.provider.pkgs, pos)
 	if err != nil {
 		// let's not fail on comments but log the error
 		log.Println("failed to extract comments", err.Error())

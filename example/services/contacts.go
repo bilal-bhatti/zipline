@@ -71,6 +71,7 @@ func (cs ContactsService) GetOne(ctx context.Context, id int) (*ContactResponse,
 // @tags             contacts
 // @produces         application/json
 // @parameters       {"name":"ids", "description":"list of contact ids", "required":true}
+// @responses.400    {models.ErrorResponse}
 func (cs ContactsService) GetBunch(ctx context.Context, ids []int64) (*ContactResponse, error) {
 	return &ContactResponse{ID: "id"}, nil
 }
@@ -86,8 +87,6 @@ func (cs ContactsService) DeleteBulk(ctx context.Context, ids []string) error {
 }
 
 // Redirect sends a redirect in response
-//
-// responses.302     {models.ErrorResponse}
 func (cs ContactsService) Redirect(ctx context.Context, id string) (string, error) {
 	// return url.Parse("https://donate.doctorswithoutborders.org")
 	return "https://donate.doctorswithoutborders.org", nil

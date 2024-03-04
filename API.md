@@ -25,6 +25,10 @@ Get a list of contacts by ids
 `responses`
 - code: `200`, type: `services.ContactResponse`
 	- id: `string`
+- code: `400`, type: ``
+	- code: `integer`
+	- description: `string`
+	- status: `string`
 - `default`, type: `Error`
 	- code: `integer`
 	- status: `string`
@@ -264,6 +268,9 @@ Ping returns body with 'i's replaced with 'o's
 A short summary of this endpoint
 ```
 
+`path parameters`
+- notgood: `string`format: `eMail`
+
 `query parameters`
 - from: `string`, format: `date-time,2006-01-02`
 - to: `string`, format: `date-time,2006-01-02`
@@ -288,6 +295,14 @@ A short summary of this endpoint
 		- uint64: `integer`, format: `int64`
 		- uint8: `integer`, format: `int8`
 		- updateDate: `string`, format: `date-time`
+- code: `400`, type: ``
+	- code: `integer`
+	- description: `string`
+	- status: `string`
+- code: `404`, type: ``
+	- code: `integer`
+	- description: `string`
+	- status: `string`
 - `default`, type: `Error`
 	- code: `integer`
 	- status: `string`

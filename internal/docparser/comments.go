@@ -7,6 +7,7 @@ import (
 
 	"github.com/bilal-bhatti/zipline/internal/util"
 	"github.com/fatih/structtag"
+	"golang.org/x/tools/go/packages"
 )
 
 type Comments struct {
@@ -15,7 +16,7 @@ type Comments struct {
 	Comments []string
 }
 
-func GetDocComments(pos token.Position) (*DocData, error) {
+func GetDocComments(pkgs []*packages.Package, pos token.Position) (*DocData, error) {
 	// just in case
 	if pos.Line-2 <= 0 {
 		return &DocData{
@@ -48,5 +49,5 @@ func GetDocComments(pos token.Position) (*DocData, error) {
 	}
 	util.Reverse(comments)
 
-	return ParseDoc(strings.Join(comments, "\n"))
+	return ParseDoc(pkgs, strings.Join(comments, "\n"))
 }
