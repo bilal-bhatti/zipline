@@ -70,7 +70,6 @@ func ParseDoc(pkgs []*packages.Package, doc string) (*DocData, error) {
 		}
 	}
 
-	// yaml.NewEncoder(os.Stdout).Encode(spec)
 	return &DocData{Doc: doc, Raw: lines, Comments: doclines, Data: spec}, nil
 }
 

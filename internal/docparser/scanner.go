@@ -22,21 +22,6 @@ func FindStruct(pkgs []*packages.Package, tname string) (map[string]interface{},
 							if _, ok := specType.Type.(*ast.StructType); ok {
 								if pkg.Name+"."+specType.Name.Name == tname {
 									obj = pkg.TypesInfo.Defs[specType.Name]
-									// fmt.Println("found object ", obj)
-									// schema, err := schema.FieldNew("--", obj.Type())
-									// if err != nil {
-									// 	fmt.Println("error generating schema", err)
-									// }
-
-									// if err := json.NewEncoder(os.Stdout).Encode(schema); err != nil {
-									// 	fmt.Println("error generating schema", err)
-									// }
-
-									// if len(strings.TrimSpace(specType.Doc.Text())) > 0 {
-									// 	fmt.Println("docs", specType.Doc.Text())
-									// } else {
-									// 	fmt.Println("docs", gd.Doc.Text())
-									// }
 									return false
 								}
 							}

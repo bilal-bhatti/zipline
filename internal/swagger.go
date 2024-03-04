@@ -94,7 +94,6 @@ func (s *swagger) generate(packets []*packet) error {
 			} else {
 				opId = b.id()
 			}
-			// fmt.Println(b.handler.docs.Data["operationId"])
 			op := &spec.Operation{
 				OperationProps: spec.OperationProps{
 					Description: "Route description",
@@ -226,8 +225,6 @@ func (s *swagger) generate(packets []*packet) error {
 			}
 
 			// Start: add parameters that are not in code, but are declared as overrides
-			// yaml.NewEncoder(os.Stdout).Encode(b.handler.docs.Data["parameters"])
-			// op.Parameters
 			overrides := b.handler.docs.Data["parameters"]
 			newparms := overriddenParams(overrides, op.Parameters)
 			for _, p := range newparms {

@@ -2,7 +2,6 @@ package internal
 
 import (
 	"errors"
-	"fmt"
 	"go/ast"
 	"go/types"
 
@@ -45,24 +44,9 @@ func (p provider) typeTokenFor(vt *tokens.TypeToken) (*tokens.TypeToken, bool) {
 func (p provider) provide(vt *tokens.TypeToken, retNames []string) (*tokens.FuncToken, error) {
 	debug.Trace("scanning packages for %s", vt.FullSignature)
 
-	// TODO : do additional response types
-	// id := ast.NewIdent("github.com/bilal-bhatti/zipline/example/models.ErrorResponse")
-	id := ast.NewIdent("ErrorResponse")
-
 	for _, pkg := range p.pkgs {
 		info := pkg.TypesInfo
-		if x, ok := info.Defs[id]; ok {
-			fmt.Println("x", x)
-		}
-
 		for _, v := range info.Defs {
-			// if v != nil {
-			// 	// if st, ok := v.Type().(*types.Struct); ok {
-			// 	if strings.HasSuffix(v.Type().String(), "models.ErrorResponse") {
-			// 		fmt.Println("def v", v, v.Type().String())
-			// 	}
-			// 	// }
-			// }
 			pf, ok := v.(*types.Func)
 			if !ok || !v.Exported() {
 				continue
